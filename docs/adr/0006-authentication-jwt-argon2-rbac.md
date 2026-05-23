@@ -66,7 +66,7 @@ JWTs carry `{ sub: userId, tenantId, role, branchId? }` — the same shape consu
 ### Negative consequences
 
 - **JWT revocation of access tokens** between refresh windows is not possible without a deny list. We accept the ≤ 15 min window.
-- **Argon2 is a native dependency** — requires `onlyBuiltDependencies` whitelisting in pnpm (handled).
+- **Argon2 is a native dependency** — requires `allowBuilds` whitelisting in pnpm 11 (handled).
 - **RBAC won't fit** the day we need per-record permissions (e.g. "this user can edit _only_ orders for branch X"). We will then add a thin ABAC layer on top, not replace RBAC.
 
 ### Trade-offs accepted

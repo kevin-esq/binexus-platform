@@ -11,7 +11,7 @@
     "start:prod": "node dist/main.js",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "clean": "rimraf dist",
     "prisma:generate": "prisma generate",

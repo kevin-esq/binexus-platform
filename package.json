@@ -45,18 +45,5 @@
     "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@nestjs/core",
-      "@prisma/client",
-      "@prisma/engines",
-      "@swc/core",
-      "argon2",
-      "esbuild",
-      "prisma",
-      "sharp",
-      "unrs-resolver"
-    ]
   }
 }

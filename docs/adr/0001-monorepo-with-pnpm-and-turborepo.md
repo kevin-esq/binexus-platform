@@ -75,7 +75,7 @@ A polyrepo setup would force us to publish internal packages, version-bump them 
 - **Good:** Strict workspace isolation enforced by pnpm symlinks.
 - **Good:** Turborepo task graph + caching is the simplest fast-feedback story.
 - **Good:** Massive disk/install savings via the content-addressable store.
-- **Bad:** Native build scripts require explicit allowlist (`onlyBuiltDependencies`).
+- **Bad:** Native build scripts require explicit allowlist (`allowBuilds` in pnpm 11).
 - **Bad:** Some tools mis-resolve under symlinks (rare in 2026; we ignore the long tail).
 
 ### Option 4 — Nx
@@ -104,5 +104,5 @@ It is failing if:
 
 - [pnpm workspaces](https://pnpm.io/workspaces)
 - [Turborepo handbook](https://turborepo.com/docs)
-- [`pnpm.onlyBuiltDependencies` rationale](https://pnpm.io/settings#onlybuiltdependencies)
+- [`pnpm.allowBuilds` settings](https://pnpm.io/settings#allowbuilds)
 - Related: ADR-0002 (modular monolith), ADR-0007 (command bus)
