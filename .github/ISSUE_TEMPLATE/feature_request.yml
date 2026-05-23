@@ -1,0 +1,83 @@
+name: Feature request
+description: Propose a new feature, command, event, or improvement
+title: 'feat: <short description>'
+labels: ['feature', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for any non-trivial feature.
+        Trivial work (typos, small refactors) can skip the issue and go straight to a PR.
+  - type: input
+    id: summary
+    attributes:
+      label: One-line summary
+      placeholder: 'Add SETTLE_ORDER command to Orders context'
+    validations:
+      required: true
+  - type: dropdown
+    id: context
+    attributes:
+      label: Bounded context
+      options:
+        - identity
+        - orders
+        - inventory
+        - sales
+        - logistics
+        - cross-cutting / foundation
+        - tooling
+        - docs
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Roadmap phase
+      options:
+        - '0 - Foundation'
+        - '1 - Orders'
+        - '2 - Inventory'
+        - '3 - Sales / POS'
+        - '4 - Warehouse'
+        - '5 - Routes'
+        - '6 - Liquidation'
+        - '7 - Billing'
+        - '8 - Analytics'
+        - 'Cross-cutting'
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What is the user / business problem? What pain does this remove?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: |
+        Include entities, commands, events, state transitions, and screens (if any).
+        Reference the relevant docs you would update.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks / migrations
+      description: Backwards compatibility, data migrations, event schema versioning, etc.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmations
+      options:
+        - label: This work fits the modular-monolith / event-driven architecture.
+          required: true
+        - label: I'm willing to keep the scope narrow.
+          required: true

@@ -11,10 +11,11 @@ This folder is the **single source of truth** for the platform's architecture, c
 5. [`architecture/commands.md`](architecture/commands.md)
 6. [`architecture/observability.md`](architecture/observability.md)
 7. [`architecture/feature-flags.md`](architecture/feature-flags.md)
-8. [`domains/README.md`](domains/README.md) — the 7 domains
-9. [`states/order.md`](states/order.md) — order state machine
-10. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
-11. [`events/README.md`](events/README.md) — event catalog
+8. [`architecture/dev-workflow.md`](architecture/dev-workflow.md) — branches, commits, PR, CI, rulesets
+9. [`domains/README.md`](domains/README.md) — the 7 domains
+10. [`states/order.md`](states/order.md) — order state machine
+11. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
+12. [`events/README.md`](events/README.md) — event catalog
 
 ## How to add a new doc
 

@@ -1,0 +1,22 @@
+# Binexus CODEOWNERS
+# Default reviewer for everything: the repo owner.
+# Replace with @teams once the org has them.
+
+*                                   @kevin-esq
+
+# Architecture and bounded-context boundaries are sensitive — explicit owner.
+/docs/                              @kevin-esq
+/packages/events/                   @kevin-esq
+/packages/types/                    @kevin-esq
+/apps/backend/src/common/           @kevin-esq
+/apps/backend/prisma/               @kevin-esq
+
+# CI / infrastructure / security-relevant files
+/.github/                           @kevin-esq
+/infrastructure/                    @kevin-esq
+/scripts/                           @kevin-esq
+/eslint.config.mjs                  @kevin-esq
+/tsconfig.base.json                 @kevin-esq
+/turbo.json                         @kevin-esq
+/pnpm-workspace.yaml                @kevin-esq
+/.husky/                            @kevin-esq

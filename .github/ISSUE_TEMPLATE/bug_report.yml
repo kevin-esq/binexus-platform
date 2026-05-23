@@ -1,0 +1,91 @@
+name: Bug report
+description: Report a defect in the platform
+title: 'fix: <short description>'
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug.
+        Please fill in as much as possible — incomplete reports get deprioritized.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence describing the bug.
+      placeholder: 'Login throws 500 when tenant slug is uppercase'
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - apps/backend
+        - apps/web
+        - apps/desktop
+        - packages/types
+        - packages/events
+        - packages/sdk
+        - packages/ui
+        - infrastructure / docker
+        - docs
+        - tooling / CI
+    validations:
+      required: true
+  - type: dropdown
+    id: context
+    attributes:
+      label: Bounded context (if backend)
+      options:
+        - identity
+        - orders
+        - inventory
+        - sales
+        - logistics
+        - cross-cutting / foundation
+        - n/a
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Run `pnpm dev`
+        2. Open <http://localhost:3000/login>
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error output
+      render: shell
+  - type: input
+    id: commit
+    attributes:
+      label: Commit SHA or branch
+      placeholder: 'main @ 3295034'
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmations
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I can reproduce this on the latest `main`.
+          required: false

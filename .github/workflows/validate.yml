@@ -1,0 +1,74 @@
+name: Validate
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '11'
+
+jobs:
+  branch-name:
+    name: Validate branch name
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Check branch naming convention
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          branch="$HEAD_REF"
+          allowed='^(feat|fix|refactor|docs|chore|test|perf|ci|build)/[a-z0-9][a-z0-9-]*$'
+          allowed_bot='^(dependabot/|revert-)'
+          if [[ "$branch" =~ $allowed ]] || [[ "$branch" =~ $allowed_bot ]]; then
+            echo "Branch '$branch' is valid."
+            exit 0
+          fi
+          {
+            echo "::error::Branch name '$branch' does not match the required convention."
+            echo "::error::Expected: <type>/<kebab-case>  where type is one of feat fix refactor docs chore test perf ci build"
+            echo "::error::Examples: feat/orders-create-command  |  fix/jwt-refresh-rotation"
+          }
+          exit 1
+
+  commits:
+    name: Validate commit messages
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies (no scripts)
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Lint PR commits with commitlint
+        run: |
+          pnpm exec commitlint \
+            --from "${{ github.event.pull_request.base.sha }}" \
+            --to "${{ github.event.pull_request.head.sha }}" \
+            --verbose

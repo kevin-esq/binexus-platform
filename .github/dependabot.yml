@@ -1,0 +1,77 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 8
+    versioning-strategy: increase
+    labels: ['dependencies']
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      nest:
+        patterns:
+          - '@nestjs/*'
+          - 'nestjs-*'
+      prisma:
+        patterns:
+          - '@prisma/*'
+          - 'prisma'
+      next:
+        patterns:
+          - 'next'
+          - 'eslint-config-next'
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+      typescript:
+        patterns:
+          - 'typescript'
+          - 'typescript-eslint'
+          - '@typescript-eslint/*'
+      lint-format:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - 'prettier'
+          - 'prettier-*'
+          - 'lint-staged'
+          - 'husky'
+          - '@commitlint/*'
+      build-tooling:
+        patterns:
+          - 'turbo'
+          - 'tsup'
+          - 'tsx'
+          - 'rimraf'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 4
+    labels: ['dependencies', 'ci']
+    commit-message:
+      prefix: ci
+      include: scope
+
+  - package-ecosystem: docker
+    directory: /infrastructure/compose
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 4
+    labels: ['dependencies', 'infrastructure']
+    commit-message:
+      prefix: chore
+      include: scope

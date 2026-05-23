@@ -1,0 +1,198 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '11'
+  TURBO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  install:
+    name: Install dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      store-path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Get pnpm store directory
+        id: pnpm-store
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @binexus/backend exec prisma generate
+
+  typecheck:
+    name: Typecheck
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @binexus/backend exec prisma generate
+      - name: Turbo typecheck
+        run: pnpm exec turbo run typecheck
+
+  lint:
+    name: Lint
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @binexus/backend exec prisma generate
+      - name: Turbo lint
+        run: pnpm exec turbo run lint
+      - name: Prettier check
+        run: pnpm format:check
+
+  build:
+    name: Build
+    needs: [typecheck, lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @binexus/backend exec prisma generate
+      - name: Turbo build
+        run: pnpm exec turbo run build
+
+  test:
+    name: Test
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: binexus
+          POSTGRES_PASSWORD: binexus
+          POSTGRES_DB: binexus
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd="pg_isready -U binexus"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7.4-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DATABASE_URL: postgresql://binexus:binexus@localhost:5432/binexus?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: ci-access-secret
+      JWT_REFRESH_SECRET: ci-refresh-secret
+      JWT_ACCESS_TTL: 15m
+      JWT_REFRESH_TTL: 7d
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @binexus/backend exec prisma generate
+      - name: Run unit tests
+        run: pnpm exec turbo run test
+
+  ci-summary:
+    name: CI Summary
+    if: always()
+    needs: [typecheck, lint, build, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate results
+        run: |
+          status_typecheck="${{ needs.typecheck.result }}"
+          status_lint="${{ needs.lint.result }}"
+          status_build="${{ needs.build.result }}"
+          status_test="${{ needs.test.result }}"
+          echo "typecheck=$status_typecheck"
+          echo "lint=$status_lint"
+          echo "build=$status_build"
+          echo "test=$status_test"
+          if [[ "$status_typecheck" != "success" || \
+                "$status_lint" != "success" || \
+                "$status_build" != "success" || \
+                "$status_test" != "success" ]]; then
+            echo "::error::One or more CI checks failed"
+            exit 1
+          fi
+          echo "All checks passed"

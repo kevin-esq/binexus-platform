@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Architecture and roadmap docs
+    url: https://github.com/kevin-esq/binexus-platform/tree/main/docs
+    about: Before opening an issue, browse the architecture and roadmap docs.

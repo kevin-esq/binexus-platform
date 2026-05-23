@@ -1,0 +1,32 @@
+name: Stale issues and PRs
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/stale@v9
+        with:
+          days-before-issue-stale: 45
+          days-before-issue-close: 14
+          days-before-pr-stale: 21
+          days-before-pr-close: 7
+          stale-issue-label: stale
+          stale-pr-label: stale
+          exempt-issue-labels: 'pinned,security,roadmap'
+          exempt-pr-labels: 'pinned,security,wip'
+          stale-issue-message: |
+            This issue has been automatically marked as stale due to inactivity.
+            It will be closed if no further activity occurs.
+          stale-pr-message: |
+            This PR has been automatically marked as stale due to inactivity.
+            It will be closed if no further activity occurs.

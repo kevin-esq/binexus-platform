@@ -1,0 +1,84 @@
+- name: bug
+  color: 'd73a4a'
+  description: Something is not working
+- name: feature
+  color: '0e8a16'
+  description: New capability
+- name: docs
+  color: '0075ca'
+  description: Documentation only
+- name: refactor
+  color: 'cfd3d7'
+  description: Internal change with no behavior change
+- name: perf
+  color: 'fbca04'
+  description: Performance work
+- name: dependencies
+  color: '0366d6'
+  description: Dependency updates
+- name: ci
+  color: '1f883d'
+  description: Continuous integration changes
+- name: infrastructure
+  color: 'bfdadc'
+  description: Docker / compose / infra
+- name: security
+  color: 'b60205'
+  description: Security related
+- name: triage
+  color: 'ededed'
+  description: Needs review and labeling
+- name: blocked
+  color: 'e99695'
+  description: Cannot progress
+- name: pinned
+  color: '1d76db'
+  description: Exempt from stale automation
+- name: stale
+  color: 'cccccc'
+  description: Inactive for a while
+- name: wip
+  color: 'fbca04'
+  description: Work in progress, do not merge
+- name: roadmap
+  color: '5319e7'
+  description: Long-running roadmap item
+- name: 'phase:0-foundation'
+  color: '0e8a16'
+  description: Phase 0 — foundation
+- name: 'phase:1-orders'
+  color: '0e8a16'
+  description: Phase 1 — orders
+- name: 'phase:2-inventory'
+  color: '0e8a16'
+  description: Phase 2 — inventory
+- name: 'phase:3-sales'
+  color: '0e8a16'
+  description: Phase 3 — sales / POS
+- name: 'phase:4-warehouse'
+  color: '0e8a16'
+  description: Phase 4 — warehouse
+- name: 'phase:5-routes'
+  color: '0e8a16'
+  description: Phase 5 — routes
+- name: 'phase:6-liquidation'
+  color: '0e8a16'
+  description: Phase 6 — liquidation
+- name: 'phase:7-billing'
+  color: '0e8a16'
+  description: Phase 7 — billing
+- name: 'context:identity'
+  color: '5319e7'
+  description: Identity bounded context
+- name: 'context:orders'
+  color: '5319e7'
+  description: Orders bounded context
+- name: 'context:inventory'
+  color: '5319e7'
+  description: Inventory bounded context
+- name: 'context:sales'
+  color: '5319e7'
+  description: Sales bounded context
+- name: 'context:logistics'
+  color: '5319e7'
+  description: Logistics bounded context
