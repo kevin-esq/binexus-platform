@@ -5,7 +5,15 @@ import { type TenantContextService } from '../tenant/tenant-context.service';
 
 // Models that store data per-tenant and must be auto-filtered.
 // Other foundation models (Tenant itself, RefreshToken) are explicitly excluded.
-const TENANT_SCOPED_MODELS = new Set<string>(['User', 'Branch', 'OutboxEvent', 'TenantFeature']);
+const TENANT_SCOPED_MODELS = new Set<string>([
+  'User',
+  'Branch',
+  'OutboxEvent',
+  'TenantFeature',
+  'Order',
+  'OrderLine',
+  'OrderTransition',
+]);
 
 // Operations that should have tenantId enforced.
 const SCOPED_READ_OPS = new Set<string>([

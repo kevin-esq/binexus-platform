@@ -2,18 +2,18 @@
 
 Every domain event in the platform. Schemas live in [`packages/events/src/schemas/`](../../packages/events/src/schemas/) and are the source of truth — this table is a quick reference.
 
-## Phase 0 (registered)
+## Registered events
 
 | Event                | Producer   | Consumers                | Schema                                                                             |
 | -------------------- | ---------- | ------------------------ | ---------------------------------------------------------------------------------- |
 | `USER_REGISTERED`    | `identity` | (audit only in F0)       | [`user-registered.ts`](../../packages/events/src/schemas/user-registered.ts)       |
-| `ORDER_CREATED`      | `orders`\* | `inventory` (F2)         | [`order-created.ts`](../../packages/events/src/schemas/order-created.ts)           |
+| `ORDER_CREATED`      | `orders`   | audit / reporting (F8+)  | [`order-created.ts`](../../packages/events/src/schemas/order-created.ts)           |
 | `ORDER_APPROVED`     | `orders`\* | `inventory` (F2)         | [`order-approved.ts`](../../packages/events/src/schemas/order-approved.ts)         |
 | `ORDER_CANCELLED`    | `orders`\* | `inventory` (F2)         | [`order-cancelled.ts`](../../packages/events/src/schemas/order-cancelled.ts)       |
 | `SALE_CREATED`       | `sales`\*  | `inventory`, `billing`\* | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)             |
 | `PAYMENT_REGISTERED` | `sales`\*  | `billing`\*              | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts) |
 
-`*` = schema registered in F0, producer not implemented until the marked phase.
+`*` = schema registered, producer not implemented until the marked phase.
 
 ## Envelope
 

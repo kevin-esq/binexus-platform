@@ -1,6 +1,6 @@
 ﻿# Orders domain
 
-Status: **next** (Phase 1). Bounded context: `orders`.
+Status: **active** (Phase 1). Bounded context: `orders`.
 
 Orders is the first real business module. It coordinates demand before stock, warehouse, routes, billing, or POS specialize the workflow. POS is only one channel that can create an order; Orders remains channel-agnostic.
 
@@ -27,9 +27,12 @@ See [`states/order.md`](../states/order.md). The shared helper `canTransition()`
 
 ## Commands
 
-Phase 1 minimal slice:
+Implemented:
 
 - `CreateOrderCommand`.
+
+Planned next:
+
 - `ApproveOrderCommand`.
 
 Later:
@@ -42,9 +45,12 @@ Later:
 
 ## Events emitted
 
-Already registered:
+Implemented:
 
 - `ORDER_CREATED`.
+
+Registered for next steps:
+
 - `ORDER_APPROVED`.
 - `ORDER_CANCELLED`.
 
@@ -82,6 +88,8 @@ Potential future:
 ```txt
 CreateOrder
 ↓
+ORDER_CREATED event
+↓
 ApproveOrder
 ↓
 ORDER_APPROVED event
@@ -90,6 +98,21 @@ Inventory reserves stock
 ↓
 Warehouse generates picking
 ```
+
+## HTTP surface
+
+```txt
+POST /orders
+```
+
+Creates a tenant-scoped `Order` in `DRAFT`, persists its lines, records the initial transition, and writes `ORDER_CREATED` to the outbox in the same transaction.
+
+```txt
+Idempotency-Key: <command id>
+X-Correlation-Id: <request/workflow id>
+```
+
+Both headers are optional today but part of the command metadata contract.
 
 ## Open questions
 

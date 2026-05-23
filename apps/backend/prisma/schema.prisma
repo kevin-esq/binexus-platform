@@ -22,6 +22,17 @@ enum Role {
   DRIVER
 }
 
+enum OrderState {
+  DRAFT
+  APPROVED
+  PICKING
+  READY_FOR_ROUTE
+  OUT_FOR_DELIVERY
+  DELIVERED
+  SETTLED
+  CANCELLED
+}
+
 model Tenant {
   id        String          @id @default(cuid())
   slug      String          @unique
@@ -30,20 +41,23 @@ model Tenant {
   users     User[]
   branches  Branch[]
   features  TenantFeature[]
+  orders    Order[]
 }
 
 model User {
-  id            String         @id @default(cuid())
-  tenantId      String
-  email         String
-  passwordHash  String
-  role          Role
-  branchId      String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch        Branch?        @relation(fields: [branchId], references: [id])
-  refreshTokens RefreshToken[]
+  id               String            @id @default(cuid())
+  tenantId         String
+  email            String
+  passwordHash     String
+  role             Role
+  branchId         String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch           Branch?           @relation(fields: [branchId], references: [id])
+  refreshTokens    RefreshToken[]
+  createdOrders    Order[]           @relation("OrderCreatedBy")
+  orderTransitions OrderTransition[]
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -56,6 +70,7 @@ model Branch {
   createdAt DateTime @default(now())
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   users     User[]
+  orders    Order[]
 
   @@index([tenantId])
 }
@@ -104,4 +119,59 @@ model TenantFeature {
 
   @@unique([tenantId, key])
   @@index([tenantId])
+}
+
+model Order {
+  id              String            @id @default(cuid())
+  tenantId        String
+  branchId        String
+  customerId      String
+  state           OrderState        @default(DRAFT)
+  totalCents      Int
+  currency        String
+  createdByUserId String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch          Branch            @relation(fields: [branchId], references: [id])
+  createdBy       User              @relation("OrderCreatedBy", fields: [createdByUserId], references: [id])
+  lines           OrderLine[]
+  transitions     OrderTransition[]
+
+  @@index([tenantId, branchId])
+  @@index([tenantId, customerId])
+  @@index([tenantId, state])
+  @@index([tenantId, createdAt])
+}
+
+model OrderLine {
+  id             String   @id @default(cuid())
+  tenantId       String
+  orderId        String
+  productId      String
+  productName    String
+  quantity       Int
+  unitPriceCents Int
+  lineTotalCents Int
+  createdAt      DateTime @default(now())
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, orderId])
+  @@index([tenantId, productId])
+}
+
+model OrderTransition {
+  id         String      @id @default(cuid())
+  tenantId   String
+  orderId    String
+  fromState  OrderState?
+  toState    OrderState
+  reason     String?
+  byUserId   String
+  occurredAt DateTime    @default(now())
+  order      Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  byUser     User        @relation(fields: [byUserId], references: [id])
+
+  @@index([tenantId, orderId])
+  @@index([tenantId, occurredAt])
 }
