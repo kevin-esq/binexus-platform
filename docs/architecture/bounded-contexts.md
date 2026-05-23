@@ -1,14 +1,21 @@
 # Bounded contexts
 
-Binexus is organized as a modular monolith with five bounded contexts. They live under [`apps/backend/src/contexts/`](../../apps/backend/src/contexts/).
+Binexus is organized as a modular monolith with ten initial bounded contexts. They live under [`apps/backend/src/contexts/`](../../apps/backend/src/contexts/).
 
-| Context     | Phase | Responsibility                                           |
-| ----------- | ----- | -------------------------------------------------------- |
-| `identity`  | 0     | Tenants, users, branches, auth (JWT), RBAC               |
-| `orders`    | 1     | Order lifecycle, approvals, state machine                |
-| `inventory` | 2     | Stock per branch, reservations, movements, transfers     |
-| `sales`     | 5     | POS retail and restaurant, tickets, payment registration |
-| `logistics` | 4-6   | Warehouse (lite), route building, liquidation            |
+The contexts intentionally map 1:1 with the operational domains documented in [`docs/domains`](../domains/). This keeps ownership clear while the product is still learning the business. We can merge or split later with a new ADR, but Phase 1 starts with explicit boundaries.
+
+| Context     | Phase | Responsibility                                                  |
+| ----------- | ----- | --------------------------------------------------------------- |
+| `identity`  | 0     | Tenants, users, branches, auth (JWT), RBAC                      |
+| `catalog`   | 1+    | Products, SKUs, units, price lists, tax categories              |
+| `customers` | 1+    | Customers, billing identity, addresses, credit profile          |
+| `orders`    | 1     | Order lifecycle, approvals, state machine                       |
+| `inventory` | 2     | Stock per branch, reservations, movements, transfers            |
+| `warehouse` | 3     | Picking, packing, staging, warehouse-lite operational execution |
+| `logistics` | 4-6   | Routes, dispatch, delivery confirmation, route liquidation      |
+| `sales`     | 5     | POS retail and restaurant, tickets, payment registration        |
+| `billing`   | 7     | Invoices, fiscal documents, payment allocation, receivables     |
+| `reporting` | 8+    | Read models, operational dashboards, analytics projections      |
 
 ## Rules of engagement
 
@@ -17,6 +24,8 @@ Binexus is organized as a modular monolith with five bounded contexts. They live
 3. **Shared types live in `@binexus/types`.** Anything imported across contexts is intentional and reviewed.
 4. **Commands stay inside their context.** A command handler in `orders` cannot dispatch a command from `inventory`. Use events.
 5. **`identity` is the only context other contexts may query directly** (for user/branch lookups during authorization). This is a deliberate exception.
+6. **`catalog` and `customers` are reference contexts.** Other contexts may store immutable snapshots from them, but not mutate their rows.
+7. **`reporting` never owns source-of-truth writes.** It consumes events and builds projections.
 
 ## Per-context structure (when implemented)
 

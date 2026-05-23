@@ -25,7 +25,7 @@ stateDiagram-v2
 | `DRAFT`            | `cancel`          | `CANCELLED`        | `ORDER_CANCELLED`       | No side effects beyond audit.                               |
 | `APPROVED`         | `assignWarehouse` | `PICKING`          | `ORDER_PICKING_STARTED` | Warehouse staff picks up the task.                          |
 | `APPROVED`         | `cancel`          | `CANCELLED`        | `ORDER_CANCELLED`       | Triggers stock release.                                     |
-| `PICKING`          | `pickingComplete` | `READY_FOR_ROUTE`  | `ORDER_PICKED`          | Items physically prepared.                                  |
+| `PICKING`          | `pickingComplete` | `READY_FOR_ROUTE`  | `PICKING_COMPLETED`     | Items physically prepared.                                  |
 | `READY_FOR_ROUTE`  | `dispatchRoute`   | `OUT_FOR_DELIVERY` | `ORDER_DISPATCHED`      | Assigned to a route + driver.                               |
 | `OUT_FOR_DELIVERY` | `confirmDelivery` | `DELIVERED`        | `ORDER_DELIVERED`       | Proof of delivery captured.                                 |
 | `DELIVERED`        | `liquidate`       | `SETTLED`          | `ORDER_SETTLED`         | Cash + returns reconciled.                                  |

@@ -1,33 +1,32 @@
-# Orders bounded context
+﻿# Orders bounded context
 
-Status: **placeholder** (Phase 1 — next).
+Status: **placeholder** (Phase 1 - next).
 
-## Why this context
+Domain reference: [`docs/domains/orders.md`](../../../../../docs/domains/orders.md).
 
-Orders is the heart of the operational workflow. Everything else (inventory reservations, picking, routes, deliveries, liquidations, billing) hangs off the order lifecycle. We implement it first, before POS, because POS is just one of several ways to create an order.
+Orders is the first real business workflow. It owns order state, order lines, approvals, cancellations, and transition audit. It emits events for Inventory, Warehouse, Logistics, Billing, and Reporting to react.
 
-## Planned structure
+Planned first slice:
 
+```txt
+CreateOrderCommand
+↓
+ApproveOrderCommand
+↓
+ORDER_APPROVED
+↓
+Inventory reservation
+↓
+Warehouse picking task
 ```
+
+Planned structure:
+
+```txt
 orders/
 ├── orders.module.ts
-├── domain/                # Entities, value objects, OrderState machine helpers
-├── application/           # Commands (CreateOrder, ApproveOrder, ...) and handlers
-├── infrastructure/        # Prisma repositories
-└── presentation/          # HTTP controllers
+├── domain/
+├── application/
+├── infrastructure/
+└── presentation/
 ```
-
-## Planned commands
-
-- `CreateOrderCommand`
-- `ApproveOrderCommand`
-- `CancelOrderCommand`
-- `AssignWarehouseCommand`
-- `MarkPickingCompleteCommand`
-- `DispatchRouteCommand`
-- `ConfirmDeliveryCommand`
-- `LiquidateOrderCommand`
-
-## Planned events
-
-See [`docs/states/order.md`](../../../../docs/states/order.md) for the state machine and [`docs/events/README.md`](../../../../docs/events/README.md) for the event catalog.
