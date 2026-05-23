@@ -2,24 +2,35 @@
 
 This folder is the **single source of truth** for the platform's architecture, contracts, and operational reasoning. Every non-trivial decision lives here, not in commit messages.
 
+## Two kinds of docs
+
+| Kind                                                 | Where                                                           | Mutable?              |
+| ---------------------------------------------------- | --------------------------------------------------------------- | --------------------- |
+| **Architecture Decision Records** _(why?)_           | [`adr/`](adr/)                                                  | **No** — append-only. |
+| **Living architecture docs** _(how it works today?)_ | `architecture/`, `domains/`, `states/`, `workflows/`, `events/` | Yes — kept current.   |
+
+ADRs explain **why** we chose what we chose. Living docs explain **how the system works right now**. When the two disagree, the ADR is history and the living doc is the present.
+
 ## Reading order
 
-1. [`architecture/overview.md`](architecture/overview.md) — start here
-2. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
-3. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
-4. [`architecture/event-system.md`](architecture/event-system.md)
-5. [`architecture/commands.md`](architecture/commands.md)
-6. [`architecture/observability.md`](architecture/observability.md)
-7. [`architecture/feature-flags.md`](architecture/feature-flags.md)
-8. [`architecture/dev-workflow.md`](architecture/dev-workflow.md) — branches, commits, PR, CI, rulesets
-9. [`domains/README.md`](domains/README.md) — the 7 domains
-10. [`states/order.md`](states/order.md) — order state machine
-11. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
-12. [`events/README.md`](events/README.md) — event catalog
+1. [`adr/README.md`](adr/README.md) — the architectural decisions that shape everything below
+2. [`architecture/overview.md`](architecture/overview.md) — start here for the runtime picture
+3. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
+4. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
+5. [`architecture/event-system.md`](architecture/event-system.md)
+6. [`architecture/commands.md`](architecture/commands.md)
+7. [`architecture/observability.md`](architecture/observability.md)
+8. [`architecture/feature-flags.md`](architecture/feature-flags.md)
+9. [`architecture/dev-workflow.md`](architecture/dev-workflow.md) — branches, commits, PR, CI, rulesets
+10. [`domains/README.md`](domains/README.md) — the 7 domains
+11. [`states/order.md`](states/order.md) — order state machine
+12. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
+13. [`events/README.md`](events/README.md) — event catalog
 
 ## How to add a new doc
 
-- Architectural decision (ADR-ish): add to `architecture/` and link it from `overview.md`.
-- New bounded context or domain: extend `domains/README.md` and add a per-domain page.
-- New state machine: add to `states/<entity>.md` with a Mermaid diagram + transition table.
-- New event: add to `events/README.md` + a Zod schema in `packages/events`.
+- **New architectural decision**: add an ADR — see [`adr/README.md`](adr/README.md).
+- **New bounded context or domain**: extend `domains/README.md` and add a per-domain page.
+- **New state machine**: add to `states/<entity>.md` with a Mermaid diagram + transition table.
+- **New event**: add to `events/README.md` + a Zod schema in `packages/events`.
+- **Updating "how it works today"** because of a recent change: update the living docs in `architecture/`. Do NOT edit ADRs to reflect a new reality — write a new ADR that supersedes the old one.
