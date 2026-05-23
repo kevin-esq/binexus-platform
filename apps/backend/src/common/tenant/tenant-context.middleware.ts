@@ -35,6 +35,16 @@ export class TenantContextMiddleware implements NestMiddleware {
       const claims = this.jwt.verify<JwtClaims>(token, {
         secret: process.env.JWT_ACCESS_SECRET ?? 'dev-access-secret-change-me-please',
       });
+      const reqAny = req as unknown as {
+        tenantId?: string;
+        userId?: string;
+        role?: string;
+        branchId?: string | null;
+      };
+      reqAny.tenantId = claims.tenantId;
+      reqAny.userId = claims.sub;
+      reqAny.role = claims.role;
+      reqAny.branchId = claims.branchId ?? null;
       this.tenantContext.run(
         {
           tenantId: claims.tenantId,
@@ -45,14 +55,6 @@ export class TenantContextMiddleware implements NestMiddleware {
         },
         () => next(),
       );
-      const reqAny = req as unknown as {
-        tenantId?: string;
-        userId?: string;
-        role?: string;
-      };
-      reqAny.tenantId = claims.tenantId;
-      reqAny.userId = claims.sub;
-      reqAny.role = claims.role;
     } catch {
       // Invalid / expired token — let JwtAuthGuard reject downstream.
       next();

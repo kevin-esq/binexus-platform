@@ -15,6 +15,7 @@ import { PrismaModule } from './common/prisma/prisma.module';
 import { TenantContextMiddleware } from './common/tenant/tenant-context.middleware';
 import { TenantModule } from './common/tenant/tenant.module';
 import { IdentityModule } from './contexts/identity/identity.module';
+import { OrdersModule } from './contexts/orders/orders.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { IdentityModule } from './contexts/identity/identity.module';
     FeatureFlagsModule,
     HealthModule,
     IdentityModule,
+    OrdersModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

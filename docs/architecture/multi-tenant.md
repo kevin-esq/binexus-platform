@@ -18,12 +18,15 @@ We will revisit if a single tenant ever needs hard isolation guarantees (e.g. re
 2. **`PrismaService.forTenant()`** ([source](../../apps/backend/src/common/prisma/prisma.service.ts)) returns a `$extends`-wrapped client that auto-injects `where: { tenantId }` on read/write and `data: { tenantId }` on create for every tenant-scoped model.
 3. **`TENANT_SCOPED_MODELS`** is the explicit allow-list. Adding a model that holds tenant data requires adding it to that set — this is intentional friction.
 
-## Tenant-scoped models (Phase 0)
+## Tenant-scoped models
 
 - `User`
 - `Branch`
 - `OutboxEvent`
 - `TenantFeature`
+- `Order`
+- `OrderLine`
+- `OrderTransition`
 
 Foundation models that are NOT tenant-scoped:
 

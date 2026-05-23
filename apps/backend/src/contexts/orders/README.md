@@ -1,32 +1,31 @@
 ﻿# Orders bounded context
 
-Status: **placeholder** (Phase 1 - next).
+Status: **active** (Phase 1).
 
 Domain reference: [`docs/domains/orders.md`](../../../../../docs/domains/orders.md).
 
 Orders is the first real business workflow. It owns order state, order lines, approvals, cancellations, and transition audit. It emits events for Inventory, Warehouse, Logistics, Billing, and Reporting to react.
 
-Planned first slice:
+Implemented first slice:
 
 ```txt
 CreateOrderCommand
 ↓
-ApproveOrderCommand
+Order + OrderLine persistence
 ↓
-ORDER_APPROVED
+ORDER_CREATED recorded in outbox
 ↓
-Inventory reservation
-↓
-Warehouse picking task
+POST /orders
 ```
 
-Planned structure:
+Current structure:
 
 ```txt
 orders/
 ├── orders.module.ts
-├── domain/
 ├── application/
-├── infrastructure/
+│   └── commands/
+│       └── create-order.command.ts
 └── presentation/
+    └── orders.controller.ts
 ```
