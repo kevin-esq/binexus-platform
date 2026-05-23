@@ -12,11 +12,43 @@ Every use case is modeled as a **Command + Handler**, on top of `@nestjs/cqrs`. 
 
 ## Pieces
 
-| Piece            | Where                                                                                                                      |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `AppCommand<T>`  | [`apps/backend/src/common/commands/app-command.ts`](../../apps/backend/src/common/commands/app-command.ts)                 |
-| `AppCommandBus`  | [`apps/backend/src/common/commands/command-bus.service.ts`](../../apps/backend/src/common/commands/command-bus.service.ts) |
-| `CommandsModule` | [`apps/backend/src/common/commands/commands.module.ts`](../../apps/backend/src/common/commands/commands.module.ts)         |
+| Piece                     | Where                                                                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `AppCommand<T>`           | [`apps/backend/src/common/commands/app-command.ts`](../../apps/backend/src/common/commands/app-command.ts)                           |
+| `AppCommandHandler<T, R>` | [`apps/backend/src/common/commands/app-command-handler.ts`](../../apps/backend/src/common/commands/app-command-handler.ts)           |
+| `AppCommandBus`           | [`apps/backend/src/common/commands/command-bus.service.ts`](../../apps/backend/src/common/commands/command-bus.service.ts)           |
+| `validateAppCommand()`    | [`apps/backend/src/common/commands/command-validation.ts`](../../apps/backend/src/common/commands/command-validation.ts)             |
+| `CommandsModule`          | [`apps/backend/src/common/commands/commands.module.ts`](../../apps/backend/src/common/commands/commands.module.ts)                   |
+| Command bus tests         | [`apps/backend/src/common/commands/command-bus.service.spec.ts`](../../apps/backend/src/common/commands/command-bus.service.spec.ts) |
+
+## Command metadata
+
+Every command carries the same metadata:
+
+```ts
+interface AppCommandMetadata {
+  commandId?: string; // idempotency key
+  correlationId?: string;
+  causationId?: string;
+  issuedAt?: Date;
+}
+```
+
+- `commandId` is generated automatically when omitted. HTTP adapters should pass the `Idempotency-Key` header into this field.
+- `correlationId` links logs/events produced by the same request or workflow.
+- `causationId` links a command to the event/command that caused it.
+- `issuedAt` records when the command object was created, not necessarily when the handler committed.
+
+## Validation
+
+`AppCommandBus.execute()` validates before dispatching to Nest's `CommandBus`.
+
+Validation has two layers:
+
+1. Decorator validation via `class-validator` on command properties.
+2. Optional custom validation via a `validate(): void | Promise<void>` method on the command.
+
+If either layer fails, the command is rejected before any handler runs.
 
 ## Anatomy of a command (Phase 1 sketch)
 
@@ -26,14 +58,15 @@ export class CreateOrderCommand extends AppCommand<OrderId> {
   constructor(
     readonly input: CreateOrderInput,
     readonly issuedBy: UserId,
+    metadata?: AppCommandMetadata,
   ) {
-    super();
+    super(metadata);
   }
 }
 
 // orders/application/handlers/create-order.handler.ts
 @CommandHandler(CreateOrderCommand)
-export class CreateOrderHandler implements ICommandHandler<CreateOrderCommand, OrderId> {
+export class CreateOrderHandler extends AppCommandHandler<CreateOrderCommand> {
   constructor(
     private readonly prisma: PrismaService,
     private readonly bus: EventBusService,
@@ -79,3 +112,6 @@ export class OrdersController {
 - **Idempotency by default.** Commands accept an `idempotencyKey` when called over the network. Re-running the same key returns the same result, never side-effects twice. (Implementation lands with the first real command.)
 - **Commands return IDs or `void`, not entities.** If callers need the entity, they query for it. Keeps the bus output small and the handler focused.
 - **No queries in the command bus.** Reads go through plain services or repositories.
+- **Handlers extend `AppCommandHandler`.** Do not implement `ICommandHandler` directly unless the abstraction cannot express the use case.
+- **Controllers never call handlers directly.** They create a command and dispatch through `AppCommandBus`.
+- **Events are recorded inside the command transaction.** Use `EventBusService.build()` + `OutboxService.record(event, tx)` before the transaction commits.
