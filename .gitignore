@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+.cache/
+
+# Tauri
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/Cargo.lock
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+
+# Prisma
+apps/backend/prisma/migrations/dev.db*
+
+# Misc
+.eslintcache
+.prettiercache
+.pnpm-store/

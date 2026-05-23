@@ -1,0 +1,27 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+verifyDepsBeforeRun: false
+autoInstallPeers: true
+strictPeerDependencies: false
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@swc/core'
+  - 'argon2'
+  - 'esbuild'
+  - 'prisma'
+  - 'sharp'
+  - 'unrs-resolver'
+allowBuilds:
+  '@nestjs/core': set this to true or false
+  '@prisma/client': set this to true or false
+  '@prisma/engines': set this to true or false
+  argon2: set this to true or false
+  esbuild: set this to true or false
+  prisma: set this to true or false
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false

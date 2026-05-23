@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+.next
+.turbo
+coverage
+*.lock
+pnpm-lock.yaml
+apps/backend/prisma/migrations
+apps/desktop/src-tauri/target

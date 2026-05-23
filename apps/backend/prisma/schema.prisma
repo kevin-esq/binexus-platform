@@ -1,0 +1,107 @@
+// Binexus Foundation schema — Phase 0.
+// ONLY foundation entities. Business modules (Orders, Inventory, Sales, ...) will add
+// their own models in their respective phases.
+//
+// See docs/architecture/multi-tenant.md for the tenantId convention and the
+// PrismaService extension that enforces it.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  CASHIER
+  WAREHOUSE
+  DRIVER
+}
+
+model Tenant {
+  id        String          @id @default(cuid())
+  slug      String          @unique
+  name      String
+  createdAt DateTime        @default(now())
+  users     User[]
+  branches  Branch[]
+  features  TenantFeature[]
+}
+
+model User {
+  id            String         @id @default(cuid())
+  tenantId      String
+  email         String
+  passwordHash  String
+  role          Role
+  branchId      String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch        Branch?        @relation(fields: [branchId], references: [id])
+  refreshTokens RefreshToken[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model Branch {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  createdAt DateTime @default(now())
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users     User[]
+
+  @@index([tenantId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Transactional outbox. Domain events are persisted here in the same DB transaction
+/// as the command they originate from, and an async dispatcher publishes them.
+model OutboxEvent {
+  id            String    @id @default(cuid())
+  tenantId      String
+  name          String
+  payload       Json
+  version       Int       @default(1)
+  occurredAt    DateTime  @default(now())
+  publishedAt   DateTime?
+  attempts      Int       @default(0)
+  lastError     String?
+  correlationId String?
+  causationId   String?
+
+  @@index([tenantId, publishedAt])
+  @@index([name, publishedAt])
+  @@index([publishedAt])
+}
+
+model TenantFeature {
+  id        String   @id @default(cuid())
+  tenantId  String
+  key       String
+  enabled   Boolean  @default(false)
+  config    Json?
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@binexus/desktop",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tauri 2 wrapper around the Binexus web app (scaffold only in Phase 0)",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "echo \"Desktop build skipped in Phase 0 (requires Rust toolchain). Run 'pnpm tauri build' manually.\" && exit 0",
+    "lint": "echo \"no lint for desktop scaffold\"",
+    "typecheck": "echo \"no typecheck for desktop scaffold\""
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  }
+}

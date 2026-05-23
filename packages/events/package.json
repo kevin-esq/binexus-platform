@@ -1,0 +1,37 @@
+{
+  "name": "@binexus/events",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Domain event registry, envelope contract and Zod schemas for the Binexus platform",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@binexus/types": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@binexus/config": "workspace:*",
+    "eslint": "^9.14.0",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3"
+  }
+}

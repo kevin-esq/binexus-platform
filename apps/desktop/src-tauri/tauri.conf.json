@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Binexus",
+  "version": "0.0.0",
+  "identifier": "io.binexus.app",
+  "build": {
+    "beforeDevCommand": "pnpm --filter @binexus/web dev",
+    "beforeBuildCommand": "pnpm --filter @binexus/web build",
+    "devUrl": "http://localhost:3000",
+    "frontendDist": "../../web/.next"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Binexus",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 640
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": false,
+    "targets": "all"
+  }
+}
