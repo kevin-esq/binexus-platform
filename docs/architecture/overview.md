@@ -20,9 +20,14 @@ flowchart LR
         api[HTTP API<br/>Fastify]
         identity[Identity context<br/>active in F0]
         orders[Orders context<br/>F1]
+        catalog[Catalog context<br/>F1+]
+        customers[Customers context<br/>F1+]
         sales[Sales context<br/>F5]
         inventory[Inventory context<br/>F2]
+        warehouse[Warehouse context<br/>F3]
         logistics[Logistics context<br/>F4-6]
+        billing[Billing context<br/>F7]
+        reporting[Reporting context<br/>F8+]
         bus[Event bus<br/>in-process]
         outbox[Outbox<br/>Postgres table]
         prisma[PrismaService<br/>tenant-scoped]
@@ -38,22 +43,37 @@ flowchart LR
     desktop --> api
     mobile -. future .-> api
     api --> identity
+    api --> catalog
+    api --> customers
     api --> orders
     api --> sales
     api --> inventory
+    api --> warehouse
     api --> logistics
+    api --> billing
+    api --> reporting
     identity --> bus
+    catalog --> bus
+    customers --> bus
     orders --> bus
     sales --> bus
     inventory --> bus
+    warehouse --> bus
     logistics --> bus
+    billing --> bus
+    reporting --> bus
     bus --> outbox
     outbox -. dispatcher F1+ .-> redis
     identity --> prisma
+    catalog --> prisma
+    customers --> prisma
     orders --> prisma
     sales --> prisma
     inventory --> prisma
+    warehouse --> prisma
     logistics --> prisma
+    billing --> prisma
+    reporting --> prisma
     prisma --> pg
     backend --> minio
 ```

@@ -1,48 +1,98 @@
-# Orders domain (Phase 1 — next)
+﻿# Orders domain
 
-This is the first business module to implement after Phase 0. Everything else (inventory reservations, picking, routes, deliveries, liquidations, billing) hangs off the order lifecycle. We implement Orders **before** POS because POS is just one of several ways to create an order.
+Status: **next** (Phase 1). Bounded context: `orders`.
 
-## Planned entities (sketch — not implemented yet)
+Orders is the first real business module. It coordinates demand before stock, warehouse, routes, billing, or POS specialize the workflow. POS is only one channel that can create an order; Orders remains channel-agnostic.
 
-```
-Order
-  id, tenantId, branchId, customerId, state (OrderState)
-  totalCents, currency, createdAt, createdBy
+## Owns
 
-OrderLine
-  id, orderId, productId, qty, unitPriceCents
+- `Order` - tenant/branch-scoped commercial intent.
+- `OrderLine` - product/customer/price snapshot per requested item.
+- `OrderTransition` - auditable state changes.
+- `OrderApproval` - who approved and why.
+- `OrderCancellation` - cancellation reason and actor.
 
-OrderTransition
-  id, orderId, from, to, byUserId, atTimestamp, reason
-```
+## Does not own
+
+- Product definitions or live prices. Those belong to [`catalog`](catalog.md).
+- Customer master data or credit policy. Those belong to [`customers`](customers.md).
+- Physical stock reservations. Those belong to [`inventory`](inventory.md).
+- Picking execution. That belongs to [`warehouse`](warehouse.md).
+- Delivery route execution. That belongs to [`logistics`](logistics.md).
+- Invoices and receivables. Those belong to [`billing`](billing.md).
 
 ## State machine
 
-See [`states/order.md`](../states/order.md). Single source of truth for which transitions are legal — enforced by `canTransition()` in [`packages/types/src/orders.ts`](../../packages/types/src/orders.ts).
+See [`states/order.md`](../states/order.md). The shared helper `canTransition()` in [`packages/types/src/orders.ts`](../../packages/types/src/orders.ts) is the code-level source for legal transitions.
 
-## Planned commands
+## Commands
 
-- `CreateOrderCommand`
-- `ApproveOrderCommand`
-- `CancelOrderCommand`
-- `AssignWarehouseCommand`
-- `MarkPickingCompleteCommand`
-- `DispatchRouteCommand`
-- `ConfirmDeliveryCommand`
-- `LiquidateOrderCommand`
+Phase 1 minimal slice:
 
-## Planned events (already registered in `packages/events`)
+- `CreateOrderCommand`.
+- `ApproveOrderCommand`.
 
-- `ORDER_CREATED`
-- `ORDER_APPROVED`
-- `ORDER_CANCELLED`
+Later:
 
-Additional events will be added per phase: `ORDER_DISPATCHED`, `ORDER_DELIVERED`, `ORDER_SETTLED`.
+- `CancelOrderCommand`.
+- `MoveOrderToPickingCommand`.
+- `MarkOrderReadyForRouteCommand`.
+- `ConfirmOrderDeliveredCommand`.
+- `SettleOrderCommand`.
 
-## Open questions to resolve before coding
+## Events emitted
 
-1. Are prices captured at order creation (snapshot) or evaluated at fulfillment?
-2. Is there a credit check step between `DRAFT → APPROVED` for B2B tenants?
-3. Multi-branch order: same order fulfilled from two branches? Or split into two orders?
+Already registered:
 
-Answer them in this doc when Phase 1 starts.
+- `ORDER_CREATED`.
+- `ORDER_APPROVED`.
+- `ORDER_CANCELLED`.
+
+Future:
+
+- `ORDER_PICKING_STARTED`.
+- `ORDER_READY_FOR_ROUTE`.
+- `ORDER_DELIVERED`.
+- `ORDER_SETTLED`.
+
+## Events consumed
+
+Potential future:
+
+- `INVENTORY_RESERVATION_FAILED` to move an approved order back to an exception state.
+- `DELIVERY_CONFIRMED` from Logistics to mark delivered.
+- `PAYMENT_ALLOCATED` from Billing to mark settled.
+
+## Allowed dependencies
+
+- May snapshot Catalog and Customer data at order creation.
+- May emit events that ask Inventory/Warehouse/Logistics/Billing to react.
+- Must not call Inventory/Warehouse/Logistics/Billing services directly.
+
+## Boundary rules
+
+1. Orders owns the commercial workflow, not operational execution.
+2. Order lines keep historical product/price/customer snapshots.
+3. Approving an order emits a fact. Inventory decides whether/how to reserve.
+4. Orders should be idempotent by `commandId` because offline clients may retry.
+5. Every state transition is auditable and tenant-scoped.
+
+## First real workflow
+
+```txt
+CreateOrder
+↓
+ApproveOrder
+↓
+ORDER_APPROVED event
+↓
+Inventory reserves stock
+↓
+Warehouse generates picking
+```
+
+## Open questions
+
+- Are prices locked at order creation or at approval?
+- Is credit check synchronous in Orders or event-driven through Customers/Billing?
+- Can one order be fulfilled from multiple branches, or must it split?

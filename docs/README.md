@@ -22,7 +22,7 @@ ADRs explain **why** we chose what we chose. Living docs explain **how the syste
 7. [`architecture/observability.md`](architecture/observability.md)
 8. [`architecture/feature-flags.md`](architecture/feature-flags.md)
 9. [`architecture/dev-workflow.md`](architecture/dev-workflow.md) — branches, commits, PR, CI, rulesets
-10. [`domains/README.md`](domains/README.md) — the 7 domains
+10. [`domains/README.md`](domains/README.md) — the 10 operational domains
 11. [`states/order.md`](states/order.md) — order state machine
 12. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
 13. [`events/README.md`](events/README.md) — event catalog

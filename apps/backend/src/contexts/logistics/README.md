@@ -1,5 +1,18 @@
-# Logistics bounded context
+﻿# Logistics bounded context
 
-Status: **placeholder** (Phases 4 + 5 + 6).
+Status: **placeholder** (Phases 4-6).
 
-Warehouse (lite), routes, liquidation. Subscribes to `ORDER_APPROVED`, `ORDER_DISPATCHED`, etc.
+Domain reference: [`docs/domains/logistics.md`](../../../../../docs/domains/logistics.md).
+
+Logistics owns routes, dispatch, delivery confirmation, failed delivery handling, and route liquidation.
+
+Planned structure:
+
+```txt
+logistics/
+├── logistics.module.ts
+├── domain/
+├── application/
+├── infrastructure/
+└── presentation/
+```
