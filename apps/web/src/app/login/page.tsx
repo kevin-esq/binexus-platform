@@ -1,28 +1,25 @@
 'use client';
 
-import { createBinexusClient } from '@binexus/sdk';
+import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
-const api = createBinexusClient({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001',
-});
+import { api } from '../../lib/api';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [tenantSlug, setTenantSlug] = useState('acme');
   const [email, setEmail] = useState('admin@acme.test');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ accessToken: string; refreshToken: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     setError(null);
-    setResult(null);
     setSubmitting(true);
     try {
-      const tokens = await api.login({ tenantSlug, email, password });
-      setResult(tokens);
+      await api.login({ tenantSlug, email, password });
+      router.push('/orders');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -76,13 +73,6 @@ export default function LoginPage() {
         {error ? (
           <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
             {error}
-          </div>
-        ) : null}
-
-        {result ? (
-          <div className="mt-4 rounded border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
-            <div className="font-semibold">Logged in.</div>
-            <div className="mt-1 break-all">access: {result.accessToken.slice(0, 24)}…</div>
           </div>
         ) : null}
       </div>

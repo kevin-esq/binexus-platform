@@ -1,6 +1,8 @@
 // Order state machine — fully defined here so it stays in sync across backend, web, and sdk.
 // See docs/states/order.md for the canonical reference.
 
+import type { BranchId, ISODateString, OrderId, UserId } from './common';
+
 export const OrderState = {
   DRAFT: 'DRAFT',
   APPROVED: 'APPROVED',
@@ -27,4 +29,50 @@ export const ORDER_TRANSITIONS: Readonly<Record<OrderState, readonly OrderState[
 
 export function canTransition(from: OrderState, to: OrderState): boolean {
   return ORDER_TRANSITIONS[from].includes(to);
+}
+
+export interface OrderLineSummary {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPriceCents: number;
+  lineTotalCents: number;
+}
+
+export interface OrderTransitionSummary {
+  id: string;
+  fromState: OrderState | null;
+  toState: OrderState;
+  reason: string | null;
+  occurredAt: ISODateString;
+  byUserId: UserId;
+}
+
+export interface OrderSummary {
+  id: OrderId;
+  branchId: BranchId;
+  customerId: string;
+  state: OrderState;
+  totalCents: number;
+  currency: string;
+  createdAt: ISODateString;
+  lineCount: number;
+}
+
+export interface OrderDetail extends OrderSummary {
+  createdByUserId: UserId;
+  updatedAt: ISODateString;
+  lines: OrderLineSummary[];
+  transitions: OrderTransitionSummary[];
+}
+
+export interface ListOrdersQuery {
+  limit?: number;
+  cursor?: string;
+}
+
+export interface ListOrdersResult {
+  items: OrderSummary[];
+  nextCursor: string | null;
 }

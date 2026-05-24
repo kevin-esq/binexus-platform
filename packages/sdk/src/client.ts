@@ -1,4 +1,10 @@
-import type { AuthSession } from '@binexus/types';
+import type {
+  AuthSession,
+  ListOrdersQuery,
+  ListOrdersResult,
+  OrderDetail,
+  OrderId,
+} from '@binexus/types';
 
 import { BinexusApiError } from './errors';
 
@@ -65,6 +71,19 @@ export class BinexusClient {
 
   async me(): Promise<AuthSession> {
     return this.request<AuthSession>('GET', '/auth/me', { auth: true });
+  }
+
+  async listOrders(query: ListOrdersQuery = {}): Promise<ListOrdersResult> {
+    const params = new URLSearchParams();
+    if (query.limit !== undefined) params.set('limit', String(query.limit));
+    if (query.cursor) params.set('cursor', query.cursor);
+    const qs = params.toString();
+    const path = qs ? `/orders?${qs}` : '/orders';
+    return this.request<ListOrdersResult>('GET', path, { auth: true });
+  }
+
+  async getOrder(id: OrderId | string): Promise<OrderDetail> {
+    return this.request<OrderDetail>('GET', `/orders/${encodeURIComponent(id)}`, { auth: true });
   }
 
   private async request<T>(
