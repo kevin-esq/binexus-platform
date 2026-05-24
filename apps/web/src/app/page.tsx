@@ -21,6 +21,12 @@ export default function HomePage() {
         >
           Go to login
         </Link>
+        <Link
+          href="/orders"
+          className="inline-flex h-10 items-center justify-center rounded border border-brand-600 px-4 text-sm font-medium text-brand-700 hover:bg-brand-50"
+        >
+          Orders
+        </Link>
         <a
           href="http://localhost:3001/health"
           target="_blank"

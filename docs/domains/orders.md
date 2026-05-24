@@ -102,10 +102,16 @@ Warehouse generates picking
 ## HTTP surface
 
 ```txt
+GET /orders?limit=20&cursor=<orderId>
+GET /orders/:id
 POST /orders
 ```
 
-Creates a tenant-scoped `Order` in `DRAFT`, persists its lines, records the initial transition, and writes `ORDER_CREATED` to the outbox in the same transaction.
+`GET /orders` returns tenant-scoped order summaries with cursor pagination (`nextCursor` is the last item id on the page).
+
+`GET /orders/:id` returns the order with lines and transition history.
+
+`POST /orders` creates a tenant-scoped `Order` in `DRAFT`, persists its lines, records the initial transition, and writes `ORDER_CREATED` to the outbox in the same transaction.
 
 ```txt
 Idempotency-Key: <command id>
