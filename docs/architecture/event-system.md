@@ -9,14 +9,15 @@
 
 ## Pieces
 
-| Piece                                                           | Where                                                                                                              |
-| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Event name registry                                             | [`packages/events/src/registry.ts`](../../packages/events/src/registry.ts)                                         |
-| Envelope contract                                               | [`packages/events/src/envelope.ts`](../../packages/events/src/envelope.ts)                                         |
-| Per-event Zod payload schemas                                   | [`packages/events/src/schemas/`](../../packages/events/src/schemas/)                                               |
-| `EventBusService` (build + publish, runtime payload validation) | [`apps/backend/src/common/events/event-bus.service.ts`](../../apps/backend/src/common/events/event-bus.service.ts) |
-| `OutboxService` (persist within the command's transaction)      | [`apps/backend/src/common/events/outbox.service.ts`](../../apps/backend/src/common/events/outbox.service.ts)       |
-| `EVENT_TRANSPORT` provider                                      | [`apps/backend/src/common/events/transports/`](../../apps/backend/src/common/events/transports/)                   |
+| Piece                                                           | Where                                                                                                                              |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Event name registry                                             | [`packages/events/src/registry.ts`](../../packages/events/src/registry.ts)                                                         |
+| Envelope contract                                               | [`packages/events/src/envelope.ts`](../../packages/events/src/envelope.ts)                                                         |
+| Per-event Zod payload schemas                                   | [`packages/events/src/schemas/`](../../packages/events/src/schemas/)                                                               |
+| `EventBusService` (build + publish, runtime payload validation) | [`apps/backend/src/common/events/event-bus.service.ts`](../../apps/backend/src/common/events/event-bus.service.ts)                 |
+| `OutboxService` (persist within the command's transaction)      | [`apps/backend/src/common/events/outbox.service.ts`](../../apps/backend/src/common/events/outbox.service.ts)                       |
+| `OutboxDispatcherService` (`dispatchPending()`)                 | [`apps/backend/src/common/events/outbox-dispatcher.service.ts`](../../apps/backend/src/common/events/outbox-dispatcher.service.ts) |
+| `EVENT_TRANSPORT` provider                                      | [`apps/backend/src/common/events/transports/`](../../apps/backend/src/common/events/transports/)                                   |
 
 ## Flow (the canonical recipe)
 
@@ -25,7 +26,7 @@ sequenceDiagram
     participant Handler as CommandHandler
     participant Tx as Prisma transaction
     participant Outbox as OutboxEvent table
-    participant Dispatcher as Outbox dispatcher (F1+)
+    participant Dispatcher as OutboxDispatcherService
     participant Transport as Event transport
     participant Subscribers as Other context handlers
 
@@ -39,10 +40,22 @@ sequenceDiagram
     Dispatcher->>Outbox: set publishedAt
 ```
 
+## Outbox dispatcher
+
+`OutboxDispatcherService.dispatchPending()` is the Phase 1 entry point for publishing rows where `publishedAt IS NULL`:
+
+- Reads a batch (default 50) ordered by `occurredAt`.
+- Re-hydrates the envelope and validates the payload with `EventPayloadSchemas`.
+- Publishes through `EVENT_TRANSPORT`.
+- Sets `publishedAt` only after a successful publish.
+- On failure, increments `attempts` and stores `lastError`, then continues with the rest of the batch.
+
+There is **no cron or interval** in this phase — call `dispatchPending()` explicitly from tests or a future worker process.
+
 ## Transports
 
-- `InProcessEventTransport` (F0): just emits on `@nestjs/event-emitter`. Subscribers in the same process react synchronously.
-- `RedisStreamsEventTransport` (stub today): swap the `EVENT_TRANSPORT` provider in `EventsModule` when ready. Dispatcher will move from in-proc poll to a hardened worker.
+- `InProcessEventTransport` (current default): emits on `@nestjs/event-emitter`. Subscribers in the same process react synchronously.
+- `RedisStreamsEventTransport` (stub today): swap the `EVENT_TRANSPORT` provider in `EventsModule` when ready. The dispatcher contract stays the same.
 
 ## Adding a new event
 

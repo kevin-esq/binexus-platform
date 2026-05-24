@@ -18,14 +18,15 @@ ADRs explain **why** we chose what we chose. Living docs explain **how the syste
 3. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
 4. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
 5. [`architecture/event-system.md`](architecture/event-system.md)
-6. [`architecture/commands.md`](architecture/commands.md)
-7. [`architecture/observability.md`](architecture/observability.md)
-8. [`architecture/feature-flags.md`](architecture/feature-flags.md)
-9. [`architecture/dev-workflow.md`](architecture/dev-workflow.md) — branches, commits, PR, CI, rulesets
-10. [`domains/README.md`](domains/README.md) — the 10 operational domains
-11. [`states/order.md`](states/order.md) — order state machine
-12. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
-13. [`events/README.md`](events/README.md) — event catalog
+6. [`architecture/audit-log.md`](architecture/audit-log.md)
+7. [`architecture/commands.md`](architecture/commands.md)
+8. [`architecture/observability.md`](architecture/observability.md)
+9. [`architecture/feature-flags.md`](architecture/feature-flags.md)
+10. [`architecture/dev-workflow.md`](architecture/dev-workflow.md) — branches, commits, PR, CI, rulesets
+11. [`domains/README.md`](domains/README.md) — the 10 operational domains
+12. [`states/order.md`](states/order.md) — order state machine
+13. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
+14. [`events/README.md`](events/README.md) — event catalog
 
 ## How to add a new doc
 

@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
-import { type PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 interface CacheEntry {
   enabled: boolean;
@@ -13,7 +13,7 @@ const TTL_MS = 30_000;
 export class FeatureFlagsService {
   private readonly cache = new Map<string, CacheEntry>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async isEnabled(tenantId: string, key: string): Promise<boolean> {
     const cacheKey = `${tenantId}::${key}`;

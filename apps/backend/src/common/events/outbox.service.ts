@@ -1,16 +1,16 @@
 import type { DomainEvent } from '@binexus/events';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
-import { type PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 // Transactional Outbox.
 // Persist the event in the same DB transaction as the command's state change.
-// A background dispatcher (Phase 1) reads `publishedAt IS NULL` rows and forwards them
-// to the event transport, marking them as published. Phase 0 only writes; no dispatcher yet.
+// A background dispatcher (`OutboxDispatcherService.dispatchPending`) reads rows where
+// `publishedAt IS NULL` and forwards them to the event transport.
 @Injectable()
 export class OutboxService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async record<TEvent extends DomainEvent>(
     event: TEvent,

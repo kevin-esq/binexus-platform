@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev",
+    "dev": "dotenv -e .env -- turbo run dev",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
@@ -21,14 +21,15 @@
     "docker:up": "docker compose -f infrastructure/compose/docker-compose.yml up -d",
     "docker:down": "docker compose -f infrastructure/compose/docker-compose.yml down",
     "docker:logs": "docker compose -f infrastructure/compose/docker-compose.yml logs -f",
-    "db:migrate": "pnpm --filter @binexus/backend prisma:migrate",
-    "db:seed": "pnpm --filter @binexus/backend prisma:seed",
-    "db:studio": "pnpm --filter @binexus/backend prisma:studio"
+    "db:migrate": "dotenv -e .env -- pnpm --filter @binexus/backend prisma:migrate",
+    "db:seed": "dotenv -e .env -- pnpm --filter @binexus/backend prisma:seed",
+    "db:studio": "dotenv -e .env -- pnpm --filter @binexus/backend prisma:studio"
   },
   "devDependencies": {
     "@binexus/config": "workspace:*",
     "@commitlint/cli": "^19.5.0",
     "@commitlint/config-conventional": "^19.5.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.39.4",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",

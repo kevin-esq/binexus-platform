@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto';
 
-import { Injectable, type NestMiddleware } from '@nestjs/common';
-import { type JwtService } from '@nestjs/jwt';
+import { Inject, Injectable, type NestMiddleware } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
-import { type TenantContextService } from './tenant-context.service';
+import { TenantContextService } from './tenant-context.service';
 
 interface JwtClaims {
   sub: string;
@@ -16,8 +16,8 @@ interface JwtClaims {
 @Injectable()
 export class TenantContextMiddleware implements NestMiddleware {
   constructor(
-    private readonly jwt: JwtService,
-    private readonly tenantContext: TenantContextService,
+    @Inject(JwtService) private readonly jwt: JwtService,
+    @Inject(TenantContextService) private readonly tenantContext: TenantContextService,
   ) {}
 
   use(req: FastifyRequest['raw'], _res: FastifyReply['raw'], next: () => void): void {

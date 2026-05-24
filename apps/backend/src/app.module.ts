@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { CqrsModule } from '@nestjs/cqrs';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
+import { AuditModule } from './common/audit/audit.module';
 import { CommandsModule } from './common/commands/commands.module';
 import { EventsModule } from './common/events/events.module';
 import { FeatureFlagsModule } from './common/feature-flags/feature-flags.module';
@@ -26,6 +27,7 @@ import { OrdersModule } from './contexts/orders/orders.module';
     PrismaModule,
     TenantModule,
     EventsModule,
+    AuditModule,
     CommandsModule,
     FeatureFlagsModule,
     HealthModule,

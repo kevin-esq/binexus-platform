@@ -1,7 +1,7 @@
-import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
 
-import { type TenantContextService } from '../tenant/tenant-context.service';
+import { TenantContextService } from '../tenant/tenant-context.service';
 
 // Models that store data per-tenant and must be auto-filtered.
 // Other foundation models (Tenant itself, RefreshToken) are explicitly excluded.
@@ -13,6 +13,7 @@ const TENANT_SCOPED_MODELS = new Set<string>([
   'Order',
   'OrderLine',
   'OrderTransition',
+  'AuditLog',
 ]);
 
 // Operations that should have tenantId enforced.
@@ -36,7 +37,7 @@ const SCOPED_WRITE_OPS = new Set<string>([
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  constructor(private readonly tenantContext: TenantContextService) {
+  constructor(@Inject(TenantContextService) private readonly tenantContext: TenantContextService) {
     super({
       log: [
         { level: 'warn', emit: 'event' },
