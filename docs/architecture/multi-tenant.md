@@ -27,6 +27,7 @@ We will revisit if a single tenant ever needs hard isolation guarantees (e.g. re
 - `Order`
 - `OrderLine`
 - `OrderTransition`
+- `AuditLog`
 
 Foundation models that are NOT tenant-scoped:
 

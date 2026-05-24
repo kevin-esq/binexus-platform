@@ -13,6 +13,7 @@ const TENANT_SCOPED_MODELS = new Set<string>([
   'Order',
   'OrderLine',
   'OrderTransition',
+  'AuditLog',
 ]);
 
 // Operations that should have tenantId enforced.

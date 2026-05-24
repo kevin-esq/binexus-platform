@@ -108,6 +108,24 @@ model OutboxEvent {
   @@index([publishedAt])
 }
 
+/// Immutable audit trail for domain events and operational actions.
+/// `eventId` is unique so consumers remain idempotent across dispatcher retries.
+model AuditLog {
+  id          String   @id @default(cuid())
+  tenantId    String
+  eventId     String   @unique
+  eventName   String
+  actorUserId String?
+  entityType  String
+  entityId    String
+  action      String
+  payload     Json
+  occurredAt  DateTime
+
+  @@index([tenantId, occurredAt])
+  @@index([tenantId, entityType, entityId])
+}
+
 model TenantFeature {
   id        String   @id @default(cuid())
   tenantId  String
