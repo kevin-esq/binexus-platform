@@ -2,19 +2,20 @@ import {
   type CanActivate,
   type ExecutionContext,
   ForbiddenException,
+  Inject,
   Injectable,
 } from '@nestjs/common';
-import { type Reflector } from '@nestjs/core';
+import { Reflector } from '@nestjs/core';
 
 import { REQUIRE_FEATURE_KEY } from '../decorators/require-feature.decorator';
 
-import { type FeatureFlagsService } from './feature-flags.service';
+import { FeatureFlagsService } from './feature-flags.service';
 
 @Injectable()
 export class FeatureFlagGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
-    private readonly features: FeatureFlagsService,
+    @Inject(Reflector) private readonly reflector: Reflector,
+    @Inject(FeatureFlagsService) private readonly features: FeatureFlagsService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

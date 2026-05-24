@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   Post,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -12,7 +13,7 @@ import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { CurrentUser, type RequestUser } from '../../../common/decorators/current-user.decorator';
 import { Public } from '../../../common/decorators/public.decorator';
 
-import { type AuthService } from './auth.service';
+import { AuthService } from './auth.service';
 
 class LoginDto {
   @IsString()
@@ -35,7 +36,7 @@ class RefreshDto {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(@Inject(AuthService) private readonly auth: AuthService) {}
 
   @Public()
   @Post('login')

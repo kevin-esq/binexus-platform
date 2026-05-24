@@ -4,7 +4,7 @@ import type { DomainEvent, DomainEventName } from '@binexus/events';
 import { EventPayloadSchemas, type EventPayloadFor } from '@binexus/events';
 import { Inject, Injectable } from '@nestjs/common';
 
-import { type TenantContextService } from '../tenant/tenant-context.service';
+import { TenantContextService } from '../tenant/tenant-context.service';
 
 import { EVENT_TRANSPORT, type EventTransport } from './transports/event-transport.token';
 
@@ -12,7 +12,7 @@ import { EVENT_TRANSPORT, type EventTransport } from './transports/event-transpo
 export class EventBusService {
   constructor(
     @Inject(EVENT_TRANSPORT) private readonly transport: EventTransport,
-    private readonly tenantContext: TenantContextService,
+    @Inject(TenantContextService) private readonly tenantContext: TenantContextService,
   ) {}
 
   // Build a fully-formed envelope from a name + payload, pulling tenantId / correlation

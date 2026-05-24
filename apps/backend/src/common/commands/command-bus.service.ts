@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { type CommandBus } from '@nestjs/cqrs';
+import { Inject, Injectable } from '@nestjs/common';
+import { CommandBus } from '@nestjs/cqrs';
 
 import type { AppCommand, AppCommandResult } from './app-command';
 import { validateAppCommand } from './command-validation';
@@ -9,7 +9,7 @@ import { validateAppCommand } from './command-validation';
 // result type declared by the AppCommand subclass.
 @Injectable()
 export class AppCommandBus {
-  constructor(private readonly bus: CommandBus) {}
+  constructor(@Inject(CommandBus) private readonly bus: CommandBus) {}
 
   async execute<TCommand extends AppCommand<unknown>>(
     command: TCommand,

@@ -1,10 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto';
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { type JwtService, type JwtSignOptions } from '@nestjs/jwt';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
 import argon2 from 'argon2';
 
-import { type PrismaService } from '../../../common/prisma/prisma.service';
+import { PrismaService } from '../../../common/prisma/prisma.service';
 
 type ExpiresIn = JwtSignOptions['expiresIn'];
 
@@ -22,8 +22,8 @@ export interface AuthTokens {
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly jwt: JwtService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(JwtService) private readonly jwt: JwtService,
   ) {}
 
   private accessSecret(): string {
