@@ -25,13 +25,26 @@ export interface LoginResult {
   refreshToken: string;
 }
 
+const SLASH_CHAR_CODE = 47;
+
+// Linear, regex-free trailing-slash stripping. Avoids the ReDoS surface (see
+// CodeQL js/polynomial-redos) that a greedy anchored pattern like `/\/+$/`
+// would expose when `baseUrl` is library input.
+function stripTrailingSlashes(value: string): string {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === SLASH_CHAR_CODE) {
+    end--;
+  }
+  return end === value.length ? value : value.slice(0, end);
+}
+
 export class BinexusClient {
   private readonly baseUrl: string;
   private readonly tokenProvider: TokenProvider | undefined;
   private readonly fetchImpl: typeof fetch;
 
   constructor(options: BinexusClientOptions) {
-    this.baseUrl = options.baseUrl.replace(/\/+$/, '');
+    this.baseUrl = stripTrailingSlashes(options.baseUrl);
     this.tokenProvider = options.tokenProvider;
     this.fetchImpl = options.fetch ?? fetch.bind(globalThis);
   }
