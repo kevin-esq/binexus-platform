@@ -58,3 +58,17 @@ apps/backend/prisma/migrations/dev.db*
 .eslintcache
 .prettiercache
 .pnpm-store/
+
+# Cursor IDE
+# Track project-wide rules and skills under .cursor/{rules,skills}/.
+# Ignore personal/runtime/local state and any hook scripts that depend on
+# external infrastructure not bundled with this repo.
+.cursor/hooks/
+.cursor/hooks.json
+.cursor/state/
+.cursor/cache/
+.cursor/.local/
+.cursor/logs/
+.cursor/*.log
+.cursor/mcp.json
+.cursor/mcp.local.json
