@@ -31,10 +31,10 @@ Implemented:
 
 - `CreateOrderCommand`.
 - `ApproveOrderCommand`.
+- `CancelOrderCommand`.
 
 Later:
 
-- `CancelOrderCommand`.
 - `MoveOrderToPickingCommand`.
 - `MarkOrderReadyForRouteCommand`.
 - `ConfirmOrderDeliveredCommand`.
@@ -46,9 +46,6 @@ Implemented:
 
 - `ORDER_CREATED`.
 - `ORDER_APPROVED`.
-
-Registered for next steps:
-
 - `ORDER_CANCELLED`.
 
 Future:
@@ -103,6 +100,7 @@ GET /orders?limit=20&cursor=<orderId>
 GET /orders/:id
 POST /orders
 POST /orders/:id/approve
+POST /orders/:id/cancel
 ```
 
 `GET /orders` returns tenant-scoped order summaries with cursor pagination (`nextCursor` is the last item id on the page).
@@ -112,6 +110,8 @@ POST /orders/:id/approve
 `POST /orders` creates a tenant-scoped `Order` in `DRAFT`, persists its lines, records the initial transition, and writes `ORDER_CREATED` to the outbox in the same transaction.
 
 `POST /orders/:id/approve` transitions `DRAFT -> APPROVED`, records the transition, and writes `ORDER_APPROVED` to the outbox in the same transaction.
+
+`POST /orders/:id/cancel` transitions `DRAFT -> CANCELLED` or `APPROVED -> CANCELLED`, records the transition, and writes `ORDER_CANCELLED` to the outbox in the same transaction.
 
 ```txt
 Idempotency-Key: <command id>
