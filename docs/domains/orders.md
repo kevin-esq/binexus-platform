@@ -37,6 +37,7 @@ Implemented (warehouse flow):
 
 - `MoveOrderToPickingCommand` — `APPROVED -> PICKING`, emits `ORDER_PICKING_STARTED`.
 - `MarkOrderReadyForDeliveryRouteCommand` — `PICKING -> READY_FOR_DELIVERY_ROUTE`.
+- `MarkOrderOutForDeliveryCommand` — `READY_FOR_DELIVERY_ROUTE -> OUT_FOR_DELIVERY` (no new domain event in dispatch slice).
 
 Later:
 
@@ -71,6 +72,7 @@ Implemented:
 
 - `INVENTORY_RESERVED` — auto `MoveOrderToPickingCommand` via system user when order is `APPROVED`.
 - `PICKING_COMPLETED` — auto `MarkOrderReadyForDeliveryRouteCommand` when order is `PICKING`.
+- `DELIVERY_ROUTE_DISPATCHED` — auto `MarkOrderOutForDeliveryCommand` via system user when order is `READY_FOR_DELIVERY_ROUTE` (skips already `OUT_FOR_DELIVERY` or cancelled orders).
 
 Future:
 
@@ -111,6 +113,10 @@ Warehouse generates picking (automatic after `INVENTORY_RESERVED`)
 PICKING_COMPLETED → READY_FOR_DELIVERY_ROUTE
 ↓
 ORDER_READY_FOR_DELIVERY_ROUTE → Logistics candidate projection
+↓
+Dispatch delivery route (Logistics)
+↓
+DELIVERY_ROUTE_DISPATCHED → OUT_FOR_DELIVERY
 ```
 
 ## HTTP surface

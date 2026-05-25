@@ -8,9 +8,11 @@ import { TenantModule } from '../../common/tenant/tenant.module';
 import { ApproveOrderHandler } from './application/commands/approve-order.command';
 import { CancelOrderHandler } from './application/commands/cancel-order.command';
 import { CreateOrderHandler } from './application/commands/create-order.command';
+import { MarkOrderOutForDeliveryHandler } from './application/commands/mark-order-out-for-delivery.command';
 import { MarkOrderReadyForDeliveryRouteHandler } from './application/commands/mark-order-ready-for-delivery-route.command';
 import { MoveOrderToPickingHandler } from './application/commands/move-order-to-picking.command';
 import { OrdersReadService } from './application/orders-read.service';
+import { DeliveryRouteDispatchedOrdersHandler } from './events/delivery-route-dispatched.handler';
 import { InventoryReservationFailedOrdersHandler } from './events/inventory-reservation-failed.handler';
 import { InventoryReservedOrdersHandler } from './events/inventory-reserved.handler';
 import { PickingCompletedOrdersHandler } from './events/picking-completed.handler';
@@ -22,6 +24,7 @@ const commandHandlers = [
   CancelOrderHandler,
   MoveOrderToPickingHandler,
   MarkOrderReadyForDeliveryRouteHandler,
+  MarkOrderOutForDeliveryHandler,
 ];
 
 @Module({
@@ -33,6 +36,7 @@ const commandHandlers = [
     InventoryReservationFailedOrdersHandler,
     InventoryReservedOrdersHandler,
     PickingCompletedOrdersHandler,
+    DeliveryRouteDispatchedOrdersHandler,
   ],
 })
 export class OrdersModule {}

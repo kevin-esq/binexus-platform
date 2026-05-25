@@ -357,12 +357,14 @@ model DeliveryRoute {
   tenantId        String
   branchId        String
   status          DeliveryRouteStatus @default(PLANNED)
-  driverUserId    String?
-  plannedDate     DateTime?
-  createdByUserId String
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  stops           DeliveryRouteStop[]
+  driverUserId        String?
+  plannedDate         DateTime?
+  dispatchedAt        DateTime?
+  dispatchedByUserId  String?
+  createdByUserId     String
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  stops               DeliveryRouteStop[]
   candidates      DeliveryRouteCandidate[]
 
   @@index([tenantId, status])

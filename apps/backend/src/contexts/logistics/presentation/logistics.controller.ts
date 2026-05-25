@@ -2,6 +2,7 @@ import {
   type AssignOrderToDeliveryRouteResult,
   type BranchId,
   type CreateDeliveryRouteResult,
+  type DispatchDeliveryRouteResult,
   type DeliveryRouteCandidateStatus,
   type DeliveryRouteStatus,
   type ListDeliveryRouteCandidatesResult,
@@ -27,6 +28,7 @@ import { AppCommandBus } from '../../../common/commands/command-bus.service';
 import { CurrentUser, type RequestUser } from '../../../common/decorators/current-user.decorator';
 import { AssignOrderToDeliveryRouteCommand } from '../application/commands/assign-order-to-delivery-route.command';
 import { CreateDeliveryRouteCommand } from '../application/commands/create-delivery-route.command';
+import { DispatchDeliveryRouteCommand } from '../application/commands/dispatch-delivery-route.command';
 import { LogisticsReadService } from '../application/logistics-read.service';
 
 class ListDeliveryRouteCandidatesQueryDto {
@@ -86,6 +88,12 @@ class AssignOrdersToDeliveryRouteDto {
   @IsArray()
   @IsString({ each: true })
   orderIds!: string[];
+}
+
+class DispatchDeliveryRouteDto {
+  @IsOptional()
+  @IsString()
+  driverUserId?: string;
 }
 
 @Controller('logistics')
@@ -154,6 +162,26 @@ export class LogisticsController {
         commandId: idempotencyKey,
         correlationId,
       }),
+    );
+  }
+
+  @Post('delivery-routes/:id/dispatch')
+  async dispatchDeliveryRoute(
+    @Param('id') id: string,
+    @Body() dto: DispatchDeliveryRouteDto,
+    @CurrentUser() user: RequestUser | null,
+    @Headers('idempotency-key') idempotencyKey?: string,
+    @Headers('x-correlation-id') correlationId?: string,
+  ): Promise<DispatchDeliveryRouteResult> {
+    if (!user) throw new UnauthorizedException();
+
+    return this.commandBus.execute(
+      new DispatchDeliveryRouteCommand(
+        id,
+        user.userId as UserId,
+        dto.driverUserId as UserId | undefined,
+        { commandId: idempotencyKey, correlationId },
+      ),
     );
   }
 }

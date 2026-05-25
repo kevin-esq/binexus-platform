@@ -18,6 +18,7 @@ Every domain event in the platform. Schemas live in [`packages/events/src/schema
 | `ORDER_READY_FOR_DELIVERY_ROUTE` | `orders`    | `logistics` (active)                   | [`order-ready-for-delivery-route.ts`](../../packages/events/src/schemas/order-ready-for-delivery-route.ts) |
 | `DELIVERY_ROUTE_CREATED`         | `logistics` | (none yet)                             | [`delivery-route-created.ts`](../../packages/events/src/schemas/delivery-route-created.ts)                 |
 | `DELIVERY_ROUTE_ASSIGNED`        | `logistics` | (none yet)                             | [`delivery-route-assigned.ts`](../../packages/events/src/schemas/delivery-route-assigned.ts)               |
+| `DELIVERY_ROUTE_DISPATCHED`      | `logistics` | `orders` (active)                      | [`delivery-route-dispatched.ts`](../../packages/events/src/schemas/delivery-route-dispatched.ts)           |
 | `SALE_CREATED`                   | `sales`\*   | `inventory`, `billing`\*               | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
 | `PAYMENT_REGISTERED`             | `sales`\*   | `billing`\*                            | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |
 

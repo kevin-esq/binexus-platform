@@ -12,6 +12,7 @@ export interface DeliveryRouteSummary {
   status: DeliveryRouteStatus;
   driverUserId: UserId | null;
   plannedDate: ISODateString | null;
+  dispatchedAt: ISODateString | null;
   stopCount: number;
   createdAt: ISODateString;
   updatedAt: ISODateString;
@@ -69,4 +70,16 @@ export interface AssignOrderToDeliveryRouteResult {
   deliveryRouteId: string;
   assignedOrderIds: OrderId[];
   stopCount: number;
+}
+
+export interface DispatchDeliveryRouteInput {
+  driverUserId?: UserId;
+}
+
+export interface DispatchDeliveryRouteResult {
+  deliveryRouteId: string;
+  status: 'DISPATCHED';
+  driverUserId: UserId;
+  dispatchedAt: ISODateString;
+  orderIds: OrderId[];
 }
