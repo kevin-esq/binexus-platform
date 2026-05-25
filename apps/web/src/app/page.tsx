@@ -27,6 +27,12 @@ export default function HomePage() {
         >
           Orders
         </Link>
+        <Link
+          href="/inventory"
+          className="inline-flex h-10 items-center justify-center rounded border border-brand-600 px-4 text-sm font-medium text-brand-700 hover:bg-brand-50"
+        >
+          Inventory
+        </Link>
         <a
           href="http://localhost:3001/health"
           target="_blank"

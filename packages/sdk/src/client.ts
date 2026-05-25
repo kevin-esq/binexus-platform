@@ -4,6 +4,8 @@ import type {
   CancelOrderResult,
   ListOrdersQuery,
   ListOrdersResult,
+  ListStockItemsQuery,
+  ListStockItemsResult,
   OrderDetail,
   OrderId,
 } from '@binexus/types';
@@ -106,6 +108,17 @@ export class BinexusClient {
       body: input,
       auth: true,
     });
+  }
+
+  async listStockItems(query: ListStockItemsQuery = {}): Promise<ListStockItemsResult> {
+    const params = new URLSearchParams();
+    if (query.branchId) params.set('branchId', query.branchId);
+    if (query.productId) params.set('productId', query.productId);
+    if (query.limit !== undefined) params.set('limit', String(query.limit));
+    if (query.cursor) params.set('cursor', query.cursor);
+    const qs = params.toString();
+    const path = qs ? `/inventory/stock?${qs}` : '/inventory/stock';
+    return this.request<ListStockItemsResult>('GET', path, { auth: true });
   }
 
   private async request<T>(

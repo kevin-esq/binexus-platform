@@ -72,18 +72,26 @@ export default function OrdersPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">Orders</p>
           <h1 className="text-2xl font-bold text-slate-900">Order list</h1>
         </div>
-        <button
-          type="button"
-          className="text-sm font-medium text-slate-600 hover:text-slate-900"
-          onClick={() => {
-            void (async () => {
-              await api.logout();
-              router.replace('/login');
-            })();
-          }}
-        >
-          Sign out
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/inventory"
+            className="text-sm font-medium text-brand-600 hover:text-brand-700"
+          >
+            Inventory
+          </Link>
+          <button
+            type="button"
+            className="text-sm font-medium text-slate-600 hover:text-slate-900"
+            onClick={() => {
+              void (async () => {
+                await api.logout();
+                router.replace('/login');
+              })();
+            }}
+          >
+            Sign out
+          </button>
+        </div>
       </header>
 
       {loading ? (
