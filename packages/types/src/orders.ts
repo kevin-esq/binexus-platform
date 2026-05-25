@@ -76,3 +76,8 @@ export interface ListOrdersResult {
   items: OrderSummary[];
   nextCursor: string | null;
 }
+
+export interface ApproveOrderResult {
+  id: OrderId;
+  state: typeof OrderState.APPROVED;
+}

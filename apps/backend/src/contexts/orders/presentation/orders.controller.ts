@@ -1,7 +1,9 @@
 import {
+  type ApproveOrderResult,
   type BranchId,
   type ListOrdersResult,
   type OrderDetail,
+  type OrderId,
   type UserId,
 } from '@binexus/types';
 import {
@@ -30,6 +32,7 @@ import {
 
 import { AppCommandBus } from '../../../common/commands/command-bus.service';
 import { CurrentUser, type RequestUser } from '../../../common/decorators/current-user.decorator';
+import { ApproveOrderCommand } from '../application/commands/approve-order.command';
 import { CreateOrderCommand } from '../application/commands/create-order.command';
 import type { CreateOrderInput } from '../application/commands/create-order.command';
 import { OrdersReadService } from '../application/orders-read.service';
@@ -102,6 +105,23 @@ export class OrdersController {
   @Get(':id')
   getById(@Param('id') id: string): Promise<OrderDetail> {
     return this.ordersRead.getOrderById(id);
+  }
+
+  @Post(':id/approve')
+  async approve(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser | null,
+    @Headers('idempotency-key') idempotencyKey?: string,
+    @Headers('x-correlation-id') correlationId?: string,
+  ): Promise<ApproveOrderResult> {
+    if (!user) throw new UnauthorizedException();
+
+    return this.commandBus.execute(
+      new ApproveOrderCommand(id as OrderId, user.userId as UserId, {
+        commandId: idempotencyKey,
+        correlationId,
+      }),
+    );
   }
 
   @Post()
