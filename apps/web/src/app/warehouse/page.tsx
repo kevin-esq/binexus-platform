@@ -78,16 +78,27 @@ export default function WarehousePage() {
     <main className="mx-auto min-h-screen max-w-5xl p-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link href="/orders" className="text-sm font-medium text-brand-600 hover:text-brand-700">
-            ← Back to orders
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/orders"
+              className="text-sm font-medium text-brand-600 hover:text-brand-700"
+            >
+              ← Back to orders
+            </Link>
+            <Link
+              href="/logistics"
+              className="text-sm font-medium text-brand-600 hover:text-brand-700"
+            >
+              Logistics
+            </Link>
+          </div>
           <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-brand-600">
             Warehouse
           </p>
           <h1 className="text-2xl font-bold text-slate-900">Picking tasks</h1>
           <p className="mt-1 text-sm text-slate-500">
             Pending picks created after inventory reservation. Complete to move orders to ready for
-            route.
+            delivery route.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

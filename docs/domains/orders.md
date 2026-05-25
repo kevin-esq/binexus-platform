@@ -54,10 +54,10 @@ Implemented:
 Implemented:
 
 - `ORDER_PICKING_STARTED` — emitted when order moves to picking after reservation.
+- `ORDER_READY_FOR_DELIVERY_ROUTE` — emitted when order moves to `READY_FOR_DELIVERY_ROUTE` after picking.
 
 Future:
 
-- `ORDER_READY_FOR_DELIVERY_ROUTE`.
 - `ORDER_DELIVERED`.
 - `ORDER_SETTLED`.
 
@@ -109,6 +109,8 @@ Orders auto-cancels on reservation failure (APPROVED → CANCELLED)
 Warehouse generates picking (automatic after `INVENTORY_RESERVED`)
 ↓
 PICKING_COMPLETED → READY_FOR_DELIVERY_ROUTE
+↓
+ORDER_READY_FOR_DELIVERY_ROUTE → Logistics candidate projection
 ```
 
 ## HTTP surface

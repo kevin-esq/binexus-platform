@@ -2,6 +2,8 @@ import type { z } from 'zod';
 
 import { DomainEventName } from '../registry';
 
+import { deliveryRouteAssignedPayload } from './delivery-route-assigned';
+import { deliveryRouteCreatedPayload } from './delivery-route-created';
 import { inventoryReleasedPayload } from './inventory-released';
 import { inventoryReservationFailedPayload } from './inventory-reservation-failed';
 import { inventoryReservedPayload } from './inventory-reserved';
@@ -9,6 +11,7 @@ import { orderApprovedPayload } from './order-approved';
 import { orderCancelledPayload } from './order-cancelled';
 import { orderCreatedPayload } from './order-created';
 import { orderPickingStartedPayload } from './order-picking-started';
+import { orderReadyForDeliveryRoutePayload } from './order-ready-for-delivery-route';
 import { paymentRegisteredPayload } from './payment-registered';
 import { pickingCompletedPayload } from './picking-completed';
 import { saleCreatedPayload } from './sale-created';
@@ -21,6 +24,9 @@ export * from './order-approved';
 export * from './order-cancelled';
 export * from './order-created';
 export * from './order-picking-started';
+export * from './order-ready-for-delivery-route';
+export * from './delivery-route-created';
+export * from './delivery-route-assigned';
 export * from './picking-completed';
 export * from './payment-registered';
 export * from './sale-created';
@@ -36,6 +42,9 @@ export const EventPayloadSchemas = {
   [DomainEventName.INVENTORY_RELEASED]: inventoryReleasedPayload,
   [DomainEventName.ORDER_PICKING_STARTED]: orderPickingStartedPayload,
   [DomainEventName.PICKING_COMPLETED]: pickingCompletedPayload,
+  [DomainEventName.ORDER_READY_FOR_DELIVERY_ROUTE]: orderReadyForDeliveryRoutePayload,
+  [DomainEventName.DELIVERY_ROUTE_CREATED]: deliveryRouteCreatedPayload,
+  [DomainEventName.DELIVERY_ROUTE_ASSIGNED]: deliveryRouteAssignedPayload,
   [DomainEventName.SALE_CREATED]: saleCreatedPayload,
   [DomainEventName.PAYMENT_REGISTERED]: paymentRegisteredPayload,
 } as const;
