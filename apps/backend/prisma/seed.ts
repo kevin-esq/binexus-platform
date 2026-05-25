@@ -59,6 +59,27 @@ async function main(): Promise<void> {
     });
   }
 
+  const demoProducts = ['product-demo-1', 'product-demo-2', 'product-demo-3'];
+  for (const productId of demoProducts) {
+    await prisma.stockItem.upsert({
+      where: {
+        tenantId_branchId_productId: {
+          tenantId: tenant.id,
+          branchId: branch.id,
+          productId,
+        },
+      },
+      update: { onHand: 1000 },
+      create: {
+        tenantId: tenant.id,
+        branchId: branch.id,
+        productId,
+        onHand: 1000,
+        reserved: 0,
+      },
+    });
+  }
+
   console.warn('[seed] done');
 }
 

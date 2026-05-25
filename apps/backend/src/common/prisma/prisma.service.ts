@@ -14,6 +14,9 @@ const TENANT_SCOPED_MODELS = new Set<string>([
   'OrderLine',
   'OrderTransition',
   'AuditLog',
+  'StockItem',
+  'StockReservation',
+  'StockMovement',
 ]);
 
 // Operations that should have tenantId enforced.

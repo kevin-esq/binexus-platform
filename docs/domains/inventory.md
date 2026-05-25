@@ -1,16 +1,16 @@
 ﻿# Inventory domain
 
-Status: **planned** (Phase 2). Bounded context: `inventory`.
+Status: **active** (Phase 2 — reservation slice). Bounded context: `inventory`.
 
 Inventory owns the truth of stock: what exists, where it exists, what is reserved, and how it moved. It does not own picking tasks or route dispatch.
 
 ## Owns
 
-- `StockBalance` - quantity on hand per tenant/branch/sku.
-- `StockReservation` - quantity promised to an order.
-- `StockMovement` - immutable movement ledger.
-- `StockTransfer` - branch-to-branch movement request.
-- `StockAdjustment` - manual correction with reason.
+- `StockItem` — on-hand and reserved quantities per tenant/branch/product. Available = `onHand - reserved` (computed in application code).
+- `StockReservation` — quantity promised to an order line (`ACTIVE | RELEASED | FAILED`).
+- `StockMovement` — immutable movement ledger (`RESERVE`, `RELEASE`, `ADJUSTMENT`).
+- `StockTransfer` — branch-to-branch movement request (planned).
+- `StockAdjustment` — manual correction with reason (planned).
 
 ## Does not own
 
@@ -21,10 +21,13 @@ Inventory owns the truth of stock: what exists, where it exists, what is reserve
 
 ## Commands
 
-Planned:
+Implemented indirectly via event handlers (no HTTP API in this slice):
 
-- `ReserveInventoryCommand`.
-- `ReleaseReservationCommand`.
+- **Reserve on approve** — `OrderApprovedInventoryHandler` reacts to `ORDER_APPROVED`.
+- **Release on cancel** — `OrderCancelledInventoryHandler` reacts to `ORDER_CANCELLED`.
+
+Planned explicit commands:
+
 - `CommitReservationCommand`.
 - `RecordStockMovementCommand`.
 - `CreateStockTransferCommand`.
@@ -32,35 +35,49 @@ Planned:
 
 ## Events emitted
 
-Planned:
+| Event                          | When                                                          |
+| ------------------------------ | ------------------------------------------------------------- |
+| `INVENTORY_RESERVED`           | All order lines reserved successfully after `ORDER_APPROVED`. |
+| `INVENTORY_RESERVATION_FAILED` | Any line lacks available stock; no partial reservation.       |
+| `INVENTORY_RELEASED`           | Active reservations released after `ORDER_CANCELLED`.         |
 
-- `INVENTORY_RESERVED`.
-- `INVENTORY_RESERVATION_FAILED`.
-- `INVENTORY_RELEASED`.
-- `STOCK_MOVED`.
-- `STOCK_ADJUSTED`.
+Planned: `STOCK_MOVED`, `STOCK_ADJUSTED`.
 
 ## Events consumed
 
-- `ORDER_APPROVED` from Orders - reserve stock.
-- `ORDER_CANCELLED` from Orders - release reservations.
-- `SALE_CREATED` from Sales - decrement/commit stock for direct POS sale.
-- `PICKING_COMPLETED` from Warehouse - commit picked quantities.
+| Event             | Handler                          | Behavior                                                |
+| ----------------- | -------------------------------- | ------------------------------------------------------- |
+| `ORDER_APPROVED`  | `OrderApprovedInventoryHandler`  | Reserve stock for every line; write movements + outbox. |
+| `ORDER_CANCELLED` | `OrderCancelledInventoryHandler` | Release active reservations; write movements + outbox.  |
+
+Planned: `SALE_CREATED`, `PICKING_COMPLETED`.
+
+## Rules (reservation slice)
+
+1. **No negative stock by default** — reservation succeeds only when `onHand - reserved >= quantity` for every line.
+2. **All-or-nothing** — if any line fails, no stock is reserved; emit `INVENTORY_RESERVATION_FAILED` and mark line reservations `FAILED`.
+3. **Idempotency** — unique `(tenantId, orderId, orderLineId)` on `StockReservation`; re-delivery of `ORDER_APPROVED` with existing `ACTIVE` lines is a no-op; failure and release paths are similarly idempotent.
+4. **Tenant context in handlers** — event handlers run work inside `TenantContextService.run()` using `event.tenantId` and the acting user from the payload.
+5. **Outbox** — inventory outcome events are recorded in the same DB transaction as stock changes.
+
+## Implementation layout
+
+```
+apps/backend/src/contexts/inventory/
+  application/inventory-reservation.service.ts
+  events/order-approved-inventory.handler.ts
+  events/order-cancelled-inventory.handler.ts
+  inventory.module.ts
+```
 
 ## Allowed dependencies
 
-- May reference `skuId` from Catalog but cannot mutate catalog data.
-- May emit events that Warehouse consumes to generate picking.
-- Must not decide commercial order state. It reports reservation outcomes.
-
-## Boundary rules
-
-1. Inventory is a ledger, not a mutable counter hidden in product rows.
-2. All stock changes are movements with reason, actor, and correlation ID.
-3. Reservations are idempotent by order/line/command ID.
-4. Negative stock is a tenant policy, not a silent default.
+- May reference `productId` from order lines but cannot mutate catalog data.
+- May emit events that Warehouse will consume later.
+- Must not decide commercial order state. It reports reservation outcomes only.
 
 ## Open questions
 
 - Do we support batch/lot/expiry tracking in Phase 2 or defer?
 - Should reservations be hard (blocking) or soft (advisory) by tenant setting?
+- Should `Orders` compensate on `INVENTORY_RESERVATION_FAILED` (revert to `DRAFT` vs `CANCELLED`)?
