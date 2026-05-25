@@ -4,6 +4,7 @@ import { DomainEventName } from '../registry';
 
 import { deliveryRouteAssignedPayload } from './delivery-route-assigned';
 import { deliveryRouteCreatedPayload } from './delivery-route-created';
+import { deliveryRouteDispatchedPayload } from './delivery-route-dispatched';
 import { inventoryReleasedPayload } from './inventory-released';
 import { inventoryReservationFailedPayload } from './inventory-reservation-failed';
 import { inventoryReservedPayload } from './inventory-reserved';
@@ -27,6 +28,7 @@ export * from './order-picking-started';
 export * from './order-ready-for-delivery-route';
 export * from './delivery-route-created';
 export * from './delivery-route-assigned';
+export * from './delivery-route-dispatched';
 export * from './picking-completed';
 export * from './payment-registered';
 export * from './sale-created';
@@ -45,6 +47,7 @@ export const EventPayloadSchemas = {
   [DomainEventName.ORDER_READY_FOR_DELIVERY_ROUTE]: orderReadyForDeliveryRoutePayload,
   [DomainEventName.DELIVERY_ROUTE_CREATED]: deliveryRouteCreatedPayload,
   [DomainEventName.DELIVERY_ROUTE_ASSIGNED]: deliveryRouteAssignedPayload,
+  [DomainEventName.DELIVERY_ROUTE_DISPATCHED]: deliveryRouteDispatchedPayload,
   [DomainEventName.SALE_CREATED]: saleCreatedPayload,
   [DomainEventName.PAYMENT_REGISTERED]: paymentRegisteredPayload,
 } as const;

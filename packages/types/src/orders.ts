@@ -96,3 +96,8 @@ export interface MarkOrderReadyForDeliveryRouteResult {
   id: OrderId;
   state: typeof OrderState.READY_FOR_DELIVERY_ROUTE;
 }
+
+export interface MarkOrderOutForDeliveryResult {
+  id: OrderId;
+  state: typeof OrderState.OUT_FOR_DELIVERY;
+}

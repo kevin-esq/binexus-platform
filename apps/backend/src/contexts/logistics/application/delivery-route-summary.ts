@@ -13,6 +13,7 @@ export function toDeliveryRouteSummary(
     status: row.status,
     driverUserId: row.driverUserId as DeliveryRouteSummary['driverUserId'],
     plannedDate: row.plannedDate?.toISOString() ?? null,
+    dispatchedAt: row.dispatchedAt?.toISOString() ?? null,
     stopCount: count,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),

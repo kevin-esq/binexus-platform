@@ -1,6 +1,6 @@
 ﻿# Logistics domain
 
-Status: **active** (planning slice). Bounded context: `logistics`.
+Status: **active** (planning + dispatch base). Bounded context: `logistics`.
 
 Logistics owns delivery route planning, dispatch handoff, delivery confirmation, failed delivery handling, and route liquidation. Planning starts after Orders, Inventory, and Warehouse produce route-ready work.
 
@@ -25,14 +25,14 @@ Models use explicit compound names to avoid collision with framework concepts (H
 
 ## Commands
 
-Implemented (planning slice):
+Implemented:
 
 - `CreateDeliveryRouteCommand` - creates `DeliveryRoute(PLANNED)`.
 - `AssignOrderToDeliveryRouteCommand` - assigns `READY` candidates as stops on a planned route.
+- `DispatchDeliveryRouteCommand` - transitions `PLANNED -> DISPATCHED`, sets driver and dispatch metadata, emits `DELIVERY_ROUTE_DISPATCHED`.
 
 Planned:
 
-- `DispatchDeliveryRouteCommand`.
 - `ConfirmDeliveryCommand`.
 - `ReportFailedDeliveryCommand`.
 - `StartDeliveryRouteLiquidationCommand`.
@@ -44,10 +44,10 @@ Implemented:
 
 - `DELIVERY_ROUTE_CREATED`.
 - `DELIVERY_ROUTE_ASSIGNED`.
+- `DELIVERY_ROUTE_DISPATCHED` - consumed by Orders to mark assigned orders `OUT_FOR_DELIVERY`.
 
 Planned:
 
-- `DELIVERY_ROUTE_DISPATCHED`.
 - `DELIVERY_CONFIRMED`.
 - `DELIVERY_FAILED`.
 - `DELIVERY_ROUTE_LIQUIDATED`.
@@ -84,11 +84,12 @@ GET /logistics/delivery-route-candidates?status=READY&branchId=&limit=50&cursor=
 GET /logistics/delivery-routes?status=PLANNED&branchId=&limit=50&cursor=
 POST /logistics/delivery-routes
 POST /logistics/delivery-routes/:id/assign-orders
+POST /logistics/delivery-routes/:id/dispatch
 ```
 
 ## Web UI
 
-- `/logistics` - list ready candidates and planned routes; prompt-based create route and assign orders.
+- `/logistics` - list ready candidates, planned routes (assign + dispatch), and dispatched routes with `dispatchedAt`.
 
 ## Open questions
 
