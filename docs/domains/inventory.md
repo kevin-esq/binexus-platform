@@ -10,7 +10,7 @@ Inventory owns the truth of stock: what exists, where it exists, what is reserve
 - `StockReservation` — quantity promised to an order line (`ACTIVE | RELEASED | FAILED`).
 - `StockMovement` — immutable movement ledger (`RESERVE`, `RELEASE`, `ADJUSTMENT`).
 - `StockTransfer` — branch-to-branch movement request (planned).
-- `StockAdjustment` — manual correction with reason (planned).
+- `StockAdjustment` — manual correction with reason via `AdjustStockCommand` (delta + reason).
 
 ## Does not own
 
@@ -33,12 +33,15 @@ Implemented:
 - `GET /inventory/stock` — tenant-scoped list of `StockItem` rows with `onHand`, `reserved`, and computed `available`.
 - Query params: `branchId`, `productId`, `limit` (default 50, max 100), `cursor` (cursor pagination by `createdAt` + `id`).
 
+Implemented explicit write commands:
+
+- `AdjustStockCommand` — manual `onHand` correction with `StockMovement` type `ADJUSTMENT`. Rule: `nextOnHand >= reserved` (available cannot go negative against active reservations).
+
 Planned explicit write commands:
 
 - `CommitReservationCommand`.
 - `RecordStockMovementCommand`.
 - `CreateStockTransferCommand`.
-- `AdjustStockCommand`.
 
 ## Events emitted
 
@@ -71,13 +74,21 @@ Planned: `SALE_CREATED`, `PICKING_COMPLETED`.
 
 ```txt
 GET /inventory/stock?branchId=&productId=&limit=50&cursor=
+POST /inventory/stock/adjust
 ```
 
-Returns `{ items: StockItemSummary[], nextCursor: string | null }`. `available` is computed as `onHand - reserved` in the read service.
+`GET` returns `{ items: StockItemSummary[], nextCursor: string | null }`. `available` is computed as `onHand - reserved` in the read service.
+
+`POST /inventory/stock/adjust` body: `{ branchId, productId, delta, reason }`. Returns `{ stockItem, movementId }`.
+
+- `delta` — non-zero integer; positive adds stock, negative removes.
+- `reason` — 3–200 characters (trimmed).
+- If no `StockItem` exists: positive `delta` creates one; negative `delta` is rejected.
+- `reserved` is never modified; rejection when `onHand + delta < reserved`.
 
 ## Web UI
 
-- `/inventory` — minimal stock table (product, branch, on hand, reserved, available, updated). Links from `/orders` and home.
+- `/inventory` — minimal stock table (product, branch, on hand, reserved, available, updated) with per-row **Adjust** action (`prompt` for delta and reason). Links from `/orders` and home.
 
 ## Implementation layout
 
@@ -85,6 +96,7 @@ Returns `{ items: StockItemSummary[], nextCursor: string | null }`. `available` 
 apps/backend/src/contexts/inventory/
   application/inventory-reservation.service.ts
   application/inventory-read.service.ts
+  application/commands/adjust-stock.command.ts
   events/order-approved-inventory.handler.ts
   events/order-cancelled-inventory.handler.ts
   presentation/inventory.controller.ts

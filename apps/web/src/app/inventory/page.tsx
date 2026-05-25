@@ -16,6 +16,7 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [adjustingId, setAdjustingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadStock = useCallback(async (cursor?: string) => {
@@ -62,6 +63,43 @@ export default function InventoryPage() {
       setError(err instanceof Error ? err.message : 'Failed to refresh stock');
     } finally {
       setRefreshing(false);
+    }
+  }
+
+  async function onAdjust(item: StockItemSummary): Promise<void> {
+    const deltaRaw = window.prompt(
+      `Adjust stock for ${item.productId} at ${item.branchId}\n\nDelta (+/- integer):`,
+      '0',
+    );
+    if (deltaRaw === null) return;
+
+    const delta = Number.parseInt(deltaRaw.trim(), 10);
+    if (!Number.isInteger(delta) || delta === 0) {
+      setError('Delta must be a non-zero integer.');
+      return;
+    }
+
+    const reason = window.prompt('Reason (3–200 characters):');
+    if (reason === null) return;
+    if (reason.trim().length < 3) {
+      setError('Reason must be at least 3 characters.');
+      return;
+    }
+
+    setAdjustingId(item.id);
+    try {
+      await api.adjustStock({
+        branchId: item.branchId,
+        productId: item.productId,
+        delta,
+        reason: reason.trim(),
+      });
+      await loadStock();
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to adjust stock');
+    } finally {
+      setAdjustingId(null);
     }
   }
 
@@ -139,6 +177,7 @@ export default function InventoryPage() {
                 <th className="px-4 py-3 text-right">Reserved</th>
                 <th className="px-4 py-3 text-right">Available</th>
                 <th className="px-4 py-3">Updated</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -152,6 +191,16 @@ export default function InventoryPage() {
                     {item.available}
                   </td>
                   <td className="px-4 py-3 text-slate-500">{formatDate(item.updatedAt)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      disabled={adjustingId === item.id}
+                      onClick={() => void onAdjust(item)}
+                      className="rounded border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                    >
+                      {adjustingId === item.id ? 'Adjusting…' : 'Adjust'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

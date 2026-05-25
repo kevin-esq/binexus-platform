@@ -22,3 +22,15 @@ export interface ListStockItemsResult {
   items: StockItemSummary[];
   nextCursor: string | null;
 }
+
+export interface AdjustStockInput {
+  branchId: BranchId;
+  productId: string;
+  delta: number;
+  reason: string;
+}
+
+export interface AdjustStockResult {
+  stockItem: StockItemSummary;
+  movementId: string;
+}

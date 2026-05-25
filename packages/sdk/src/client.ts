@@ -1,4 +1,6 @@
 import type {
+  AdjustStockInput,
+  AdjustStockResult,
   ApproveOrderResult,
   AuthSession,
   CancelOrderResult,
@@ -105,6 +107,13 @@ export class BinexusClient {
     input: CancelOrderInput = {},
   ): Promise<CancelOrderResult> {
     return this.request<CancelOrderResult>('POST', `/orders/${encodeURIComponent(id)}/cancel`, {
+      body: input,
+      auth: true,
+    });
+  }
+
+  async adjustStock(input: AdjustStockInput): Promise<AdjustStockResult> {
+    return this.request<AdjustStockResult>('POST', '/inventory/stock/adjust', {
       body: input,
       auth: true,
     });
