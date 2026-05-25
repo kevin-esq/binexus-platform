@@ -101,3 +101,8 @@ export interface MarkOrderOutForDeliveryResult {
   id: OrderId;
   state: typeof OrderState.OUT_FOR_DELIVERY;
 }
+
+export interface MarkOrderDeliveredResult {
+  id: OrderId;
+  state: typeof OrderState.DELIVERED;
+}

@@ -1,6 +1,6 @@
 ﻿# Logistics domain
 
-Status: **active** (planning + dispatch base). Bounded context: `logistics`.
+Status: **active** (planning + dispatch + confirmation base). Bounded context: `logistics`.
 
 Logistics owns delivery route planning, dispatch handoff, delivery confirmation, failed delivery handling, and route liquidation. Planning starts after Orders, Inventory, and Warehouse produce route-ready work.
 
@@ -30,10 +30,10 @@ Implemented:
 - `CreateDeliveryRouteCommand` - creates `DeliveryRoute(PLANNED)`.
 - `AssignOrderToDeliveryRouteCommand` - assigns `READY` candidates as stops on a planned route.
 - `DispatchDeliveryRouteCommand` - transitions `PLANNED -> DISPATCHED`, sets driver and dispatch metadata, emits `DELIVERY_ROUTE_DISPATCHED`.
+- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, auto-completes route when all stops delivered, emits `DELIVERY_CONFIRMED`.
 
 Planned:
 
-- `ConfirmDeliveryCommand`.
 - `ReportFailedDeliveryCommand`.
 - `StartDeliveryRouteLiquidationCommand`.
 - `CloseDeliveryRouteLiquidationCommand`.
@@ -45,10 +45,10 @@ Implemented:
 - `DELIVERY_ROUTE_CREATED`.
 - `DELIVERY_ROUTE_ASSIGNED`.
 - `DELIVERY_ROUTE_DISPATCHED` - consumed by Orders to mark assigned orders `OUT_FOR_DELIVERY`.
+- `DELIVERY_CONFIRMED` - consumed by Orders to mark order `DELIVERED`.
 
 Planned:
 
-- `DELIVERY_CONFIRMED`.
 - `DELIVERY_FAILED`.
 - `DELIVERY_ROUTE_LIQUIDATED`.
 
@@ -85,11 +85,13 @@ GET /logistics/delivery-routes?status=PLANNED&branchId=&limit=50&cursor=
 POST /logistics/delivery-routes
 POST /logistics/delivery-routes/:id/assign-orders
 POST /logistics/delivery-routes/:id/dispatch
+GET /logistics/delivery-routes/:id/stops
+POST /logistics/delivery-route-stops/:id/confirm-delivery
 ```
 
 ## Web UI
 
-- `/logistics` - list ready candidates, planned routes (assign + dispatch), and dispatched routes with `dispatchedAt`.
+- `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops and **Confirm delivery**, and completed routes with `completedAt`.
 
 ## Open questions
 

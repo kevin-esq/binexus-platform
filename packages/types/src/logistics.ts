@@ -13,6 +13,7 @@ export interface DeliveryRouteSummary {
   driverUserId: UserId | null;
   plannedDate: ISODateString | null;
   dispatchedAt: ISODateString | null;
+  completedAt: ISODateString | null;
   stopCount: number;
   createdAt: ISODateString;
   updatedAt: ISODateString;
@@ -82,4 +83,27 @@ export interface DispatchDeliveryRouteResult {
   driverUserId: UserId;
   dispatchedAt: ISODateString;
   orderIds: OrderId[];
+}
+
+export interface DeliveryRouteStopSummary {
+  id: string;
+  deliveryRouteId: string;
+  orderId: OrderId;
+  sequence: number;
+  status: DeliveryRouteStopStatus;
+  deliveredAt: ISODateString | null;
+}
+
+export interface ListDeliveryRouteStopsResult {
+  items: DeliveryRouteStopSummary[];
+}
+
+export type ConfirmDeliveryInput = Record<string, never>;
+
+export interface ConfirmDeliveryResult {
+  deliveryRouteStopId: string;
+  orderId: OrderId;
+  status: 'DELIVERED';
+  deliveredAt: ISODateString;
+  routeStatus: DeliveryRouteStatus;
 }

@@ -3,13 +3,14 @@
 import type {
   BranchId,
   DeliveryRouteCandidateSummary,
+  DeliveryRouteStopSummary,
   DeliveryRouteSummary,
   OrderId,
   UserId,
 } from '@binexus/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../lib/api';
 import { formatDate, shortId } from '../../lib/format';
@@ -20,6 +21,11 @@ export default function LogisticsPage() {
   const [candidates, setCandidates] = useState<DeliveryRouteCandidateSummary[]>([]);
   const [routes, setRoutes] = useState<DeliveryRouteSummary[]>([]);
   const [dispatchedRoutes, setDispatchedRoutes] = useState<DeliveryRouteSummary[]>([]);
+  const [completedRoutes, setCompletedRoutes] = useState<DeliveryRouteSummary[]>([]);
+  const [expandedRouteId, setExpandedRouteId] = useState<string | null>(null);
+  const [routeStops, setRouteStops] = useState<Record<string, DeliveryRouteStopSummary[]>>({});
+  const [loadingStopsRouteId, setLoadingStopsRouteId] = useState<string | null>(null);
+  const [confirmingStopId, setConfirmingStopId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [assigningRouteId, setAssigningRouteId] = useState<string | null>(null);
@@ -27,14 +33,16 @@ export default function LogisticsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    const [candidateResult, routeResult, dispatchedResult] = await Promise.all([
+    const [candidateResult, routeResult, dispatchedResult, completedResult] = await Promise.all([
       api.listDeliveryRouteCandidates({ status: 'READY', limit: 50 }),
       api.listDeliveryRoutes({ status: 'PLANNED', limit: 50 }),
       api.listDeliveryRoutes({ status: 'DISPATCHED', limit: 50 }),
+      api.listDeliveryRoutes({ status: 'COMPLETED', limit: 50 }),
     ]);
     setCandidates(candidateResult.items);
     setRoutes(routeResult.items);
     setDispatchedRoutes(dispatchedResult.items);
+    setCompletedRoutes(completedResult.items);
   }, []);
 
   useEffect(() => {
@@ -66,6 +74,10 @@ export default function LogisticsPage() {
     setRefreshing(true);
     try {
       await loadData();
+      if (expandedRouteId) {
+        const stops = await api.listDeliveryRouteStops(expandedRouteId);
+        setRouteStops((prev) => ({ ...prev, [expandedRouteId]: stops.items }));
+      }
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to refresh');
@@ -132,6 +144,127 @@ export default function LogisticsPage() {
     }
   }
 
+  async function toggleRouteStops(routeId: string): Promise<void> {
+    if (expandedRouteId === routeId) {
+      setExpandedRouteId(null);
+      return;
+    }
+
+    setExpandedRouteId(routeId);
+    if (routeStops[routeId]) return;
+
+    setLoadingStopsRouteId(routeId);
+    try {
+      const result = await api.listDeliveryRouteStops(routeId);
+      setRouteStops((prev) => ({ ...prev, [routeId]: result.items }));
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load route stops');
+    } finally {
+      setLoadingStopsRouteId(null);
+    }
+  }
+
+  async function onConfirmDelivery(stop: DeliveryRouteStopSummary, routeId: string): Promise<void> {
+    setConfirmingStopId(stop.id);
+    try {
+      await api.confirmDelivery(stop.id);
+      const stops = await api.listDeliveryRouteStops(routeId);
+      setRouteStops((prev) => ({ ...prev, [routeId]: stops.items }));
+      await loadData();
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to confirm delivery');
+    } finally {
+      setConfirmingStopId(null);
+    }
+  }
+
+  function renderDispatchedRouteRows(): React.ReactNode {
+    return dispatchedRoutes.map((route) => {
+      const expanded = expandedRouteId === route.id;
+      const stops = routeStops[route.id] ?? [];
+
+      return (
+        <Fragment key={route.id}>
+          <tr className="border-b border-slate-100 last:border-0">
+            <td className="px-4 py-3 font-medium text-slate-900">
+              <button
+                type="button"
+                onClick={() => void toggleRouteStops(route.id)}
+                className="text-left hover:text-brand-600"
+              >
+                {expanded ? '▼' : '▶'} {shortId(route.id)}
+              </button>
+            </td>
+            <td className="px-4 py-3 text-slate-700">{route.branchId}</td>
+            <td className="px-4 py-3 text-right text-slate-700">{route.stopCount}</td>
+            <td className="px-4 py-3 text-slate-500">
+              {route.driverUserId ? shortId(route.driverUserId) : '—'}
+            </td>
+            <td className="px-4 py-3 text-slate-500">
+              {route.dispatchedAt ? formatDate(route.dispatchedAt) : '—'}
+            </td>
+          </tr>
+          {expanded ? (
+            <tr key={`${route.id}-stops`} className="border-b border-slate-100 bg-slate-50">
+              <td colSpan={5} className="px-4 py-3">
+                {loadingStopsRouteId === route.id ? (
+                  <p className="text-sm text-slate-500">Loading stops…</p>
+                ) : stops.length === 0 ? (
+                  <p className="text-sm text-slate-500">No stops on this route.</p>
+                ) : (
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="text-xs uppercase tracking-wide text-slate-500">
+                        <th className="pb-2 pr-4">Seq</th>
+                        <th className="pb-2 pr-4">Order</th>
+                        <th className="pb-2 pr-4">Status</th>
+                        <th className="pb-2 pr-4">Delivered</th>
+                        <th className="pb-2 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stops.map((stop) => (
+                        <tr key={stop.id}>
+                          <td className="py-2 pr-4 text-slate-700">{stop.sequence}</td>
+                          <td className="py-2 pr-4">
+                            <Link
+                              href={`/orders/${stop.orderId}`}
+                              className="font-medium text-brand-600 hover:text-brand-700"
+                            >
+                              {shortId(stop.orderId)}
+                            </Link>
+                          </td>
+                          <td className="py-2 pr-4 text-slate-700">{stop.status}</td>
+                          <td className="py-2 pr-4 text-slate-500">
+                            {stop.deliveredAt ? formatDate(stop.deliveredAt) : '—'}
+                          </td>
+                          <td className="py-2 text-right">
+                            {stop.status === 'PLANNED' ? (
+                              <button
+                                type="button"
+                                disabled={confirmingStopId === stop.id}
+                                onClick={() => void onConfirmDelivery(stop, route.id)}
+                                className="rounded bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                              >
+                                {confirmingStopId === stop.id ? 'Confirming…' : 'Confirm delivery'}
+                              </button>
+                            ) : null}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </td>
+            </tr>
+          ) : null}
+        </Fragment>
+      );
+    });
+  }
+
   return (
     <main className="mx-auto min-h-screen max-w-5xl p-6">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -142,10 +275,9 @@ export default function LogisticsPage() {
           <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-brand-600">
             Logistics
           </p>
-          <h1 className="text-2xl font-bold text-slate-900">Delivery route planning</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Delivery routes</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Orders ready for delivery route appear as candidates. Create a planned route, assign
-            stops, then dispatch to send orders out for delivery.
+            Plan routes, dispatch to drivers, and confirm deliveries stop by stop.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -308,8 +440,32 @@ export default function LogisticsPage() {
                       <th className="px-4 py-3">Dispatched</th>
                     </tr>
                   </thead>
+                  <tbody>{renderDispatchedRouteRows()}</tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-lg font-semibold text-slate-900">Completed routes</h2>
+            {completedRoutes.length === 0 ? (
+              <div className="rounded border border-slate-200 bg-white p-4 text-sm text-slate-600">
+                No completed routes yet. Confirm all stops on a dispatched route to complete it.
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3">Route</th>
+                      <th className="px-4 py-3">Branch</th>
+                      <th className="px-4 py-3 text-right">Stops</th>
+                      <th className="px-4 py-3">Driver</th>
+                      <th className="px-4 py-3">Completed</th>
+                    </tr>
+                  </thead>
                   <tbody>
-                    {dispatchedRoutes.map((route) => (
+                    {completedRoutes.map((route) => (
                       <tr key={route.id} className="border-b border-slate-100 last:border-0">
                         <td className="px-4 py-3 font-medium text-slate-900">
                           {shortId(route.id)}
@@ -320,7 +476,7 @@ export default function LogisticsPage() {
                           {route.driverUserId ? shortId(route.driverUserId) : '—'}
                         </td>
                         <td className="px-4 py-3 text-slate-500">
-                          {route.dispatchedAt ? formatDate(route.dispatchedAt) : '—'}
+                          {route.completedAt ? formatDate(route.completedAt) : '—'}
                         </td>
                       </tr>
                     ))}

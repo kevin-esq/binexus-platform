@@ -44,7 +44,8 @@ sequenceDiagram
 7. **Picking** — **implemented:** `Warehouse` consumes `ORDER_PICKING_STARTED`, creates `PickingTask` + lines; `CompletePickingTaskCommand` emits `PICKING_COMPLETED`.
 8. **Ready for delivery route** — **implemented:** `Orders` consumes `PICKING_COMPLETED`, transitions `PICKING -> READY_FOR_DELIVERY_ROUTE`, emits `ORDER_READY_FOR_DELIVERY_ROUTE`.
 9. **Route planning** — **implemented:** `Logistics` consumes `ORDER_READY_FOR_DELIVERY_ROUTE`, projects `DeliveryRouteCandidate`. Dispatcher creates `DeliveryRoute(PLANNED)` and assigns candidates via `AssignOrderToDeliveryRouteCommand` (`DELIVERY_ROUTE_CREATED`, `DELIVERY_ROUTE_ASSIGNED`).
-10. **Route dispatch** — **implemented:** `DispatchDeliveryRouteCommand` moves route `PLANNED -> DISPATCHED` and emits `DELIVERY_ROUTE_DISPATCHED`. `Orders` consumes the event and runs `MarkOrderOutForDeliveryCommand` for each assigned order still `READY_FOR_DELIVERY_ROUTE` (`OUT_FOR_DELIVERY`). Delivery confirmation is a later slice.
+10. **Route dispatch** — **implemented:** `DispatchDeliveryRouteCommand` moves route `PLANNED -> DISPATCHED` and emits `DELIVERY_ROUTE_DISPATCHED`. `Orders` consumes the event and runs `MarkOrderOutForDeliveryCommand` for each assigned order still `READY_FOR_DELIVERY_ROUTE` (`OUT_FOR_DELIVERY`).
+11. **Delivery confirmation** — **implemented:** `ConfirmDeliveryCommand` marks stop `PLANNED -> DELIVERED`, auto-completes route when all stops are delivered, emits `DELIVERY_CONFIRMED`. `Orders` consumes the event and runs `MarkOrderDeliveredCommand` (`OUT_FOR_DELIVERY -> DELIVERED`, emits `ORDER_DELIVERED`). Proof of delivery and failed delivery are later slices.
 
 ## Cross-context contracts implied by this flow
 

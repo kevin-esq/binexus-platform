@@ -361,6 +361,7 @@ model DeliveryRoute {
   plannedDate         DateTime?
   dispatchedAt        DateTime?
   dispatchedByUserId  String?
+  completedAt         DateTime?
   createdByUserId     String
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
@@ -378,9 +379,11 @@ model DeliveryRouteStop {
   deliveryRouteId String
   orderId         String
   sequence        Int
-  status          DeliveryRouteStopStatus @default(PLANNED)
-  createdAt       DateTime                @default(now())
-  deliveryRoute   DeliveryRoute           @relation(fields: [deliveryRouteId], references: [id], onDelete: Cascade)
+  status              DeliveryRouteStopStatus @default(PLANNED)
+  deliveredAt         DateTime?
+  deliveredByUserId   String?
+  createdAt           DateTime                @default(now())
+  deliveryRoute       DeliveryRoute           @relation(fields: [deliveryRouteId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, deliveryRouteId, orderId])
   @@unique([tenantId, deliveryRouteId, sequence])
