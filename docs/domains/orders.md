@@ -57,9 +57,12 @@ Future:
 
 ## Events consumed
 
-Potential future:
+Implemented:
 
-- `INVENTORY_RESERVATION_FAILED` to move an approved order back to an exception state.
+- `INVENTORY_RESERVATION_FAILED` — `InventoryReservationFailedOrdersHandler` auto-cancels orders still in `APPROVED` via `CancelOrderCommand` (actor: tenant `system` user, reason `auto: inventory reservation failed`). Idempotent if the order was already cancelled.
+
+Future:
+
 - `DELIVERY_CONFIRMED` from Logistics to mark delivered.
 - `PAYMENT_ALLOCATED` from Billing to mark settled.
 
@@ -88,7 +91,9 @@ ApproveOrder
 ↓
 ORDER_APPROVED event
 ↓
-Inventory reserves stock
+Inventory reserves stock (or emits INVENTORY_RESERVATION_FAILED)
+↓
+Orders auto-cancels on reservation failure (APPROVED → CANCELLED)
 ↓
 Warehouse generates picking
 ```

@@ -53,6 +53,12 @@ None in Phase 0. Identity should avoid consuming operational events unless the e
 3. A context can reference `userId` or `branchId`, but it must not join directly to `User` or `Branch` for domain logic.
 4. Historical records store IDs and snapshots where needed; changing a user name does not rewrite old order approvals.
 
+## System users (automation actor)
+
+Each tenant should have exactly one `User` with `isSystem: true` (email `system@<tenantSlug>.system`). Created by [`apps/backend/prisma/seed.ts`](../../apps/backend/prisma/seed.ts) today. Event-driven handlers in other contexts (e.g. Orders auto-cancel on `INVENTORY_RESERVATION_FAILED`) resolve this user via `SystemUserService`.
+
+**TODO:** When `RegisterTenantCommand` ships, provision the system user in the same transaction as tenant creation (not only via seed).
+
 ## Open questions
 
 - Do we need invitation-based onboarding before self-registration?

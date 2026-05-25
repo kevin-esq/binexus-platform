@@ -9,6 +9,7 @@ import { ApproveOrderHandler } from './application/commands/approve-order.comman
 import { CancelOrderHandler } from './application/commands/cancel-order.command';
 import { CreateOrderHandler } from './application/commands/create-order.command';
 import { OrdersReadService } from './application/orders-read.service';
+import { InventoryReservationFailedOrdersHandler } from './events/inventory-reservation-failed.handler';
 import { OrdersController } from './presentation/orders.controller';
 
 const commandHandlers = [CreateOrderHandler, ApproveOrderHandler, CancelOrderHandler];
@@ -16,6 +17,6 @@ const commandHandlers = [CreateOrderHandler, ApproveOrderHandler, CancelOrderHan
 @Module({
   imports: [CommandsModule, EventsModule, PrismaModule, TenantModule],
   controllers: [OrdersController],
-  providers: [...commandHandlers, OrdersReadService],
+  providers: [...commandHandlers, OrdersReadService, InventoryReservationFailedOrdersHandler],
 })
 export class OrdersModule {}

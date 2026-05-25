@@ -63,6 +63,7 @@ model User {
   passwordHash     String
   role             Role
   branchId         String?
+  isSystem         Boolean           @default(false)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -73,6 +74,7 @@ model User {
 
   @@unique([tenantId, email])
   @@index([tenantId])
+  @@index([tenantId, isSystem])
 }
 
 model Branch {
