@@ -8,8 +8,8 @@ Inventory owns the truth of stock: what exists, where it exists, what is reserve
 
 - `StockItem` — on-hand and reserved quantities per tenant/branch/product. Available = `onHand - reserved` (computed in application code).
 - `StockReservation` — quantity promised to an order line (`ACTIVE | RELEASED | FAILED`).
-- `StockMovement` — immutable movement ledger (`RESERVE`, `RELEASE`, `ADJUSTMENT`).
-- `StockTransfer` — branch-to-branch movement request (planned).
+- `StockMovement` — immutable movement ledger (`RESERVE`, `RELEASE`, `ADJUSTMENT`, `TRANSFER_OUT`, `TRANSFER_IN`).
+- `StockTransfer` — branch-to-branch transfer request (`PENDING | RECEIVED | CANCELLED`).
 - `StockAdjustment` — manual correction with reason via `AdjustStockCommand` (delta + reason).
 
 ## Does not own
@@ -36,12 +36,14 @@ Implemented:
 Implemented explicit write commands:
 
 - `AdjustStockCommand` — manual `onHand` correction with `StockMovement` type `ADJUSTMENT`. Rule: `nextOnHand >= reserved` (available cannot go negative against active reservations).
+- `CreateStockTransferCommand` — creates `StockTransfer(PENDING)` and increments source `reserved` when `available >= quantity`.
+- `ReceiveStockTransferCommand` — decrements source `onHand`/`reserved`, increments destination `onHand`, writes `TRANSFER_OUT` / `TRANSFER_IN` movements, marks `RECEIVED`.
+- `CancelStockTransferCommand` — releases source `reserved` for pending transfers and marks `CANCELLED`.
 
 Planned explicit write commands:
 
 - `CommitReservationCommand`.
 - `RecordStockMovementCommand`.
-- `CreateStockTransferCommand`.
 
 ## Events emitted
 
@@ -75,6 +77,10 @@ Planned: `SALE_CREATED`, `PICKING_COMPLETED`.
 ```txt
 GET /inventory/stock?branchId=&productId=&limit=50&cursor=
 POST /inventory/stock/adjust
+GET /inventory/stock/transfers?status=PENDING&limit=50&cursor=
+POST /inventory/stock/transfers
+POST /inventory/stock/transfers/:id/receive
+POST /inventory/stock/transfers/:id/cancel
 ```
 
 `GET` returns `{ items: StockItemSummary[], nextCursor: string | null }`. `available` is computed as `onHand - reserved` in the read service.
@@ -86,9 +92,17 @@ POST /inventory/stock/adjust
 - If no `StockItem` exists: positive `delta` creates one; negative `delta` is rejected.
 - `reserved` is never modified; rejection when `onHand + delta < reserved`.
 
+**Transfers lifecycle**
+
+1. **Create** — `POST /inventory/stock/transfers` body `{ sourceBranchId, destinationBranchId, productId, quantity, reason? }`. Reserves `quantity` on source (`reserved += quantity`). Requires source `available >= quantity` and distinct branches.
+2. **Receive** — `POST /inventory/stock/transfers/:id/receive`. Moves stock: source `onHand`/`reserved` decrease; destination `onHand` increases (creates destination item if missing). Ledger: `TRANSFER_OUT` (negative qty) at source, `TRANSFER_IN` (positive qty) at destination.
+3. **Cancel** — `POST /inventory/stock/transfers/:id/cancel`. Only `PENDING`; releases source `reserved`.
+
+`GET /inventory/stock/transfers?status=` lists transfers (default all statuses if omitted).
+
 ## Web UI
 
-- `/inventory` — minimal stock table (product, branch, on hand, reserved, available, updated) with per-row **Adjust** action (`prompt` for delta and reason). Links from `/orders` and home.
+- `/inventory` — stock table with per-row **Adjust** and **Transfer** (`prompt` for destination, quantity, reason). Pending transfers section with **Receive** / **Cancel**. Links from `/orders` and home.
 
 ## Implementation layout
 
@@ -97,6 +111,10 @@ apps/backend/src/contexts/inventory/
   application/inventory-reservation.service.ts
   application/inventory-read.service.ts
   application/commands/adjust-stock.command.ts
+  application/commands/create-stock-transfer.command.ts
+  application/commands/receive-stock-transfer.command.ts
+  application/commands/cancel-stock-transfer.command.ts
+  application/stock-transfer-summary.ts
   events/order-approved-inventory.handler.ts
   events/order-cancelled-inventory.handler.ts
   presentation/inventory.controller.ts

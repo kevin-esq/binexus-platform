@@ -39,10 +39,18 @@ enum StockReservationStatus {
   FAILED
 }
 
+enum StockTransferStatus {
+  PENDING
+  RECEIVED
+  CANCELLED
+}
+
 enum StockMovementType {
   RESERVE
   RELEASE
   ADJUSTMENT
+  TRANSFER_OUT
+  TRANSFER_IN
 }
 
 model Tenant {
@@ -257,4 +265,28 @@ model StockMovement {
 
   @@index([tenantId, branchId, productId])
   @@index([tenantId, orderId])
+}
+
+/// Branch-to-branch stock transfer request with lifecycle.
+model StockTransfer {
+  id                  String              @id @default(cuid())
+  tenantId            String
+  sourceBranchId      String
+  destinationBranchId String
+  productId           String
+  quantity            Int
+  status              StockTransferStatus @default(PENDING)
+  reason              String?
+  createdByUserId     String
+  receivedByUserId    String?
+  cancelledByUserId   String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  receivedAt          DateTime?
+  cancelledAt         DateTime?
+
+  @@index([tenantId, status])
+  @@index([tenantId, sourceBranchId])
+  @@index([tenantId, destinationBranchId])
+  @@index([tenantId, productId])
 }
