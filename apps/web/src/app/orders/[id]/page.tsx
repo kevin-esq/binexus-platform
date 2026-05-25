@@ -1,6 +1,6 @@
 'use client';
 
-import type { OrderDetail } from '@binexus/types';
+import { OrderState, type OrderDetail } from '@binexus/types';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -14,7 +14,14 @@ export default function OrderDetailPage() {
   const router = useRouter();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [approving, setApproving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function loadOrder(id: string): Promise<void> {
+    const detail = await api.getOrder(id);
+    setOrder(detail);
+    setError(null);
+  }
 
   useEffect(() => {
     if (!hasStoredSession()) {
@@ -28,11 +35,7 @@ export default function OrderDetailPage() {
     let cancelled = false;
     (async () => {
       try {
-        const detail = await api.getOrder(id);
-        if (!cancelled) {
-          setOrder(detail);
-          setError(null);
-        }
+        await loadOrder(id);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Failed to load order');
@@ -46,6 +49,22 @@ export default function OrderDetailPage() {
       cancelled = true;
     };
   }, [params.id, router]);
+
+  async function onApprove(): Promise<void> {
+    const id = params.id;
+    if (!id || !order || order.state !== OrderState.DRAFT) return;
+
+    setApproving(true);
+    setError(null);
+    try {
+      await api.approveOrder(id);
+      await loadOrder(id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve order');
+    } finally {
+      setApproving(false);
+    }
+  }
 
   return (
     <main className="mx-auto min-h-screen max-w-3xl p-6">
@@ -61,12 +80,24 @@ export default function OrderDetailPage() {
         </div>
       ) : order ? (
         <div className="mt-6 space-y-6">
-          <header>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-              Order detail
-            </p>
-            <h1 className="text-2xl font-bold text-slate-900">#{shortId(order.id)}</h1>
-            <p className="mt-1 text-sm text-slate-500">Full id: {order.id}</p>
+          <header className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                Order detail
+              </p>
+              <h1 className="text-2xl font-bold text-slate-900">#{shortId(order.id)}</h1>
+              <p className="mt-1 text-sm text-slate-500">Full id: {order.id}</p>
+            </div>
+            {order.state === OrderState.DRAFT ? (
+              <button
+                type="button"
+                disabled={approving}
+                onClick={() => void onApprove()}
+                className="h-10 rounded bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700 disabled:bg-brand-300"
+              >
+                {approving ? 'Approving…' : 'Approve order'}
+              </button>
+            ) : null}
           </header>
 
           <section className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-2">

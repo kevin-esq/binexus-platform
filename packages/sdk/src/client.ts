@@ -1,4 +1,5 @@
 import type {
+  ApproveOrderResult,
   AuthSession,
   ListOrdersQuery,
   ListOrdersResult,
@@ -84,6 +85,12 @@ export class BinexusClient {
 
   async getOrder(id: OrderId | string): Promise<OrderDetail> {
     return this.request<OrderDetail>('GET', `/orders/${encodeURIComponent(id)}`, { auth: true });
+  }
+
+  async approveOrder(id: OrderId | string): Promise<ApproveOrderResult> {
+    return this.request<ApproveOrderResult>('POST', `/orders/${encodeURIComponent(id)}/approve`, {
+      auth: true,
+    });
   }
 
   private async request<T>(

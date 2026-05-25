@@ -5,6 +5,15 @@ import { type PrismaService } from '../prisma/prisma.service';
 
 import { AuditLogService } from './audit-log.service';
 
+const orderApprovedEvent: DomainEvent<typeof DomainEventName.ORDER_APPROVED> = {
+  id: 'event-2',
+  name: DomainEventName.ORDER_APPROVED,
+  tenantId: 'tenant-1',
+  occurredAt: '2026-05-24T00:00:00.000Z',
+  version: 1,
+  payload: { orderId: 'order-1', approvedBy: 'user-1' },
+};
+
 const orderCreatedEvent: DomainEvent<typeof DomainEventName.ORDER_CREATED> = {
   id: 'event-1',
   name: DomainEventName.ORDER_CREATED,
@@ -41,6 +50,32 @@ describe('AuditLogService', () => {
         entityId: 'order-1',
         action: DomainEventName.ORDER_CREATED,
         payload: orderCreatedEvent.payload,
+        occurredAt: new Date('2026-05-24T00:00:00.000Z'),
+      },
+      update: {},
+    });
+  });
+
+  it('upserts an audit row for ORDER_APPROVED', async () => {
+    const upsert = vi.fn().mockResolvedValue({});
+    const prisma = {
+      auditLog: { upsert },
+    } as unknown as PrismaService;
+
+    const service = new AuditLogService(prisma);
+    await service.recordOrderApproved(orderApprovedEvent);
+
+    expect(upsert).toHaveBeenCalledWith({
+      where: { eventId: 'event-2' },
+      create: {
+        tenantId: 'tenant-1',
+        eventId: 'event-2',
+        eventName: DomainEventName.ORDER_APPROVED,
+        actorUserId: 'user-1',
+        entityType: 'Order',
+        entityId: 'order-1',
+        action: DomainEventName.ORDER_APPROVED,
+        payload: orderApprovedEvent.payload,
         occurredAt: new Date('2026-05-24T00:00:00.000Z'),
       },
       update: {},

@@ -30,9 +30,6 @@ See [`states/order.md`](../states/order.md). The shared helper `canTransition()`
 Implemented:
 
 - `CreateOrderCommand`.
-
-Planned next:
-
 - `ApproveOrderCommand`.
 
 Later:
@@ -48,10 +45,10 @@ Later:
 Implemented:
 
 - `ORDER_CREATED`.
+- `ORDER_APPROVED`.
 
 Registered for next steps:
 
-- `ORDER_APPROVED`.
 - `ORDER_CANCELLED`.
 
 Future:
@@ -105,6 +102,7 @@ Warehouse generates picking
 GET /orders?limit=20&cursor=<orderId>
 GET /orders/:id
 POST /orders
+POST /orders/:id/approve
 ```
 
 `GET /orders` returns tenant-scoped order summaries with cursor pagination (`nextCursor` is the last item id on the page).
@@ -112,6 +110,8 @@ POST /orders
 `GET /orders/:id` returns the order with lines and transition history.
 
 `POST /orders` creates a tenant-scoped `Order` in `DRAFT`, persists its lines, records the initial transition, and writes `ORDER_CREATED` to the outbox in the same transaction.
+
+`POST /orders/:id/approve` transitions `DRAFT -> APPROVED`, records the transition, and writes `ORDER_APPROVED` to the outbox in the same transaction.
 
 ```txt
 Idempotency-Key: <command id>
