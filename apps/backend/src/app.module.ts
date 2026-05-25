@@ -17,6 +17,7 @@ import { TenantContextMiddleware } from './common/tenant/tenant-context.middlewa
 import { TenantModule } from './common/tenant/tenant.module';
 import { IdentityModule } from './contexts/identity/identity.module';
 import { InventoryModule } from './contexts/inventory/inventory.module';
+import { LogisticsModule } from './contexts/logistics/logistics.module';
 import { OrdersModule } from './contexts/orders/orders.module';
 import { WarehouseModule } from './contexts/warehouse/warehouse.module';
 
@@ -37,6 +38,7 @@ import { WarehouseModule } from './contexts/warehouse/warehouse.module';
     InventoryModule,
     OrdersModule,
     WarehouseModule,
+    LogisticsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

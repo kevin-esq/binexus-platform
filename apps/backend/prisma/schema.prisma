@@ -330,3 +330,77 @@ model PickingLine {
   @@unique([tenantId, pickingTaskId, orderLineId])
   @@index([tenantId, pickingTaskId])
 }
+
+enum DeliveryRouteStatus {
+  PLANNED
+  DISPATCHED
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryRouteStopStatus {
+  PLANNED
+  DELIVERED
+  FAILED
+  SKIPPED
+}
+
+enum DeliveryRouteCandidateStatus {
+  READY
+  ASSIGNED
+  CANCELLED
+}
+
+/// Planned delivery route for a branch.
+model DeliveryRoute {
+  id              String              @id @default(cuid())
+  tenantId        String
+  branchId        String
+  status          DeliveryRouteStatus @default(PLANNED)
+  driverUserId    String?
+  plannedDate     DateTime?
+  createdByUserId String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  stops           DeliveryRouteStop[]
+  candidates      DeliveryRouteCandidate[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, branchId])
+}
+
+/// Order stop on a delivery route.
+model DeliveryRouteStop {
+  id              String                  @id @default(cuid())
+  tenantId        String
+  deliveryRouteId String
+  orderId         String
+  sequence        Int
+  status          DeliveryRouteStopStatus @default(PLANNED)
+  createdAt       DateTime                @default(now())
+  deliveryRoute   DeliveryRoute           @relation(fields: [deliveryRouteId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, deliveryRouteId, orderId])
+  @@unique([tenantId, deliveryRouteId, sequence])
+  @@index([tenantId, deliveryRouteId])
+  @@index([tenantId, orderId])
+}
+
+/// Logistics projection of orders ready for delivery route assignment.
+model DeliveryRouteCandidate {
+  id                 String                       @id @default(cuid())
+  tenantId           String
+  orderId            String
+  branchId           String
+  status             DeliveryRouteCandidateStatus @default(READY)
+  deliveryRouteId    String?
+  createdFromEventId String?
+  createdAt          DateTime                     @default(now())
+  updatedAt          DateTime                     @updatedAt
+  deliveryRoute      DeliveryRoute?               @relation(fields: [deliveryRouteId], references: [id])
+
+  @@unique([tenantId, orderId])
+  @@index([tenantId, status])
+  @@index([tenantId, branchId])
+  @@index([tenantId, deliveryRouteId])
+}

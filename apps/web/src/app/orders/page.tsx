@@ -85,6 +85,12 @@ export default function OrdersPage() {
           >
             Warehouse
           </Link>
+          <Link
+            href="/logistics"
+            className="text-sm font-medium text-brand-600 hover:text-brand-700"
+          >
+            Logistics
+          </Link>
           <button
             type="button"
             className="text-sm font-medium text-slate-600 hover:text-slate-900"

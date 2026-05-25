@@ -42,12 +42,15 @@ sequenceDiagram
 5. **Compensate on failure** — **implemented:** `Orders` reacts to `INVENTORY_RESERVATION_FAILED` and auto-cancels orders still in `APPROVED` (`APPROVED -> CANCELLED` via `CancelOrderCommand`, actor: tenant `system` user). Idempotent on re-delivery.
 6. **Start picking** — **implemented:** `Orders` consumes `INVENTORY_RESERVED`, transitions `APPROVED -> PICKING`, emits `ORDER_PICKING_STARTED`.
 7. **Picking** — **implemented:** `Warehouse` consumes `ORDER_PICKING_STARTED`, creates `PickingTask` + lines; `CompletePickingTaskCommand` emits `PICKING_COMPLETED`.
-8. **Ready for delivery route** — **implemented:** `Orders` consumes `PICKING_COMPLETED`, transitions `PICKING -> READY_FOR_DELIVERY_ROUTE`. Logistics workflow takes over from here.
+8. **Ready for delivery route** — **implemented:** `Orders` consumes `PICKING_COMPLETED`, transitions `PICKING -> READY_FOR_DELIVERY_ROUTE`, emits `ORDER_READY_FOR_DELIVERY_ROUTE`.
+9. **Route planning** — **implemented:** `Logistics` consumes `ORDER_READY_FOR_DELIVERY_ROUTE`, projects `DeliveryRouteCandidate`. Dispatcher creates `DeliveryRoute(PLANNED)` and assigns candidates via `AssignOrderToDeliveryRouteCommand` (`DELIVERY_ROUTE_CREATED`, `DELIVERY_ROUTE_ASSIGNED`). Dispatch is the next slice.
 
 ## Cross-context contracts implied by this flow
 
 - `Orders` consumes `INVENTORY_RESERVATION_FAILED` (**active** — auto-cancel), `INVENTORY_RESERVED` (**active** — auto picking), `PICKING_COMPLETED` (**active** — ready for delivery route).
-- `Orders` emits `ORDER_CREATED`, `ORDER_APPROVED`, `ORDER_CANCELLED`, `ORDER_PICKING_STARTED` (**active**).
+- `Orders` emits `ORDER_CREATED`, `ORDER_APPROVED`, `ORDER_CANCELLED`, `ORDER_PICKING_STARTED`, `ORDER_READY_FOR_DELIVERY_ROUTE` (**active**).
+- `Logistics` consumes `ORDER_READY_FOR_DELIVERY_ROUTE` (**active**).
+- `Logistics` emits `DELIVERY_ROUTE_CREATED`, `DELIVERY_ROUTE_ASSIGNED` (**active**).
 - `Inventory` consumes `ORDER_APPROVED`, `ORDER_CANCELLED` (**active**).
 - `Inventory` emits `INVENTORY_RESERVED`, `INVENTORY_RESERVATION_FAILED`, `INVENTORY_RELEASED` (**active**).
 - **Cancel path (slice):** `ORDER_CANCELLED` triggers `INVENTORY_RELEASED` when active reservations exist.

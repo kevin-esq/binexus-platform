@@ -2,11 +2,19 @@ import type {
   AdjustStockInput,
   AdjustStockResult,
   ApproveOrderResult,
+  AssignOrderToDeliveryRouteInput,
+  AssignOrderToDeliveryRouteResult,
   AuthSession,
   CancelOrderResult,
   CancelStockTransferResult,
+  CreateDeliveryRouteInput,
+  CreateDeliveryRouteResult,
   CreateStockTransferInput,
   CreateStockTransferResult,
+  ListDeliveryRouteCandidatesQuery,
+  ListDeliveryRouteCandidatesResult,
+  ListDeliveryRoutesQuery,
+  ListDeliveryRoutesResult,
   ListOrdersQuery,
   ListOrdersResult,
   ListStockItemsQuery,
@@ -176,6 +184,50 @@ export class BinexusClient {
       'POST',
       `/warehouse/picking-tasks/${encodeURIComponent(id)}/complete`,
       { auth: true },
+    );
+  }
+
+  async listDeliveryRouteCandidates(
+    query: ListDeliveryRouteCandidatesQuery = {},
+  ): Promise<ListDeliveryRouteCandidatesResult> {
+    const params = new URLSearchParams();
+    if (query.status) params.set('status', query.status);
+    if (query.branchId) params.set('branchId', query.branchId);
+    if (query.limit !== undefined) params.set('limit', String(query.limit));
+    if (query.cursor) params.set('cursor', query.cursor);
+    const qs = params.toString();
+    const path = qs
+      ? `/logistics/delivery-route-candidates?${qs}`
+      : '/logistics/delivery-route-candidates';
+    return this.request<ListDeliveryRouteCandidatesResult>('GET', path, { auth: true });
+  }
+
+  async listDeliveryRoutes(query: ListDeliveryRoutesQuery = {}): Promise<ListDeliveryRoutesResult> {
+    const params = new URLSearchParams();
+    if (query.status) params.set('status', query.status);
+    if (query.branchId) params.set('branchId', query.branchId);
+    if (query.limit !== undefined) params.set('limit', String(query.limit));
+    if (query.cursor) params.set('cursor', query.cursor);
+    const qs = params.toString();
+    const path = qs ? `/logistics/delivery-routes?${qs}` : '/logistics/delivery-routes';
+    return this.request<ListDeliveryRoutesResult>('GET', path, { auth: true });
+  }
+
+  async createDeliveryRoute(input: CreateDeliveryRouteInput): Promise<CreateDeliveryRouteResult> {
+    return this.request<CreateDeliveryRouteResult>('POST', '/logistics/delivery-routes', {
+      body: input,
+      auth: true,
+    });
+  }
+
+  async assignOrderToDeliveryRoute(
+    deliveryRouteId: string,
+    input: AssignOrderToDeliveryRouteInput,
+  ): Promise<AssignOrderToDeliveryRouteResult> {
+    return this.request<AssignOrderToDeliveryRouteResult>(
+      'POST',
+      `/logistics/delivery-routes/${encodeURIComponent(deliveryRouteId)}/assign-orders`,
+      { body: input, auth: true },
     );
   }
 

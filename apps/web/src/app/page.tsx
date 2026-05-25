@@ -39,6 +39,12 @@ export default function HomePage() {
         >
           Warehouse
         </Link>
+        <Link
+          href="/logistics"
+          className="inline-flex h-10 items-center justify-center rounded border border-brand-600 px-4 text-sm font-medium text-brand-700 hover:bg-brand-50"
+        >
+          Logistics
+        </Link>
         <a
           href="http://localhost:3001/health"
           target="_blank"
