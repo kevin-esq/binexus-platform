@@ -38,10 +38,10 @@ Implemented (warehouse flow):
 - `MoveOrderToPickingCommand` — `APPROVED -> PICKING`, emits `ORDER_PICKING_STARTED`.
 - `MarkOrderReadyForDeliveryRouteCommand` — `PICKING -> READY_FOR_DELIVERY_ROUTE`.
 - `MarkOrderOutForDeliveryCommand` — `READY_FOR_DELIVERY_ROUTE -> OUT_FOR_DELIVERY` (no new domain event in dispatch slice).
+- `MarkOrderDeliveredCommand` — `OUT_FOR_DELIVERY -> DELIVERED`, emits `ORDER_DELIVERED`.
 
 Later:
 
-- `ConfirmOrderDeliveredCommand`.
 - `SettleOrderCommand`.
 
 ## Events emitted
@@ -56,10 +56,10 @@ Implemented:
 
 - `ORDER_PICKING_STARTED` — emitted when order moves to picking after reservation.
 - `ORDER_READY_FOR_DELIVERY_ROUTE` — emitted when order moves to `READY_FOR_DELIVERY_ROUTE` after picking.
+- `ORDER_DELIVERED` — emitted when order moves to `DELIVERED` after delivery confirmation.
 
 Future:
 
-- `ORDER_DELIVERED`.
 - `ORDER_SETTLED`.
 
 ## Events consumed
@@ -73,10 +73,10 @@ Implemented:
 - `INVENTORY_RESERVED` — auto `MoveOrderToPickingCommand` via system user when order is `APPROVED`.
 - `PICKING_COMPLETED` — auto `MarkOrderReadyForDeliveryRouteCommand` when order is `PICKING`.
 - `DELIVERY_ROUTE_DISPATCHED` — auto `MarkOrderOutForDeliveryCommand` via system user when order is `READY_FOR_DELIVERY_ROUTE` (skips already `OUT_FOR_DELIVERY` or cancelled orders).
+- `DELIVERY_CONFIRMED` — auto `MarkOrderDeliveredCommand` via system user when order is `OUT_FOR_DELIVERY`.
 
 Future:
 
-- `DELIVERY_CONFIRMED` from Logistics to mark delivered.
 - `PAYMENT_ALLOCATED` from Billing to mark settled.
 
 ## Allowed dependencies
@@ -117,6 +117,10 @@ ORDER_READY_FOR_DELIVERY_ROUTE → Logistics candidate projection
 Dispatch delivery route (Logistics)
 ↓
 DELIVERY_ROUTE_DISPATCHED → OUT_FOR_DELIVERY
+↓
+Confirm delivery stop (Logistics)
+↓
+DELIVERY_CONFIRMED → DELIVERED (+ ORDER_DELIVERED)
 ```
 
 ## HTTP surface

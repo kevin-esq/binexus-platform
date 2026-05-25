@@ -1,6 +1,7 @@
 import {
   type ListDeliveryRouteCandidatesQuery,
   type ListDeliveryRouteCandidatesResult,
+  type ListDeliveryRouteStopsResult,
   type ListDeliveryRoutesQuery,
   type ListDeliveryRoutesResult,
 } from '@binexus/types';
@@ -10,6 +11,7 @@ import type { DeliveryRouteCandidateStatus, DeliveryRouteStatus } from '@prisma/
 import { PrismaService } from '../../../common/prisma/prisma.service';
 
 import { toDeliveryRouteCandidateSummary } from './delivery-route-candidate-summary';
+import { toDeliveryRouteStopSummary } from './delivery-route-stop-summary';
 import { toDeliveryRouteSummary } from './delivery-route-summary';
 
 const DEFAULT_LIMIT = 50;
@@ -81,6 +83,28 @@ export class LogisticsReadService {
     return {
       items: page.map((row) => toDeliveryRouteSummary(row)),
       nextCursor: hasMore ? (page[page.length - 1]?.id ?? null) : null,
+    };
+  }
+
+  async listDeliveryRouteStops(deliveryRouteId: string): Promise<ListDeliveryRouteStopsResult> {
+    const db = this.prisma.forTenant();
+
+    const route = await db.deliveryRoute.findFirst({
+      where: { id: deliveryRouteId },
+      select: { id: true },
+    });
+
+    if (!route) {
+      throw new BadRequestException(`Delivery route ${deliveryRouteId} not found`);
+    }
+
+    const stops = await db.deliveryRouteStop.findMany({
+      where: { deliveryRouteId },
+      orderBy: { sequence: 'asc' },
+    });
+
+    return {
+      items: stops.map((row) => toDeliveryRouteStopSummary(row)),
     };
   }
 

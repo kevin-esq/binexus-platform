@@ -9,8 +9,11 @@ import type {
   CancelStockTransferResult,
   CreateDeliveryRouteInput,
   CreateDeliveryRouteResult,
+  ConfirmDeliveryInput,
+  ConfirmDeliveryResult,
   DispatchDeliveryRouteInput,
   DispatchDeliveryRouteResult,
+  ListDeliveryRouteStopsResult,
   CreateStockTransferInput,
   CreateStockTransferResult,
   ListDeliveryRouteCandidatesQuery,
@@ -240,6 +243,25 @@ export class BinexusClient {
     return this.request<DispatchDeliveryRouteResult>(
       'POST',
       `/logistics/delivery-routes/${encodeURIComponent(deliveryRouteId)}/dispatch`,
+      { body: input, auth: true },
+    );
+  }
+
+  async listDeliveryRouteStops(deliveryRouteId: string): Promise<ListDeliveryRouteStopsResult> {
+    return this.request<ListDeliveryRouteStopsResult>(
+      'GET',
+      `/logistics/delivery-routes/${encodeURIComponent(deliveryRouteId)}/stops`,
+      { auth: true },
+    );
+  }
+
+  async confirmDelivery(
+    deliveryRouteStopId: string,
+    input: ConfirmDeliveryInput = {},
+  ): Promise<ConfirmDeliveryResult> {
+    return this.request<ConfirmDeliveryResult>(
+      'POST',
+      `/logistics/delivery-route-stops/${encodeURIComponent(deliveryRouteStopId)}/confirm-delivery`,
       { body: input, auth: true },
     );
   }

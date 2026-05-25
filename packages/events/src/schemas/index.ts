@@ -2,6 +2,7 @@ import type { z } from 'zod';
 
 import { DomainEventName } from '../registry';
 
+import { deliveryConfirmedPayload } from './delivery-confirmed';
 import { deliveryRouteAssignedPayload } from './delivery-route-assigned';
 import { deliveryRouteCreatedPayload } from './delivery-route-created';
 import { deliveryRouteDispatchedPayload } from './delivery-route-dispatched';
@@ -11,6 +12,7 @@ import { inventoryReservedPayload } from './inventory-reserved';
 import { orderApprovedPayload } from './order-approved';
 import { orderCancelledPayload } from './order-cancelled';
 import { orderCreatedPayload } from './order-created';
+import { orderDeliveredPayload } from './order-delivered';
 import { orderPickingStartedPayload } from './order-picking-started';
 import { orderReadyForDeliveryRoutePayload } from './order-ready-for-delivery-route';
 import { paymentRegisteredPayload } from './payment-registered';
@@ -18,17 +20,19 @@ import { pickingCompletedPayload } from './picking-completed';
 import { saleCreatedPayload } from './sale-created';
 import { userRegisteredPayload } from './user-registered';
 
+export * from './delivery-confirmed';
+export * from './delivery-route-assigned';
+export * from './delivery-route-created';
+export * from './delivery-route-dispatched';
 export * from './inventory-released';
 export * from './inventory-reservation-failed';
 export * from './inventory-reserved';
 export * from './order-approved';
 export * from './order-cancelled';
 export * from './order-created';
+export * from './order-delivered';
 export * from './order-picking-started';
 export * from './order-ready-for-delivery-route';
-export * from './delivery-route-created';
-export * from './delivery-route-assigned';
-export * from './delivery-route-dispatched';
 export * from './picking-completed';
 export * from './payment-registered';
 export * from './sale-created';
@@ -45,9 +49,11 @@ export const EventPayloadSchemas = {
   [DomainEventName.ORDER_PICKING_STARTED]: orderPickingStartedPayload,
   [DomainEventName.PICKING_COMPLETED]: pickingCompletedPayload,
   [DomainEventName.ORDER_READY_FOR_DELIVERY_ROUTE]: orderReadyForDeliveryRoutePayload,
+  [DomainEventName.ORDER_DELIVERED]: orderDeliveredPayload,
   [DomainEventName.DELIVERY_ROUTE_CREATED]: deliveryRouteCreatedPayload,
   [DomainEventName.DELIVERY_ROUTE_ASSIGNED]: deliveryRouteAssignedPayload,
   [DomainEventName.DELIVERY_ROUTE_DISPATCHED]: deliveryRouteDispatchedPayload,
+  [DomainEventName.DELIVERY_CONFIRMED]: deliveryConfirmedPayload,
   [DomainEventName.SALE_CREATED]: saleCreatedPayload,
   [DomainEventName.PAYMENT_REGISTERED]: paymentRegisteredPayload,
 } as const;
