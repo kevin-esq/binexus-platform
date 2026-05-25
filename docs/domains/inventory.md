@@ -1,6 +1,6 @@
 ﻿# Inventory domain
 
-Status: **active** (Phase 2 — reservation slice). Bounded context: `inventory`.
+Status: **active** (Phase 2). Bounded context: `inventory`.
 
 Inventory owns the truth of stock: what exists, where it exists, what is reserved, and how it moved. It does not own picking tasks or route dispatch.
 
@@ -21,12 +21,19 @@ Inventory owns the truth of stock: what exists, where it exists, what is reserve
 
 ## Commands
 
-Implemented indirectly via event handlers (no HTTP API in this slice):
+Implemented via event handlers:
 
 - **Reserve on approve** — `OrderApprovedInventoryHandler` reacts to `ORDER_APPROVED`.
 - **Release on cancel** — `OrderCancelledInventoryHandler` reacts to `ORDER_CANCELLED`.
 
-Planned explicit commands:
+## Read API
+
+Implemented:
+
+- `GET /inventory/stock` — tenant-scoped list of `StockItem` rows with `onHand`, `reserved`, and computed `available`.
+- Query params: `branchId`, `productId`, `limit` (default 50, max 100), `cursor` (cursor pagination by `createdAt` + `id`).
+
+Planned explicit write commands:
 
 - `CommitReservationCommand`.
 - `RecordStockMovementCommand`.
@@ -60,13 +67,27 @@ Planned: `SALE_CREATED`, `PICKING_COMPLETED`.
 4. **Tenant context in handlers** — event handlers run work inside `TenantContextService.run()` using `event.tenantId` and the acting user from the payload.
 5. **Outbox** — inventory outcome events are recorded in the same DB transaction as stock changes.
 
+## HTTP surface
+
+```txt
+GET /inventory/stock?branchId=&productId=&limit=50&cursor=
+```
+
+Returns `{ items: StockItemSummary[], nextCursor: string | null }`. `available` is computed as `onHand - reserved` in the read service.
+
+## Web UI
+
+- `/inventory` — minimal stock table (product, branch, on hand, reserved, available, updated). Links from `/orders` and home.
+
 ## Implementation layout
 
 ```
 apps/backend/src/contexts/inventory/
   application/inventory-reservation.service.ts
+  application/inventory-read.service.ts
   events/order-approved-inventory.handler.ts
   events/order-cancelled-inventory.handler.ts
+  presentation/inventory.controller.ts
   inventory.module.ts
 ```
 
