@@ -13,7 +13,7 @@ Reporting owns read models, analytics projections, and operational dashboards. I
 
 ## Does not own
 
-- Orders, stock, tickets, invoices, routes, or customers as source-of-truth data.
+- Orders, stock, tickets, invoices, delivery routes, or customers as source-of-truth data.
 - Command-side validation for operational workflows.
 - AI/forecasting models in Phase 1-7.
 
@@ -40,7 +40,7 @@ Reporting consumes almost every stable domain event once that event has a schema
 - Inventory events for stock movement analytics.
 - Sales events for revenue and cashier metrics.
 - Billing events for receivables and payment analytics.
-- Logistics events for route performance.
+- Logistics events for delivery route performance.
 
 ## Allowed dependencies
 

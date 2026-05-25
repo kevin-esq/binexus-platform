@@ -26,7 +26,7 @@ enum OrderState {
   DRAFT
   APPROVED
   PICKING
-  READY_FOR_ROUTE
+  READY_FOR_DELIVERY_ROUTE
   OUT_FOR_DELIVERY
   DELIVERED
   SETTLED
@@ -289,4 +289,44 @@ model StockTransfer {
   @@index([tenantId, sourceBranchId])
   @@index([tenantId, destinationBranchId])
   @@index([tenantId, productId])
+}
+
+enum PickingTaskStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+/// Warehouse picking work for an order after stock is reserved.
+model PickingTask {
+  id                 String            @id @default(cuid())
+  tenantId           String
+  orderId            String
+  branchId           String
+  status             PickingTaskStatus @default(PENDING)
+  createdFromEventId String?
+  completedByUserId  String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  completedAt        DateTime?
+  lines              PickingLine[]
+
+  @@unique([tenantId, orderId])
+  @@index([tenantId, status])
+  @@index([tenantId, branchId])
+}
+
+model PickingLine {
+  id             String      @id @default(cuid())
+  tenantId       String
+  pickingTaskId  String
+  orderLineId    String
+  productId      String
+  quantity       Int
+  pickedQuantity Int         @default(0)
+  createdAt      DateTime    @default(now())
+  pickingTask    PickingTask @relation(fields: [pickingTaskId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, pickingTaskId, orderLineId])
+  @@index([tenantId, pickingTaskId])
 }

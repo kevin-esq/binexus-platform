@@ -1,4 +1,4 @@
-# Workflow: order creation → ready for route
+# Workflow: order creation → ready for delivery route
 
 The end-to-end flow we will implement in Phase 1. Documents the choreography between bounded contexts so we keep contracts honest **before** writing code.
 
@@ -30,7 +30,7 @@ sequenceDiagram
     Bus->>Warehouse: ORDER_PICKING_STARTED -> create PickingTask
     Warehouse->>Warehouse: warehouse staff complete picking
     Warehouse->>Bus: emit PICKING_COMPLETED
-    Bus->>OrdersAPI: PICKING_COMPLETED -> transition PICKING -> READY_FOR_ROUTE
+    Bus->>OrdersAPI: PICKING_COMPLETED -> transition PICKING -> READY_FOR_DELIVERY_ROUTE
 ```
 
 ## Steps in plain language
@@ -40,19 +40,19 @@ sequenceDiagram
 3. **Approve** — `Orders` transitions to `APPROVED`, emits `ORDER_APPROVED`.
 4. **Reserve stock** — **implemented (slice):** `Inventory` reacts to `ORDER_APPROVED` (after outbox dispatch), reserves stock in a transaction, and emits `INVENTORY_RESERVED` or `INVENTORY_RESERVATION_FAILED` via outbox. No partial reservation; idempotent per order line.
 5. **Compensate on failure** — **implemented:** `Orders` reacts to `INVENTORY_RESERVATION_FAILED` and auto-cancels orders still in `APPROVED` (`APPROVED -> CANCELLED` via `CancelOrderCommand`, actor: tenant `system` user). Idempotent on re-delivery.
-6. **Assign warehouse** — `Orders` transitions to `PICKING`, emits `ORDER_PICKING_STARTED`.
-7. **Picking** — `Warehouse` creates a picking task. When complete, it emits `PICKING_COMPLETED`.
-8. **Ready for route** — `Orders` reacts to `PICKING_COMPLETED` and transitions to `READY_FOR_ROUTE`. From here the Logistics workflow takes over.
+6. **Start picking** — **implemented:** `Orders` consumes `INVENTORY_RESERVED`, transitions `APPROVED -> PICKING`, emits `ORDER_PICKING_STARTED`.
+7. **Picking** — **implemented:** `Warehouse` consumes `ORDER_PICKING_STARTED`, creates `PickingTask` + lines; `CompletePickingTaskCommand` emits `PICKING_COMPLETED`.
+8. **Ready for delivery route** — **implemented:** `Orders` consumes `PICKING_COMPLETED`, transitions `PICKING -> READY_FOR_DELIVERY_ROUTE`. Logistics workflow takes over from here.
 
 ## Cross-context contracts implied by this flow
 
-- `Orders` consumes `INVENTORY_RESERVATION_FAILED` (**active** — auto-cancel), `INVENTORY_RESERVED` (planned), `PICKING_COMPLETED`.
-- `Orders` emits `ORDER_CREATED`, `ORDER_APPROVED`, `ORDER_CANCELLED`, `ORDER_PICKING_STARTED`.
+- `Orders` consumes `INVENTORY_RESERVATION_FAILED` (**active** — auto-cancel), `INVENTORY_RESERVED` (**active** — auto picking), `PICKING_COMPLETED` (**active** — ready for delivery route).
+- `Orders` emits `ORDER_CREATED`, `ORDER_APPROVED`, `ORDER_CANCELLED`, `ORDER_PICKING_STARTED` (**active**).
 - `Inventory` consumes `ORDER_APPROVED`, `ORDER_CANCELLED` (**active**).
 - `Inventory` emits `INVENTORY_RESERVED`, `INVENTORY_RESERVATION_FAILED`, `INVENTORY_RELEASED` (**active**).
 - **Cancel path (slice):** `ORDER_CANCELLED` triggers `INVENTORY_RELEASED` when active reservations exist.
-- `Warehouse` consumes `ORDER_PICKING_STARTED`.
-- `Warehouse` emits `PICKING_COMPLETED`.
+- `Warehouse` consumes `ORDER_PICKING_STARTED` (**active**).
+- `Warehouse` emits `PICKING_COMPLETED` (**active**).
 
 Each of those events needs a Zod schema in `packages/events/src/schemas/` before its producer ships.
 

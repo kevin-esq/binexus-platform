@@ -1,6 +1,6 @@
 ﻿# Warehouse domain
 
-Status: **planned** (Phase 3). Bounded context: `warehouse`.
+Status: **active** (Phase 3). Bounded context: `warehouse`.
 
 Warehouse owns operational execution inside a branch/warehouse: picking, packing, staging, and handoff. It is intentionally warehouse-lite, not a full WMS.
 
@@ -9,42 +9,69 @@ Warehouse owns operational execution inside a branch/warehouse: picking, packing
 - `PickingTask` - work assigned to pick order lines.
 - `PickingLine` - SKU/quantity to pick.
 - `PackingTask` - optional packing step.
-- `StagingArea` - where ready orders wait for route/customer pickup.
+- `StagingArea` - where ready orders wait for delivery route / customer pickup.
 - `WarehouseException` - short pick, damaged product, missing SKU.
 
 ## Does not own
 
 - Stock ledger. That belongs to [`inventory`](inventory.md).
 - Order state machine. That belongs to [`orders`](orders.md).
-- Route dispatch. That belongs to [`logistics`](logistics.md).
+- Delivery route dispatch. That belongs to [`logistics`](logistics.md).
 
 ## Commands
 
+Implemented:
+
+- `CompletePickingTaskCommand` — marks a pending task complete, sets `pickedQuantity = quantity` on all lines, emits `PICKING_COMPLETED`.
+
 Planned:
 
-- `GeneratePickingTaskCommand`.
 - `AssignPickerCommand`.
 - `StartPickingCommand`.
 - `ConfirmPickedLineCommand`.
 - `ReportPickingExceptionCommand`.
-- `MarkPickingCompleteCommand`.
 - `StageOrderCommand`.
+
+Picking task creation is event-driven via `ORDER_PICKING_STARTED` (no explicit create command in this slice).
 
 ## Events emitted
 
-Planned:
+| Event               | When                                       |
+| ------------------- | ------------------------------------------ |
+| `PICKING_COMPLETED` | All lines picked; task marked `COMPLETED`. |
 
-- `PICKING_TASK_CREATED`.
-- `PICKING_STARTED`.
-- `PICKING_EXCEPTION_REPORTED`.
-- `PICKING_COMPLETED`.
-- `ORDER_STAGED`.
+Planned: `PICKING_TASK_CREATED`, `PICKING_STARTED`, `PICKING_EXCEPTION_REPORTED`, `ORDER_STAGED`.
 
 ## Events consumed
 
-- `INVENTORY_RESERVED` from Inventory - generate picking tasks.
-- `ORDER_CANCELLED` from Orders - cancel or stop pending picking.
-- `ROUTE_ASSIGNED` from Logistics - move staged order into dispatch queue.
+| Event                   | Handler                               | Behavior                                              |
+| ----------------------- | ------------------------------------- | ----------------------------------------------------- |
+| `ORDER_PICKING_STARTED` | `OrderPickingStartedWarehouseHandler` | Create idempotent `PickingTask` + `PickingLine` rows. |
+
+Planned: `ORDER_CANCELLED`, `DELIVERY_ROUTE_ASSIGNED`.
+
+## HTTP surface
+
+```txt
+GET /warehouse/picking-tasks?status=PENDING&limit=50&cursor=
+POST /warehouse/picking-tasks/:id/complete
+```
+
+## Web UI
+
+- `/warehouse` — list pending picking tasks with **Complete** action.
+
+## Implementation layout
+
+```
+apps/backend/src/contexts/warehouse/
+  application/warehouse-picking.service.ts
+  application/warehouse-read.service.ts
+  application/commands/complete-picking-task.command.ts
+  events/order-picking-started.handler.ts
+  presentation/warehouse.controller.ts
+  warehouse.module.ts
+```
 
 ## Allowed dependencies
 
@@ -62,4 +89,4 @@ Planned:
 ## Open questions
 
 - Do we need barcode scanning in the first warehouse slice?
-- Do staged orders belong to Warehouse until route dispatch or to Logistics once assigned?
+- Do staged orders belong to Warehouse until delivery route dispatch or to Logistics once assigned?

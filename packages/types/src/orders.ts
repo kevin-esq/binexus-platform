@@ -7,7 +7,7 @@ export const OrderState = {
   DRAFT: 'DRAFT',
   APPROVED: 'APPROVED',
   PICKING: 'PICKING',
-  READY_FOR_ROUTE: 'READY_FOR_ROUTE',
+  READY_FOR_DELIVERY_ROUTE: 'READY_FOR_DELIVERY_ROUTE',
   OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
   DELIVERED: 'DELIVERED',
   SETTLED: 'SETTLED',
@@ -19,8 +19,8 @@ export type OrderState = (typeof OrderState)[keyof typeof OrderState];
 export const ORDER_TRANSITIONS: Readonly<Record<OrderState, readonly OrderState[]>> = {
   DRAFT: ['APPROVED', 'CANCELLED'],
   APPROVED: ['PICKING', 'CANCELLED'],
-  PICKING: ['READY_FOR_ROUTE'],
-  READY_FOR_ROUTE: ['OUT_FOR_DELIVERY'],
+  PICKING: ['READY_FOR_DELIVERY_ROUTE'],
+  READY_FOR_DELIVERY_ROUTE: ['OUT_FOR_DELIVERY'],
   OUT_FOR_DELIVERY: ['DELIVERED'],
   DELIVERED: ['SETTLED'],
   SETTLED: [],
@@ -85,4 +85,14 @@ export interface ApproveOrderResult {
 export interface CancelOrderResult {
   id: OrderId;
   state: typeof OrderState.CANCELLED;
+}
+
+export interface MoveOrderToPickingResult {
+  id: OrderId;
+  state: typeof OrderState.PICKING;
+}
+
+export interface MarkOrderReadyForDeliveryRouteResult {
+  id: OrderId;
+  state: typeof OrderState.READY_FOR_DELIVERY_ROUTE;
 }

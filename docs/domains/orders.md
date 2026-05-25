@@ -33,10 +33,13 @@ Implemented:
 - `ApproveOrderCommand`.
 - `CancelOrderCommand`.
 
+Implemented (warehouse flow):
+
+- `MoveOrderToPickingCommand` — `APPROVED -> PICKING`, emits `ORDER_PICKING_STARTED`.
+- `MarkOrderReadyForDeliveryRouteCommand` — `PICKING -> READY_FOR_DELIVERY_ROUTE`.
+
 Later:
 
-- `MoveOrderToPickingCommand`.
-- `MarkOrderReadyForRouteCommand`.
 - `ConfirmOrderDeliveredCommand`.
 - `SettleOrderCommand`.
 
@@ -48,10 +51,13 @@ Implemented:
 - `ORDER_APPROVED`.
 - `ORDER_CANCELLED`.
 
+Implemented:
+
+- `ORDER_PICKING_STARTED` — emitted when order moves to picking after reservation.
+
 Future:
 
-- `ORDER_PICKING_STARTED`.
-- `ORDER_READY_FOR_ROUTE`.
+- `ORDER_READY_FOR_DELIVERY_ROUTE`.
 - `ORDER_DELIVERED`.
 - `ORDER_SETTLED`.
 
@@ -60,6 +66,11 @@ Future:
 Implemented:
 
 - `INVENTORY_RESERVATION_FAILED` — `InventoryReservationFailedOrdersHandler` auto-cancels orders still in `APPROVED` via `CancelOrderCommand` (actor: tenant `system` user, reason `auto: inventory reservation failed`). Idempotent if the order was already cancelled.
+
+Implemented:
+
+- `INVENTORY_RESERVED` — auto `MoveOrderToPickingCommand` via system user when order is `APPROVED`.
+- `PICKING_COMPLETED` — auto `MarkOrderReadyForDeliveryRouteCommand` when order is `PICKING`.
 
 Future:
 
@@ -95,7 +106,9 @@ Inventory reserves stock (or emits INVENTORY_RESERVATION_FAILED)
 ↓
 Orders auto-cancels on reservation failure (APPROVED → CANCELLED)
 ↓
-Warehouse generates picking
+Warehouse generates picking (automatic after `INVENTORY_RESERVED`)
+↓
+PICKING_COMPLETED → READY_FOR_DELIVERY_ROUTE
 ```
 
 ## HTTP surface

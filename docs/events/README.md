@@ -13,6 +13,8 @@ Every domain event in the platform. Schemas live in [`packages/events/src/schema
 | `INVENTORY_RESERVED`           | `inventory` | (none yet)                             | [`inventory-reserved.ts`](../../packages/events/src/schemas/inventory-reserved.ts)                     |
 | `INVENTORY_RESERVATION_FAILED` | `inventory` | `orders` (active)                      | [`inventory-reservation-failed.ts`](../../packages/events/src/schemas/inventory-reservation-failed.ts) |
 | `INVENTORY_RELEASED`           | `inventory` | (none yet)                             | [`inventory-released.ts`](../../packages/events/src/schemas/inventory-released.ts)                     |
+| `ORDER_PICKING_STARTED`        | `orders`    | `warehouse` (active)                   | [`order-picking-started.ts`](../../packages/events/src/schemas/order-picking-started.ts)               |
+| `PICKING_COMPLETED`            | `warehouse` | `orders` (active)                      | [`picking-completed.ts`](../../packages/events/src/schemas/picking-completed.ts)                       |
 | `SALE_CREATED`                 | `sales`\*   | `inventory`, `billing`\*               | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                 |
 | `PAYMENT_REGISTERED`           | `sales`\*   | `billing`\*                            | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                     |
 
