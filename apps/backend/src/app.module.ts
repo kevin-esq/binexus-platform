@@ -16,6 +16,7 @@ import { PrismaModule } from './common/prisma/prisma.module';
 import { TenantContextMiddleware } from './common/tenant/tenant-context.middleware';
 import { TenantModule } from './common/tenant/tenant.module';
 import { IdentityModule } from './contexts/identity/identity.module';
+import { InventoryModule } from './contexts/inventory/inventory.module';
 import { OrdersModule } from './contexts/orders/orders.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { OrdersModule } from './contexts/orders/orders.module';
     FeatureFlagsModule,
     HealthModule,
     IdentityModule,
+    InventoryModule,
     OrdersModule,
   ],
   providers: [

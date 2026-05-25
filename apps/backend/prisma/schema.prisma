@@ -33,6 +33,18 @@ enum OrderState {
   CANCELLED
 }
 
+enum StockReservationStatus {
+  ACTIVE
+  RELEASED
+  FAILED
+}
+
+enum StockMovementType {
+  RESERVE
+  RELEASE
+  ADJUSTMENT
+}
+
 model Tenant {
   id        String          @id @default(cuid())
   slug      String          @unique
@@ -192,4 +204,55 @@ model OrderTransition {
 
   @@index([tenantId, orderId])
   @@index([tenantId, occurredAt])
+}
+
+/// On-hand and reserved quantities per branch/product. Available = onHand - reserved (computed in code).
+model StockItem {
+  id        String   @id @default(cuid())
+  tenantId  String
+  branchId  String
+  productId String
+  onHand    Int      @default(0)
+  reserved  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, branchId, productId])
+  @@index([tenantId, branchId])
+}
+
+/// Reservation promised to an order line. Idempotent per tenant/order/line.
+model StockReservation {
+  id          String                 @id @default(cuid())
+  tenantId    String
+  orderId     String
+  orderLineId String
+  branchId    String
+  productId   String
+  quantity    Int
+  status      StockReservationStatus @default(ACTIVE)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@unique([tenantId, orderId, orderLineId])
+  @@index([tenantId, orderId])
+  @@index([tenantId, status])
+}
+
+/// Immutable stock movement ledger.
+model StockMovement {
+  id            String            @id @default(cuid())
+  tenantId      String
+  branchId      String
+  productId     String
+  orderId       String?
+  orderLineId   String?
+  type          StockMovementType
+  quantity      Int
+  correlationId String?
+  causationId   String?
+  occurredAt    DateTime          @default(now())
+
+  @@index([tenantId, branchId, productId])
+  @@index([tenantId, orderId])
 }

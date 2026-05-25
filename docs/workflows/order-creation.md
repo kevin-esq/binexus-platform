@@ -22,8 +22,8 @@ sequenceDiagram
     OrdersAPI->>Bus: emit ORDER_APPROVED
     Bus->>Inventory: ORDER_APPROVED
     Inventory->>Inventory: reserve stock (StockReservation)
-    Inventory->>Bus: emit STOCK_RESERVED (or STOCK_RESERVATION_FAILED)
-    Bus->>OrdersAPI: STOCK_RESERVATION_FAILED -> rollback to DRAFT or CANCELLED
+    Inventory->>Bus: emit INVENTORY_RESERVED (or INVENTORY_RESERVATION_FAILED)
+    Bus->>OrdersAPI: INVENTORY_RESERVATION_FAILED -> rollback to DRAFT or CANCELLED (planned)
     Client->>OrdersAPI: AssignWarehouseCommand(orderId)
     OrdersAPI->>OrdersAPI: transition APPROVED -> PICKING
     OrdersAPI->>Bus: emit ORDER_PICKING_STARTED
@@ -38,18 +38,19 @@ sequenceDiagram
 1. **Create** — `Orders` writes the order in `DRAFT`, emits `ORDER_CREATED`.
 2. **Validate credit** — synchronous inside `Orders`, applies only to B2B tenants (open question to resolve at Phase 1 kickoff).
 3. **Approve** — `Orders` transitions to `APPROVED`, emits `ORDER_APPROVED`.
-4. **Reserve stock** — `Inventory` reacts to `ORDER_APPROVED`, atomically reserves stock and emits either success or failure.
-5. **Compensate on failure** — `Orders` reacts to `STOCK_RESERVATION_FAILED` and either reverts to `DRAFT` or cancels (rule TBD per tenant).
+4. **Reserve stock** — **implemented (slice):** `Inventory` reacts to `ORDER_APPROVED` (after outbox dispatch), reserves stock in a transaction, and emits `INVENTORY_RESERVED` or `INVENTORY_RESERVATION_FAILED` via outbox. No partial reservation; idempotent per order line.
+5. **Compensate on failure** — **planned:** `Orders` reacts to `INVENTORY_RESERVATION_FAILED` and either reverts to `DRAFT` or cancels (rule TBD per tenant).
 6. **Assign warehouse** — `Orders` transitions to `PICKING`, emits `ORDER_PICKING_STARTED`.
 7. **Picking** — `Warehouse` creates a picking task. When complete, it emits `PICKING_COMPLETED`.
 8. **Ready for route** — `Orders` reacts to `PICKING_COMPLETED` and transitions to `READY_FOR_ROUTE`. From here the Logistics workflow takes over.
 
 ## Cross-context contracts implied by this flow
 
-- `Orders` consumes `STOCK_RESERVATION_FAILED`, `STOCK_RESERVED`, `PICKING_COMPLETED`.
+- `Orders` consumes `INVENTORY_RESERVATION_FAILED` (planned), `INVENTORY_RESERVED` (planned), `PICKING_COMPLETED`.
 - `Orders` emits `ORDER_CREATED`, `ORDER_APPROVED`, `ORDER_CANCELLED`, `ORDER_PICKING_STARTED`.
-- `Inventory` consumes `ORDER_APPROVED`, `ORDER_CANCELLED`.
-- `Inventory` emits `STOCK_RESERVED`, `STOCK_RESERVATION_FAILED`, `STOCK_RELEASED`.
+- `Inventory` consumes `ORDER_APPROVED`, `ORDER_CANCELLED` (**active**).
+- `Inventory` emits `INVENTORY_RESERVED`, `INVENTORY_RESERVATION_FAILED`, `INVENTORY_RELEASED` (**active**).
+- **Cancel path (slice):** `ORDER_CANCELLED` triggers `INVENTORY_RELEASED` when active reservations exist.
 - `Warehouse` consumes `ORDER_PICKING_STARTED`.
 - `Warehouse` emits `PICKING_COMPLETED`.
 
