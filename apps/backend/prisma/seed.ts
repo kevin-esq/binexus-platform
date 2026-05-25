@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { PrismaClient, Role } from '@prisma/client';
 import argon2 from 'argon2';
 
@@ -41,13 +43,29 @@ async function main(): Promise<void> {
 
   await prisma.user.upsert({
     where: { tenantId_email: { tenantId: tenant.id, email: adminEmail } },
-    update: { role: Role.SUPER_ADMIN, branchId: branch.id },
+    update: { role: Role.SUPER_ADMIN, branchId: branch.id, isSystem: false },
     create: {
       tenantId: tenant.id,
       email: adminEmail,
       passwordHash,
       role: Role.SUPER_ADMIN,
       branchId: branch.id,
+      isSystem: false,
+    },
+  });
+
+  const systemEmail = `system@${slug}.system`;
+  const systemPasswordHash = await argon2.hash(randomUUID());
+  await prisma.user.upsert({
+    where: { tenantId_email: { tenantId: tenant.id, email: systemEmail } },
+    update: { isSystem: true, role: Role.SUPER_ADMIN, branchId: branch.id },
+    create: {
+      tenantId: tenant.id,
+      email: systemEmail,
+      passwordHash: systemPasswordHash,
+      role: Role.SUPER_ADMIN,
+      branchId: branch.id,
+      isSystem: true,
     },
   });
 

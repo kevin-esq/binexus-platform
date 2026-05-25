@@ -80,4 +80,4 @@ apps/backend/src/contexts/inventory/
 
 - Do we support batch/lot/expiry tracking in Phase 2 or defer?
 - Should reservations be hard (blocking) or soft (advisory) by tenant setting?
-- Should `Orders` compensate on `INVENTORY_RESERVATION_FAILED` (revert to `DRAFT` vs `CANCELLED`)?
+- ~~Should `Orders` compensate on `INVENTORY_RESERVATION_FAILED`?~~ **Resolved:** `orders` auto-cancels (`APPROVED` → `CANCELLED`) via tenant system user.

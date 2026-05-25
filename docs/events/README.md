@@ -11,7 +11,7 @@ Every domain event in the platform. Schemas live in [`packages/events/src/schema
 | `ORDER_APPROVED`               | `orders`    | `audit` (active), `inventory` (active) | [`order-approved.ts`](../../packages/events/src/schemas/order-approved.ts)                             |
 | `ORDER_CANCELLED`              | `orders`    | `audit` (active), `inventory` (active) | [`order-cancelled.ts`](../../packages/events/src/schemas/order-cancelled.ts)                           |
 | `INVENTORY_RESERVED`           | `inventory` | (none yet)                             | [`inventory-reserved.ts`](../../packages/events/src/schemas/inventory-reserved.ts)                     |
-| `INVENTORY_RESERVATION_FAILED` | `inventory` | `orders` (planned)                     | [`inventory-reservation-failed.ts`](../../packages/events/src/schemas/inventory-reservation-failed.ts) |
+| `INVENTORY_RESERVATION_FAILED` | `inventory` | `orders` (active)                      | [`inventory-reservation-failed.ts`](../../packages/events/src/schemas/inventory-reservation-failed.ts) |
 | `INVENTORY_RELEASED`           | `inventory` | (none yet)                             | [`inventory-released.ts`](../../packages/events/src/schemas/inventory-released.ts)                     |
 | `SALE_CREATED`                 | `sales`\*   | `inventory`, `billing`\*               | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                 |
 | `PAYMENT_REGISTERED`           | `sales`\*   | `billing`\*                            | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                     |
