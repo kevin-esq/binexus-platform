@@ -5,6 +5,9 @@ import { PrismaModule } from '../../common/prisma/prisma.module';
 import { TenantModule } from '../../common/tenant/tenant.module';
 
 import { AdjustStockHandler } from './application/commands/adjust-stock.command';
+import { CancelStockTransferHandler } from './application/commands/cancel-stock-transfer.command';
+import { CreateStockTransferHandler } from './application/commands/create-stock-transfer.command';
+import { ReceiveStockTransferHandler } from './application/commands/receive-stock-transfer.command';
 import { InventoryReadService } from './application/inventory-read.service';
 import { InventoryReservationService } from './application/inventory-reservation.service';
 import { OrderApprovedInventoryHandler } from './events/order-approved-inventory.handler';
@@ -18,6 +21,9 @@ import { InventoryController } from './presentation/inventory.controller';
     InventoryReservationService,
     InventoryReadService,
     AdjustStockHandler,
+    CreateStockTransferHandler,
+    ReceiveStockTransferHandler,
+    CancelStockTransferHandler,
     OrderApprovedInventoryHandler,
     OrderCancelledInventoryHandler,
   ],

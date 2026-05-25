@@ -4,12 +4,18 @@ import type {
   ApproveOrderResult,
   AuthSession,
   CancelOrderResult,
+  CancelStockTransferResult,
+  CreateStockTransferInput,
+  CreateStockTransferResult,
   ListOrdersQuery,
   ListOrdersResult,
   ListStockItemsQuery,
   ListStockItemsResult,
+  ListStockTransfersQuery,
+  ListStockTransfersResult,
   OrderDetail,
   OrderId,
+  ReceiveStockTransferResult,
 } from '@binexus/types';
 
 import { BinexusApiError } from './errors';
@@ -117,6 +123,39 @@ export class BinexusClient {
       body: input,
       auth: true,
     });
+  }
+
+  async createStockTransfer(input: CreateStockTransferInput): Promise<CreateStockTransferResult> {
+    return this.request<CreateStockTransferResult>('POST', '/inventory/stock/transfers', {
+      body: input,
+      auth: true,
+    });
+  }
+
+  async receiveStockTransfer(id: string): Promise<ReceiveStockTransferResult> {
+    return this.request<ReceiveStockTransferResult>(
+      'POST',
+      `/inventory/stock/transfers/${encodeURIComponent(id)}/receive`,
+      { auth: true },
+    );
+  }
+
+  async cancelStockTransfer(id: string): Promise<CancelStockTransferResult> {
+    return this.request<CancelStockTransferResult>(
+      'POST',
+      `/inventory/stock/transfers/${encodeURIComponent(id)}/cancel`,
+      { auth: true },
+    );
+  }
+
+  async listStockTransfers(query: ListStockTransfersQuery = {}): Promise<ListStockTransfersResult> {
+    const params = new URLSearchParams();
+    if (query.status) params.set('status', query.status);
+    if (query.limit !== undefined) params.set('limit', String(query.limit));
+    if (query.cursor) params.set('cursor', query.cursor);
+    const qs = params.toString();
+    const path = qs ? `/inventory/stock/transfers?${qs}` : '/inventory/stock/transfers';
+    return this.request<ListStockTransfersResult>('GET', path, { auth: true });
   }
 
   async listStockItems(query: ListStockItemsQuery = {}): Promise<ListStockItemsResult> {

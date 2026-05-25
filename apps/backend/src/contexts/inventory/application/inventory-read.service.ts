@@ -1,12 +1,16 @@
 import {
   type ListStockItemsQuery,
   type ListStockItemsResult,
+  type ListStockTransfersQuery,
+  type ListStockTransfersResult,
   type StockItemSummary,
 } from '@binexus/types';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import type { StockItem } from '@prisma/client';
+import type { StockItem, StockTransferStatus } from '@prisma/client';
 
 import { PrismaService } from '../../../common/prisma/prisma.service';
+
+import { toStockTransferSummary } from './stock-transfer-summary';
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
@@ -44,6 +48,57 @@ export class InventoryReadService {
     return {
       items,
       nextCursor: hasMore ? (page[page.length - 1]?.id ?? null) : null,
+    };
+  }
+
+  async listStockTransfers(query: ListStockTransfersQuery = {}): Promise<ListStockTransfersResult> {
+    const limit = Math.min(Math.max(query.limit ?? DEFAULT_LIMIT, 1), MAX_LIMIT);
+    const db = this.prisma.forTenant();
+
+    const filters: Record<string, unknown> = {};
+    if (query.status) {
+      filters.status = query.status as StockTransferStatus;
+    }
+
+    const cursorWhere = query.cursor
+      ? await this.resolveTransferCursorWhere(db, query.cursor, filters)
+      : filters;
+
+    const rows = await db.stockTransfer.findMany({
+      where: cursorWhere,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit + 1,
+    });
+
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+
+    return {
+      items: page.map((row) => toStockTransferSummary(row)),
+      nextCursor: hasMore ? (page[page.length - 1]?.id ?? null) : null,
+    };
+  }
+
+  private async resolveTransferCursorWhere(
+    db: ReturnType<PrismaService['forTenant']>,
+    cursor: string,
+    filters: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    const anchor = await db.stockTransfer.findFirst({
+      where: { id: cursor, ...filters },
+      select: { id: true, createdAt: true },
+    });
+
+    if (!anchor) {
+      throw new BadRequestException('Invalid cursor');
+    }
+
+    return {
+      ...filters,
+      OR: [
+        { createdAt: { lt: anchor.createdAt } },
+        { createdAt: anchor.createdAt, id: { lt: anchor.id } },
+      ],
     };
   }
 
