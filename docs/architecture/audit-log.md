@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provide an immutable, tenant-scoped trail of significant domain facts. The first consumer is `ORDER_CREATED`; more events will follow as workflows expand.
+Provide an immutable, tenant-scoped trail of significant domain facts. Orders events are the first active consumers so every commercial state change leaves an idempotent audit row.
 
 ## Model
 
@@ -26,13 +26,13 @@ Provide an immutable, tenant-scoped trail of significant domain facts. The first
 sequenceDiagram
     participant Dispatcher as OutboxDispatcherService
     participant Transport as InProcessEventTransport
-    participant Handler as OrderCreatedAuditHandler
+    participant Handler as OrderAuditHandler
     participant Audit as AuditLogService
     participant Table as AuditLog
 
-    Dispatcher->>Transport: publish ORDER_CREATED
-    Transport->>Handler: @OnEvent ORDER_CREATED
-    Handler->>Audit: recordOrderCreated
+    Dispatcher->>Transport: publish ORDER_* event
+    Transport->>Handler: @OnEvent ORDER_*
+    Handler->>Audit: recordOrder*
     Audit->>Table: upsert by eventId
 ```
 
@@ -42,11 +42,13 @@ sequenceDiagram
 
 ## Code locations
 
-| Piece                      | Path                                                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `AuditLogService`          | [`apps/backend/src/common/audit/audit-log.service.ts`](../../apps/backend/src/common/audit/audit-log.service.ts)                     |
-| `OrderCreatedAuditHandler` | [`apps/backend/src/common/audit/order-created-audit.handler.ts`](../../apps/backend/src/common/audit/order-created-audit.handler.ts) |
-| `AuditModule`              | [`apps/backend/src/common/audit/audit.module.ts`](../../apps/backend/src/common/audit/audit.module.ts)                               |
+| Piece                        | Path                                                                                                                                     |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuditLogService`            | [`apps/backend/src/common/audit/audit-log.service.ts`](../../apps/backend/src/common/audit/audit-log.service.ts)                         |
+| `OrderCreatedAuditHandler`   | [`apps/backend/src/common/audit/order-created-audit.handler.ts`](../../apps/backend/src/common/audit/order-created-audit.handler.ts)     |
+| `OrderApprovedAuditHandler`  | [`apps/backend/src/common/audit/order-approved-audit.handler.ts`](../../apps/backend/src/common/audit/order-approved-audit.handler.ts)   |
+| `OrderCancelledAuditHandler` | [`apps/backend/src/common/audit/order-cancelled-audit.handler.ts`](../../apps/backend/src/common/audit/order-cancelled-audit.handler.ts) |
+| `AuditModule`                | [`apps/backend/src/common/audit/audit.module.ts`](../../apps/backend/src/common/audit/audit.module.ts)                                   |
 
 ## Adding audit for a new event
 

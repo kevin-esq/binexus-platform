@@ -1,7 +1,14 @@
 export { BinexusClient, createBinexusClient } from './client';
-export type { BinexusClientOptions, LoginInput, LoginResult, TokenProvider } from './client';
+export type {
+  BinexusClientOptions,
+  CancelOrderInput,
+  LoginInput,
+  LoginResult,
+  TokenProvider,
+} from './client';
 export type {
   ApproveOrderResult,
+  CancelOrderResult,
   ListOrdersQuery,
   ListOrdersResult,
   OrderDetail,

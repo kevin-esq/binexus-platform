@@ -1,6 +1,7 @@
 import {
   type ApproveOrderResult,
   type BranchId,
+  type CancelOrderResult,
   type ListOrdersResult,
   type OrderDetail,
   type OrderId,
@@ -33,6 +34,7 @@ import {
 import { AppCommandBus } from '../../../common/commands/command-bus.service';
 import { CurrentUser, type RequestUser } from '../../../common/decorators/current-user.decorator';
 import { ApproveOrderCommand } from '../application/commands/approve-order.command';
+import { CancelOrderCommand } from '../application/commands/cancel-order.command';
 import { CreateOrderCommand } from '../application/commands/create-order.command';
 import type { CreateOrderInput } from '../application/commands/create-order.command';
 import { OrdersReadService } from '../application/orders-read.service';
@@ -87,6 +89,12 @@ class ListOrdersQueryDto {
   cursor?: string;
 }
 
+class CancelOrderDto {
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+
 @Controller('orders')
 export class OrdersController {
   constructor(
@@ -118,6 +126,24 @@ export class OrdersController {
 
     return this.commandBus.execute(
       new ApproveOrderCommand(id as OrderId, user.userId as UserId, {
+        commandId: idempotencyKey,
+        correlationId,
+      }),
+    );
+  }
+
+  @Post(':id/cancel')
+  async cancel(
+    @Param('id') id: string,
+    @Body() dto: CancelOrderDto,
+    @CurrentUser() user: RequestUser | null,
+    @Headers('idempotency-key') idempotencyKey?: string,
+    @Headers('x-correlation-id') correlationId?: string,
+  ): Promise<CancelOrderResult> {
+    if (!user) throw new UnauthorizedException();
+
+    return this.commandBus.execute(
+      new CancelOrderCommand(id as OrderId, user.userId as UserId, dto.reason, {
         commandId: idempotencyKey,
         correlationId,
       }),

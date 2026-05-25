@@ -15,6 +15,7 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadOrder(id: string): Promise<void> {
@@ -66,6 +67,31 @@ export default function OrderDetailPage() {
     }
   }
 
+  async function onCancel(): Promise<void> {
+    const id = params.id;
+    if (
+      !id ||
+      !order ||
+      (order.state !== OrderState.DRAFT && order.state !== OrderState.APPROVED)
+    ) {
+      return;
+    }
+
+    const confirmed = window.confirm('Cancel this order? This cannot be undone.');
+    if (!confirmed) return;
+
+    setCancelling(true);
+    setError(null);
+    try {
+      await api.cancelOrder(id, { reason: 'Cancelled from web' });
+      await loadOrder(id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cancel order');
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   return (
     <main className="mx-auto min-h-screen max-w-3xl p-6">
       <Link href="/orders" className="text-sm font-medium text-brand-600 hover:text-brand-700">
@@ -88,16 +114,28 @@ export default function OrderDetailPage() {
               <h1 className="text-2xl font-bold text-slate-900">#{shortId(order.id)}</h1>
               <p className="mt-1 text-sm text-slate-500">Full id: {order.id}</p>
             </div>
-            {order.state === OrderState.DRAFT ? (
-              <button
-                type="button"
-                disabled={approving}
-                onClick={() => void onApprove()}
-                className="h-10 rounded bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700 disabled:bg-brand-300"
-              >
-                {approving ? 'Approving…' : 'Approve order'}
-              </button>
-            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {order.state === OrderState.DRAFT ? (
+                <button
+                  type="button"
+                  disabled={approving || cancelling}
+                  onClick={() => void onApprove()}
+                  className="h-10 rounded bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700 disabled:bg-brand-300"
+                >
+                  {approving ? 'Approving…' : 'Approve order'}
+                </button>
+              ) : null}
+              {order.state === OrderState.DRAFT || order.state === OrderState.APPROVED ? (
+                <button
+                  type="button"
+                  disabled={approving || cancelling}
+                  onClick={() => void onCancel()}
+                  className="h-10 rounded border border-red-200 px-4 text-sm font-medium text-red-700 hover:bg-red-50 disabled:text-red-300"
+                >
+                  {cancelling ? 'Cancelling…' : 'Cancel order'}
+                </button>
+              ) : null}
+            </div>
           </header>
 
           <section className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-2">

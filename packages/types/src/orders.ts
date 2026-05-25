@@ -81,3 +81,8 @@ export interface ApproveOrderResult {
   id: OrderId;
   state: typeof OrderState.APPROVED;
 }
+
+export interface CancelOrderResult {
+  id: OrderId;
+  state: typeof OrderState.CANCELLED;
+}

@@ -1,6 +1,7 @@
 import type {
   ApproveOrderResult,
   AuthSession,
+  CancelOrderResult,
   ListOrdersQuery,
   ListOrdersResult,
   OrderDetail,
@@ -30,6 +31,10 @@ export interface LoginInput {
 export interface LoginResult {
   accessToken: string;
   refreshToken: string;
+}
+
+export interface CancelOrderInput {
+  reason?: string;
 }
 
 const SLASH_CHAR_CODE = 47;
@@ -89,6 +94,16 @@ export class BinexusClient {
 
   async approveOrder(id: OrderId | string): Promise<ApproveOrderResult> {
     return this.request<ApproveOrderResult>('POST', `/orders/${encodeURIComponent(id)}/approve`, {
+      auth: true,
+    });
+  }
+
+  async cancelOrder(
+    id: OrderId | string,
+    input: CancelOrderInput = {},
+  ): Promise<CancelOrderResult> {
+    return this.request<CancelOrderResult>('POST', `/orders/${encodeURIComponent(id)}/cancel`, {
+      body: input,
       auth: true,
     });
   }
