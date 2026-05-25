@@ -16,7 +16,7 @@ Billing owns financial documents and receivables: invoices, payment allocation, 
 ## Does not own
 
 - POS payment capture. That belongs to [`sales`](sales.md).
-- Route cash collection proof. That belongs to [`logistics`](logistics.md).
+- Delivery route cash collection proof. That belongs to [`logistics`](logistics.md).
 - Customer credit policy metadata. That belongs to [`customers`](customers.md).
 - Order state. That belongs to [`orders`](orders.md).
 
@@ -46,7 +46,7 @@ Planned:
 - `ORDER_DELIVERED` from Orders/Logistics - generate receivable/invoice when configured.
 - `SALE_CREATED` from Sales - create sale invoice/receipt when configured.
 - `PAYMENT_REGISTERED` from Sales/Logistics - allocate payment.
-- `ROUTE_LIQUIDATED` from Logistics - reconcile route collections.
+- `DELIVERY_ROUTE_LIQUIDATED` from Logistics - reconcile delivery route collections.
 
 ## Allowed dependencies
 

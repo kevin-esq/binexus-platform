@@ -18,6 +18,7 @@ import { TenantModule } from './common/tenant/tenant.module';
 import { IdentityModule } from './contexts/identity/identity.module';
 import { InventoryModule } from './contexts/inventory/inventory.module';
 import { OrdersModule } from './contexts/orders/orders.module';
+import { WarehouseModule } from './contexts/warehouse/warehouse.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { OrdersModule } from './contexts/orders/orders.module';
     IdentityModule,
     InventoryModule,
     OrdersModule,
+    WarehouseModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

@@ -9,8 +9,8 @@ stateDiagram-v2
     DRAFT --> CANCELLED: cancel
     APPROVED --> PICKING: assignWarehouse
     APPROVED --> CANCELLED: cancel
-    PICKING --> READY_FOR_ROUTE: pickingComplete
-    READY_FOR_ROUTE --> OUT_FOR_DELIVERY: dispatchRoute
+    PICKING --> READY_FOR_DELIVERY_ROUTE: pickingComplete
+    READY_FOR_DELIVERY_ROUTE --> OUT_FOR_DELIVERY: dispatchDeliveryRoute
     OUT_FOR_DELIVERY --> DELIVERED: confirmDelivery
     DELIVERED --> SETTLED: liquidate
     SETTLED --> [*]
@@ -19,16 +19,16 @@ stateDiagram-v2
 
 ## Transitions
 
-| From               | Action            | To                 | Emits                   | Notes                                                       |
-| ------------------ | ----------------- | ------------------ | ----------------------- | ----------------------------------------------------------- |
-| `DRAFT`            | `approve`         | `APPROVED`         | `ORDER_APPROVED`        | Requires credit check (B2B). Reserves stock (event-driven). |
-| `DRAFT`            | `cancel`          | `CANCELLED`        | `ORDER_CANCELLED`       | No side effects beyond audit.                               |
-| `APPROVED`         | `assignWarehouse` | `PICKING`          | `ORDER_PICKING_STARTED` | Warehouse staff picks up the task.                          |
-| `APPROVED`         | `cancel`          | `CANCELLED`        | `ORDER_CANCELLED`       | Triggers stock release.                                     |
-| `PICKING`          | `pickingComplete` | `READY_FOR_ROUTE`  | `PICKING_COMPLETED`     | Items physically prepared.                                  |
-| `READY_FOR_ROUTE`  | `dispatchRoute`   | `OUT_FOR_DELIVERY` | `ORDER_DISPATCHED`      | Assigned to a route + driver.                               |
-| `OUT_FOR_DELIVERY` | `confirmDelivery` | `DELIVERED`        | `ORDER_DELIVERED`       | Proof of delivery captured.                                 |
-| `DELIVERED`        | `liquidate`       | `SETTLED`          | `ORDER_SETTLED`         | Cash + returns reconciled.                                  |
+| From                       | Action                  | To                         | Emits                       | Notes                                                       |
+| -------------------------- | ----------------------- | -------------------------- | --------------------------- | ----------------------------------------------------------- |
+| `DRAFT`                    | `approve`               | `APPROVED`                 | `ORDER_APPROVED`            | Requires credit check (B2B). Reserves stock (event-driven). |
+| `DRAFT`                    | `cancel`                | `CANCELLED`                | `ORDER_CANCELLED`           | No side effects beyond audit.                               |
+| `APPROVED`                 | `assignWarehouse`       | `PICKING`                  | `ORDER_PICKING_STARTED`     | Warehouse staff picks up the task.                          |
+| `APPROVED`                 | `cancel`                | `CANCELLED`                | `ORDER_CANCELLED`           | Triggers stock release.                                     |
+| `PICKING`                  | `pickingComplete`       | `READY_FOR_DELIVERY_ROUTE` | `PICKING_COMPLETED`         | Items physically prepared.                                  |
+| `READY_FOR_DELIVERY_ROUTE` | `dispatchDeliveryRoute` | `OUT_FOR_DELIVERY`         | `DELIVERY_ROUTE_DISPATCHED` | Assigned to a delivery route + driver.                      |
+| `OUT_FOR_DELIVERY`         | `confirmDelivery`       | `DELIVERED`                | `ORDER_DELIVERED`           | Proof of delivery captured.                                 |
+| `DELIVERED`                | `liquidate`             | `SETTLED`                  | `ORDER_SETTLED`             | Cash + returns reconciled.                                  |
 
 ## Terminal states
 

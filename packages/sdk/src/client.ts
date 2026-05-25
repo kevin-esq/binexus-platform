@@ -11,8 +11,11 @@ import type {
   ListOrdersResult,
   ListStockItemsQuery,
   ListStockItemsResult,
+  ListPickingTasksQuery,
+  ListPickingTasksResult,
   ListStockTransfersQuery,
   ListStockTransfersResult,
+  CompletePickingTaskResult,
   OrderDetail,
   OrderId,
   ReceiveStockTransferResult,
@@ -156,6 +159,24 @@ export class BinexusClient {
     const qs = params.toString();
     const path = qs ? `/inventory/stock/transfers?${qs}` : '/inventory/stock/transfers';
     return this.request<ListStockTransfersResult>('GET', path, { auth: true });
+  }
+
+  async listPickingTasks(query: ListPickingTasksQuery = {}): Promise<ListPickingTasksResult> {
+    const params = new URLSearchParams();
+    if (query.status) params.set('status', query.status);
+    if (query.limit !== undefined) params.set('limit', String(query.limit));
+    if (query.cursor) params.set('cursor', query.cursor);
+    const qs = params.toString();
+    const path = qs ? `/warehouse/picking-tasks?${qs}` : '/warehouse/picking-tasks';
+    return this.request<ListPickingTasksResult>('GET', path, { auth: true });
+  }
+
+  async completePickingTask(id: string): Promise<CompletePickingTaskResult> {
+    return this.request<CompletePickingTaskResult>(
+      'POST',
+      `/warehouse/picking-tasks/${encodeURIComponent(id)}/complete`,
+      { auth: true },
+    );
   }
 
   async listStockItems(query: ListStockItemsQuery = {}): Promise<ListStockItemsResult> {

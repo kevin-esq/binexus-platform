@@ -6,18 +6,18 @@ For Phase 1 we intentionally map domains 1:1 with bounded contexts. This is slig
 
 ## Domain map
 
-| Domain    | Bounded context | Phase | Status  | Source-of-truth ownership                            |
-| --------- | --------------- | ----- | ------- | ---------------------------------------------------- |
-| Identity  | `identity`      | 0     | Active  | tenants, branches, users, roles, refresh tokens      |
-| Catalog   | `catalog`       | 1+    | Planned | products, SKUs, units, price lists, tax categories   |
-| Customers | `customers`     | 1+    | Planned | customers, addresses, credit profile, contacts       |
-| Orders    | `orders`        | 1     | Next    | order header, order lines, order state transitions   |
-| Inventory | `inventory`     | 2     | Planned | stock balances, reservations, movements, transfers   |
-| Warehouse | `warehouse`     | 3     | Planned | picking tasks, packing, staging, warehouse execution |
-| Logistics | `logistics`     | 4-6   | Planned | routes, dispatch, delivery proof, liquidation        |
-| Sales     | `sales`         | 5     | Planned | POS tickets, sales sessions, payment capture         |
-| Billing   | `billing`       | 7     | Planned | invoices, receivables, payment allocation            |
-| Reporting | `reporting`     | 8+    | Planned | projections/read models only                         |
+| Domain    | Bounded context | Phase | Status  | Source-of-truth ownership                                      |
+| --------- | --------------- | ----- | ------- | -------------------------------------------------------------- |
+| Identity  | `identity`      | 0     | Active  | tenants, branches, users, roles, refresh tokens                |
+| Catalog   | `catalog`       | 1+    | Planned | products, SKUs, units, price lists, tax categories             |
+| Customers | `customers`     | 1+    | Planned | customers, addresses, credit profile, contacts                 |
+| Orders    | `orders`        | 1     | Next    | order header, order lines, order state transitions             |
+| Inventory | `inventory`     | 2     | Planned | stock balances, reservations, movements, transfers             |
+| Warehouse | `warehouse`     | 3     | Planned | picking tasks, packing, staging, warehouse execution           |
+| Logistics | `logistics`     | 4-6   | Planned | delivery routes, dispatch handoff, delivery proof, liquidation |
+| Sales     | `sales`         | 5     | Planned | POS tickets, sales sessions, payment capture                   |
+| Billing   | `billing`       | 7     | Planned | invoices, receivables, payment allocation                      |
+| Reporting | `reporting`     | 8+    | Planned | projections/read models only                                   |
 
 ## Dependency direction
 
@@ -71,7 +71,7 @@ Dashed arrows mean **read-only reference/snapshot usage**, not direct mutation. 
 - [`orders.md`](orders.md) - Order lifecycle and the first real workflow.
 - [`inventory.md`](inventory.md) - Stock, reservations, movements, transfers.
 - [`warehouse.md`](warehouse.md) - Picking, packing, staging.
-- [`logistics.md`](logistics.md) - Routes, dispatch, delivery, liquidation.
+- [`logistics.md`](logistics.md) - Delivery routes, dispatch handoff, delivery proof, liquidation.
 - [`sales.md`](sales.md) - POS sessions, tickets, payments.
 - [`billing.md`](billing.md) - Invoices, receivables, payment allocation.
 - [`reporting.md`](reporting.md) - Projections and analytics surfaces.

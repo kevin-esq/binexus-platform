@@ -4,18 +4,18 @@ Binexus is organized as a modular monolith with ten initial bounded contexts. Th
 
 The contexts intentionally map 1:1 with the operational domains documented in [`docs/domains`](../domains/). This keeps ownership clear while the product is still learning the business. We can merge or split later with a new ADR, but Phase 1 starts with explicit boundaries.
 
-| Context     | Phase | Responsibility                                                  |
-| ----------- | ----- | --------------------------------------------------------------- |
-| `identity`  | 0     | Tenants, users, branches, auth (JWT), RBAC                      |
-| `catalog`   | 1+    | Products, SKUs, units, price lists, tax categories              |
-| `customers` | 1+    | Customers, billing identity, addresses, credit profile          |
-| `orders`    | 1     | Order lifecycle, approvals, state machine                       |
-| `inventory` | 2     | Stock per branch, reservations, movements, transfers            |
-| `warehouse` | 3     | Picking, packing, staging, warehouse-lite operational execution |
-| `logistics` | 4-6   | Routes, dispatch, delivery confirmation, route liquidation      |
-| `sales`     | 5     | POS retail and restaurant, tickets, payment registration        |
-| `billing`   | 7     | Invoices, fiscal documents, payment allocation, receivables     |
-| `reporting` | 8+    | Read models, operational dashboards, analytics projections      |
+| Context     | Phase | Responsibility                                                              |
+| ----------- | ----- | --------------------------------------------------------------------------- |
+| `identity`  | 0     | Tenants, users, branches, auth (JWT), RBAC                                  |
+| `catalog`   | 1+    | Products, SKUs, units, price lists, tax categories                          |
+| `customers` | 1+    | Customers, billing identity, addresses, credit profile                      |
+| `orders`    | 1     | Order lifecycle, approvals, state machine                                   |
+| `inventory` | 2     | Stock per branch, reservations, movements, transfers                        |
+| `warehouse` | 3     | Picking, packing, staging, warehouse-lite operational execution             |
+| `logistics` | 4-6   | Delivery routes, dispatch handoff, delivery confirmation, route liquidation |
+| `sales`     | 5     | POS retail and restaurant, tickets, payment registration                    |
+| `billing`   | 7     | Invoices, fiscal documents, payment allocation, receivables                 |
+| `reporting` | 8+    | Read models, operational dashboards, analytics projections                  |
 
 ## Rules of engagement
 

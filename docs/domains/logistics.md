@@ -2,15 +2,19 @@
 
 Status: **planned** (Phases 4-6). Bounded context: `logistics`.
 
-Logistics owns route planning, dispatch, delivery confirmation, failed delivery handling, and route liquidation. It starts after Orders, Inventory, and Warehouse can produce route-ready work.
+Logistics owns delivery route planning, dispatch handoff, delivery confirmation, failed delivery handling, and route liquidation. It starts after Orders, Inventory, and Warehouse can produce route-ready work.
+
+## Naming convention
+
+Models use explicit compound names to avoid collision with framework concepts (HTTP routes, dispatcher services, etc.) and to read clearly cross-context in `packages/types` and the SDK. See [`docs/architecture/naming-conventions.md`](../architecture/naming-conventions.md).
 
 ## Owns
 
-- `Route` - planned delivery route.
-- `RouteStop` - customer/order stop in a route.
-- `Dispatch` - handoff from branch/warehouse to driver.
+- `DeliveryRoute` - planned delivery route (aggregate root).
+- `DeliveryRouteStop` - customer/order stop in a delivery route.
+- `DispatchHandoff` - handoff from branch/warehouse to driver.
 - `DeliveryProof` - confirmation, signature/photo/GPS metadata.
-- `RouteLiquidation` - cash/returns/reconciliation at route close.
+- `DeliveryRouteLiquidation` - cash/returns/reconciliation at route close.
 
 ## Does not own
 
@@ -22,30 +26,30 @@ Logistics owns route planning, dispatch, delivery confirmation, failed delivery 
 
 Planned:
 
-- `CreateRouteCommand`.
-- `AssignOrderToRouteCommand`.
-- `DispatchRouteCommand`.
+- `CreateDeliveryRouteCommand`.
+- `AssignOrderToDeliveryRouteCommand`.
+- `DispatchDeliveryRouteCommand`.
 - `ConfirmDeliveryCommand`.
 - `ReportFailedDeliveryCommand`.
-- `StartRouteLiquidationCommand`.
-- `CloseRouteLiquidationCommand`.
+- `StartDeliveryRouteLiquidationCommand`.
+- `CloseDeliveryRouteLiquidationCommand`.
 
 ## Events emitted
 
 Planned:
 
-- `ROUTE_CREATED`.
-- `ROUTE_ASSIGNED`.
-- `ROUTE_DISPATCHED`.
+- `DELIVERY_ROUTE_CREATED`.
+- `DELIVERY_ROUTE_ASSIGNED`.
+- `DELIVERY_ROUTE_DISPATCHED`.
 - `DELIVERY_CONFIRMED`.
 - `DELIVERY_FAILED`.
-- `ROUTE_LIQUIDATED`.
+- `DELIVERY_ROUTE_LIQUIDATED`.
 
 ## Events consumed
 
-- `ORDER_STAGED` from Warehouse - eligible for route assignment.
+- `ORDER_STAGED` from Warehouse - eligible for delivery route assignment.
 - `ORDER_CANCELLED` from Orders - remove or exception a stop.
-- `PAYMENT_REGISTERED` from Sales/Billing - reconcile route cash.
+- `PAYMENT_REGISTERED` from Sales/Billing - reconcile delivery route cash.
 
 ## Allowed dependencies
 
@@ -57,10 +61,10 @@ Planned:
 
 1. Logistics proves delivery; Billing decides financial settlement.
 2. Delivery confirmation is an event with proof metadata, not a direct order update.
-3. Route liquidation is operational cash reconciliation, not accounting final truth.
+3. Delivery route liquidation is operational cash reconciliation, not accounting final truth.
 4. Offline mobile/driver flows must be idempotent by command ID.
 
 ## Open questions
 
-- Are routes pre-planned by dispatcher or generated automatically from zones?
-- Does route liquidation live fully in Logistics or split with Billing once accounting is richer?
+- Are delivery routes pre-planned by dispatcher or generated automatically from zones?
+- Does delivery route liquidation live fully in Logistics or split with Billing once accounting is richer?

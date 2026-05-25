@@ -40,6 +40,10 @@ Stack-specific:
 
 - `mcp-server-patterns`, `nextjs-turbopack`
 
+Project conventions:
+
+- `semantic-naming` — checks naming for new models, events, commands, shared types, SDK methods, and DTOs before generating code. Backed by [`docs/architecture/naming-conventions.md`](../docs/architecture/naming-conventions.md).
+
 ## What does NOT live here
 
 These are gitignored (see root `.gitignore`):
