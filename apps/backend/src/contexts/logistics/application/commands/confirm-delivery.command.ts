@@ -1,5 +1,6 @@
-import { DomainEventName } from '@binexus/events';
+import { DomainEventName, type DeliveryConfirmedPayload } from '@binexus/events';
 import {
+  type ConfirmDeliveryProofInput,
   type ConfirmDeliveryResult,
   type DeliveryRouteStatus,
   type OrderId,
@@ -8,6 +9,7 @@ import {
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CommandHandler } from '@nestjs/cqrs';
 import { DeliveryRouteStatus as PrismaRouteStatus, DeliveryRouteStopStatus } from '@prisma/client';
+import type { DeliveryProof, Prisma } from '@prisma/client';
 
 import { AppCommand, type AppCommandMetadata } from '../../../../common/commands/app-command';
 import { AppCommandHandler } from '../../../../common/commands/app-command-handler';
@@ -15,11 +17,19 @@ import { EventBusService } from '../../../../common/events/event-bus.service';
 import { OutboxService } from '../../../../common/events/outbox.service';
 import { PrismaService } from '../../../../common/prisma/prisma.service';
 import { TenantContextService } from '../../../../common/tenant/tenant-context.service';
+import {
+  hasProofInput,
+  proofCreateData,
+  proofUpdateData,
+  toDeliveryConfirmedProofPayload,
+} from '../confirm-delivery-proof';
+import { toDeliveryProofSummary } from '../delivery-proof-summary';
 
 export class ConfirmDeliveryCommand extends AppCommand<ConfirmDeliveryResult> {
   constructor(
     readonly deliveryRouteStopId: string,
     readonly issuedBy: UserId,
+    readonly proof?: ConfirmDeliveryProofInput,
     metadata?: AppCommandMetadata,
   ) {
     super(metadata);
@@ -31,6 +41,8 @@ export class ConfirmDeliveryCommand extends AppCommand<ConfirmDeliveryResult> {
     }
   }
 }
+
+type TxClient = Prisma.TransactionClient;
 
 @Injectable()
 @CommandHandler(ConfirmDeliveryCommand)
@@ -54,7 +66,7 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
     return this.prisma.$transaction(async (tx) => {
       const stop = await tx.deliveryRouteStop.findFirst({
         where: { id: command.deliveryRouteStopId, tenantId: ctx.tenantId },
-        include: { deliveryRoute: true },
+        include: { deliveryRoute: true, deliveryProof: true },
       });
 
       if (!stop) {
@@ -64,12 +76,23 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
       const route = stop.deliveryRoute;
 
       if (stop.status === DeliveryRouteStopStatus.DELIVERED) {
+        const proof = await this.upsertProofIfNeeded(
+          tx,
+          ctx.tenantId,
+          stop.id,
+          command.issuedBy,
+          stop.deliveredAt ?? new Date(),
+          command.proof,
+          stop.deliveryProof,
+        );
+
         return {
           deliveryRouteStopId: stop.id,
           orderId: stop.orderId as OrderId,
           status: 'DELIVERED',
-          deliveredAt: stop.deliveredAt!.toISOString(),
+          deliveredAt: (stop.deliveredAt ?? new Date()).toISOString(),
           routeStatus: route.status as DeliveryRouteStatus,
+          proof: proof ? toDeliveryProofSummary(proof) : null,
         };
       }
 
@@ -96,6 +119,16 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
         },
       });
 
+      const savedProof = await this.upsertProofIfNeeded(
+        tx,
+        ctx.tenantId,
+        stop.id,
+        command.issuedBy,
+        deliveredAt,
+        command.proof,
+        stop.deliveryProof,
+      );
+
       const pendingStops = await tx.deliveryRouteStop.count({
         where: {
           deliveryRouteId: route.id,
@@ -117,21 +150,20 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
         routeStatus = completed.status as DeliveryRouteStatus;
       }
 
-      const event = this.eventBus.build(
-        DomainEventName.DELIVERY_CONFIRMED,
-        {
-          deliveryRouteId: route.id,
-          deliveryRouteStopId: stop.id,
-          branchId: route.branchId,
-          orderId: stop.orderId,
-          confirmedBy: command.issuedBy,
-          confirmedAt: deliveredAt.toISOString(),
-        },
-        {
-          correlationId: command.correlationId,
-          causationId: command.causationId ?? command.commandId,
-        },
-      );
+      const eventPayload: DeliveryConfirmedPayload = {
+        deliveryRouteId: route.id,
+        deliveryRouteStopId: stop.id,
+        branchId: route.branchId,
+        orderId: stop.orderId,
+        confirmedBy: command.issuedBy,
+        confirmedAt: deliveredAt.toISOString(),
+        ...(savedProof ? { proof: toDeliveryConfirmedProofPayload(savedProof) } : {}),
+      };
+
+      const event = this.eventBus.build(DomainEventName.DELIVERY_CONFIRMED, eventPayload, {
+        correlationId: command.correlationId,
+        causationId: command.causationId ?? command.commandId,
+      });
 
       await this.outbox.record(event, tx);
 
@@ -141,7 +173,35 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
         status: 'DELIVERED',
         deliveredAt: deliveredAt.toISOString(),
         routeStatus,
+        proof: savedProof ? toDeliveryProofSummary(savedProof) : null,
       };
+    });
+  }
+
+  private async upsertProofIfNeeded(
+    tx: TxClient,
+    tenantId: string,
+    deliveryRouteStopId: string,
+    capturedByUserId: string,
+    capturedAt: Date,
+    proofInput: ConfirmDeliveryProofInput | undefined,
+    existing: DeliveryProof | null,
+  ): Promise<DeliveryProof | null> {
+    if (!hasProofInput(proofInput)) {
+      return existing;
+    }
+
+    const input = proofInput!;
+
+    if (existing) {
+      return tx.deliveryProof.update({
+        where: { id: existing.id },
+        data: proofUpdateData(input),
+      });
+    }
+
+    return tx.deliveryProof.create({
+      data: proofCreateData(tenantId, deliveryRouteStopId, capturedByUserId, capturedAt, input),
     });
   }
 }

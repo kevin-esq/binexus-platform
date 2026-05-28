@@ -85,6 +85,17 @@ export interface DispatchDeliveryRouteResult {
   orderIds: OrderId[];
 }
 
+export interface DeliveryProofSummary {
+  id: string;
+  recipientName: string | null;
+  notes: string | null;
+  photoObjectKey: string | null;
+  signatureObjectKey: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  capturedAt: ISODateString;
+}
+
 export interface DeliveryRouteStopSummary {
   id: string;
   deliveryRouteId: string;
@@ -92,13 +103,25 @@ export interface DeliveryRouteStopSummary {
   sequence: number;
   status: DeliveryRouteStopStatus;
   deliveredAt: ISODateString | null;
+  proof: DeliveryProofSummary | null;
 }
 
 export interface ListDeliveryRouteStopsResult {
   items: DeliveryRouteStopSummary[];
 }
 
-export type ConfirmDeliveryInput = Record<string, never>;
+export interface ConfirmDeliveryProofInput {
+  recipientName?: string;
+  notes?: string;
+  photoObjectKey?: string;
+  signatureObjectKey?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface ConfirmDeliveryInput {
+  proof?: ConfirmDeliveryProofInput;
+}
 
 export interface ConfirmDeliveryResult {
   deliveryRouteStopId: string;
@@ -106,4 +129,5 @@ export interface ConfirmDeliveryResult {
   status: 'DELIVERED';
   deliveredAt: ISODateString;
   routeStatus: DeliveryRouteStatus;
+  proof: DeliveryProofSummary | null;
 }

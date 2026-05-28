@@ -2,6 +2,7 @@
 
 import type {
   BranchId,
+  ConfirmDeliveryProofInput,
   DeliveryRouteCandidateSummary,
   DeliveryRouteStopSummary,
   DeliveryRouteSummary,
@@ -165,10 +166,47 @@ export default function LogisticsPage() {
     }
   }
 
+  function collectProofInput(): ConfirmDeliveryProofInput | undefined {
+    const recipientName = window.prompt('Recipient name (optional)?')?.trim();
+    const notes = window.prompt('Delivery notes (optional)?')?.trim();
+    const photoObjectKey = window.prompt('Photo object key in MinIO (optional)?')?.trim();
+    const signatureObjectKey = window.prompt('Signature object key in MinIO (optional)?')?.trim();
+    const latRaw = window.prompt('GPS latitude (optional)?')?.trim();
+    const lngRaw = window.prompt('GPS longitude (optional)?')?.trim();
+
+    const proof: ConfirmDeliveryProofInput = {};
+    if (recipientName) proof.recipientName = recipientName;
+    if (notes) proof.notes = notes;
+    if (photoObjectKey) proof.photoObjectKey = photoObjectKey;
+    if (signatureObjectKey) proof.signatureObjectKey = signatureObjectKey;
+    if (latRaw) {
+      const latitude = Number(latRaw);
+      if (!Number.isNaN(latitude)) proof.latitude = latitude;
+    }
+    if (lngRaw) {
+      const longitude = Number(lngRaw);
+      if (!Number.isNaN(longitude)) proof.longitude = longitude;
+    }
+
+    return Object.keys(proof).length > 0 ? proof : undefined;
+  }
+
+  function formatProofSummary(stop: DeliveryRouteStopSummary): string {
+    if (!stop.proof) return '—';
+    const parts: string[] = [];
+    if (stop.proof.recipientName) parts.push(stop.proof.recipientName);
+    if (stop.proof.photoObjectKey) parts.push('photo');
+    if (stop.proof.signatureObjectKey) parts.push('signature');
+    if (stop.proof.notes) parts.push('notes');
+    return parts.length > 0 ? parts.join(', ') : 'recorded';
+  }
+
   async function onConfirmDelivery(stop: DeliveryRouteStopSummary, routeId: string): Promise<void> {
+    const proof = collectProofInput();
+
     setConfirmingStopId(stop.id);
     try {
-      await api.confirmDelivery(stop.id);
+      await api.confirmDelivery(stop.id, proof ? { proof } : {});
       const stops = await api.listDeliveryRouteStops(routeId);
       setRouteStops((prev) => ({ ...prev, [routeId]: stops.items }));
       await loadData();
@@ -208,7 +246,7 @@ export default function LogisticsPage() {
           </tr>
           {expanded ? (
             <tr key={`${route.id}-stops`} className="border-b border-slate-100 bg-slate-50">
-              <td colSpan={5} className="px-4 py-3">
+              <td colSpan={6} className="px-4 py-3">
                 {loadingStopsRouteId === route.id ? (
                   <p className="text-sm text-slate-500">Loading stops…</p>
                 ) : stops.length === 0 ? (
@@ -221,6 +259,7 @@ export default function LogisticsPage() {
                         <th className="pb-2 pr-4">Order</th>
                         <th className="pb-2 pr-4">Status</th>
                         <th className="pb-2 pr-4">Delivered</th>
+                        <th className="pb-2 pr-4">Proof</th>
                         <th className="pb-2 text-right">Actions</th>
                       </tr>
                     </thead>
@@ -239,6 +278,12 @@ export default function LogisticsPage() {
                           <td className="py-2 pr-4 text-slate-700">{stop.status}</td>
                           <td className="py-2 pr-4 text-slate-500">
                             {stop.deliveredAt ? formatDate(stop.deliveredAt) : '—'}
+                          </td>
+                          <td
+                            className="py-2 pr-4 text-slate-500"
+                            title={stop.proof?.notes ?? undefined}
+                          >
+                            {formatProofSummary(stop)}
                           </td>
                           <td className="py-2 text-right">
                             {stop.status === 'PLANNED' ? (

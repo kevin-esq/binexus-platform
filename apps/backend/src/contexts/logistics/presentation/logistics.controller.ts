@@ -24,7 +24,16 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Type } from 'class-transformer';
-import { IsArray, IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsArray,
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 import { AppCommandBus } from '../../../common/commands/command-bus.service';
 import { CurrentUser, type RequestUser } from '../../../common/decorators/current-user.decorator';
@@ -97,6 +106,41 @@ class DispatchDeliveryRouteDto {
   @IsOptional()
   @IsString()
   driverUserId?: string;
+}
+
+class ConfirmDeliveryProofDto {
+  @IsOptional()
+  @IsString()
+  recipientName?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsOptional()
+  @IsString()
+  photoObjectKey?: string;
+
+  @IsOptional()
+  @IsString()
+  signatureObjectKey?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  longitude?: number;
+}
+
+class ConfirmDeliveryDto {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ConfirmDeliveryProofDto)
+  proof?: ConfirmDeliveryProofDto;
 }
 
 @Controller('logistics')
@@ -196,6 +240,7 @@ export class LogisticsController {
   @Post('delivery-route-stops/:id/confirm-delivery')
   async confirmDelivery(
     @Param('id') id: string,
+    @Body() dto: ConfirmDeliveryDto,
     @CurrentUser() user: RequestUser | null,
     @Headers('idempotency-key') idempotencyKey?: string,
     @Headers('x-correlation-id') correlationId?: string,
@@ -203,7 +248,7 @@ export class LogisticsController {
     if (!user) throw new UnauthorizedException();
 
     return this.commandBus.execute(
-      new ConfirmDeliveryCommand(id, user.userId as UserId, {
+      new ConfirmDeliveryCommand(id, user.userId as UserId, dto.proof, {
         commandId: idempotencyKey,
         correlationId,
       }),
