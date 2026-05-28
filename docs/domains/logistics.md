@@ -34,6 +34,7 @@ Implemented:
 
 Planned:
 
+- `CreateDeliveryProofUploadCommand` - issues short-lived, tenant-scoped MinIO presigned upload URLs for proof photos/signatures.
 - `ReportFailedDeliveryCommand`.
 - `StartDeliveryRouteLiquidationCommand`.
 - `CloseDeliveryRouteLiquidationCommand`.
@@ -86,6 +87,9 @@ POST /logistics/delivery-routes
 POST /logistics/delivery-routes/:id/assign-orders
 POST /logistics/delivery-routes/:id/dispatch
 GET /logistics/delivery-routes/:id/stops
+POST /logistics/delivery-route-stops/:id/proof-uploads
+  Body: `{ kind: "PHOTO" | "SIGNATURE", contentType: string, sizeBytes: number }`
+  Returns: `{ objectKey, uploadUrl, expiresAt }`
 POST /logistics/delivery-route-stops/:id/confirm-delivery
   Body (optional): `{ proof?: { recipientName?, notes?, photoObjectKey?, signatureObjectKey?, latitude?, longitude? } }`
 ```
@@ -93,6 +97,26 @@ POST /logistics/delivery-route-stops/:id/confirm-delivery
 ## Web UI
 
 - `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops, **Confirm delivery** (optional proof prompts), proof summary column on stops, and completed routes with `completedAt`.
+
+## Next slice — Presigned Proof Upload Base
+
+Goal: replace manual MinIO object-key prompts with a backend-issued upload flow for proof media.
+
+Scope:
+
+- Add `CreateDeliveryProofUploadCommand`.
+- Add `POST /logistics/delivery-route-stops/:id/proof-uploads`.
+- Return a short-lived presigned URL plus the object key that `ConfirmDeliveryCommand` will later persist in `DeliveryProof`.
+- Enforce tenant-scoped object keys, e.g. `tenants/<tenantId>/delivery-proofs/<stopId>/<kind>-<uuid>`.
+- Validate allowed proof media kinds (`PHOTO`, `SIGNATURE`), content type, and max size before issuing the URL.
+- Update `/logistics` so proof photo/signature fields upload files first, then pass object keys into confirmation.
+
+Out of scope:
+
+- Driver mobile/offline capture.
+- Failed delivery (`DELIVERY_FAILED`).
+- Public read/download URLs for proof media.
+- Virus scanning or long-term retention policies.
 
 ## Open questions
 
