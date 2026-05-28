@@ -1,7 +1,15 @@
 import { type DeliveryRouteStopSummary } from '@binexus/types';
-import type { DeliveryRouteStop } from '@prisma/client';
+import type { DeliveryProof, DeliveryRouteStop } from '@prisma/client';
 
-export function toDeliveryRouteStopSummary(row: DeliveryRouteStop): DeliveryRouteStopSummary {
+import { toDeliveryProofSummary } from './delivery-proof-summary';
+
+export type DeliveryRouteStopWithProof = DeliveryRouteStop & {
+  deliveryProof?: DeliveryProof | null;
+};
+
+export function toDeliveryRouteStopSummary(
+  row: DeliveryRouteStopWithProof,
+): DeliveryRouteStopSummary {
   return {
     id: row.id,
     deliveryRouteId: row.deliveryRouteId,
@@ -9,5 +17,6 @@ export function toDeliveryRouteStopSummary(row: DeliveryRouteStop): DeliveryRout
     sequence: row.sequence,
     status: row.status,
     deliveredAt: row.deliveredAt?.toISOString() ?? null,
+    proof: row.deliveryProof ? toDeliveryProofSummary(row.deliveryProof) : null,
   };
 }

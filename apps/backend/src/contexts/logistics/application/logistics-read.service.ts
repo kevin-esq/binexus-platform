@@ -101,6 +101,7 @@ export class LogisticsReadService {
     const stops = await db.deliveryRouteStop.findMany({
       where: { deliveryRouteId },
       orderBy: { sequence: 'asc' },
+      include: { deliveryProof: true },
     });
 
     return {

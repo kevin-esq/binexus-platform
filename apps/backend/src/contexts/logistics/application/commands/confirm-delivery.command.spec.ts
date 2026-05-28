@@ -28,12 +28,32 @@ function makeStop(overrides: Record<string, unknown> = {}) {
     sequence: 1,
     status: DeliveryRouteStopStatus.PLANNED,
     deliveredAt: null,
+    deliveryProof: null,
     deliveryRoute: {
       id: 'route-1',
       branchId: 'branch-1',
       status: DeliveryRouteStatus.DISPATCHED,
       completedAt: null,
     },
+    ...overrides,
+  };
+}
+
+function makeProof(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'proof-1',
+    tenantId: 'tenant-1',
+    deliveryRouteStopId: 'stop-1',
+    recipientName: 'Jane Doe',
+    notes: 'Left at door',
+    photoObjectKey: 'proofs/photo-1.jpg',
+    signatureObjectKey: null,
+    latitude: 4.71,
+    longitude: -74.07,
+    capturedByUserId: 'user-1',
+    capturedAt: new Date('2026-05-25T17:00:00.000Z'),
+    createdAt: new Date('2026-05-25T17:00:00.000Z'),
+    updatedAt: new Date('2026-05-25T17:00:00.000Z'),
     ...overrides,
   };
 }
@@ -52,6 +72,10 @@ describe('ConfirmDeliveryHandler', () => {
           id: 'route-1',
           status: DeliveryRouteStatus.COMPLETED,
         }),
+      },
+      deliveryProof: {
+        create: vi.fn(),
+        update: vi.fn(),
       },
     };
 
@@ -81,12 +105,15 @@ describe('ConfirmDeliveryHandler', () => {
     );
 
     const result = await handler.execute(
-      new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, { correlationId: 'corr-1' }),
+      new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, undefined, {
+        correlationId: 'corr-1',
+      }),
     );
 
     expect(result.status).toBe('DELIVERED');
     expect(result.orderId).toBe('order-1');
     expect(result.routeStatus).toBe('COMPLETED');
+    expect(result.proof).toBeNull();
     expect(eventBus.build).toHaveBeenCalledWith(
       DomainEventName.DELIVERY_CONFIRMED,
       expect.objectContaining({
@@ -100,6 +127,60 @@ describe('ConfirmDeliveryHandler', () => {
     expect(tx.deliveryRoute.update).toHaveBeenCalled();
   });
 
+  it('persists proof and enriches DELIVERY_CONFIRMED payload', async () => {
+    const stop = makeStop();
+    const savedProof = makeProof();
+    const tx = {
+      deliveryRouteStop: {
+        findFirst: vi.fn().mockResolvedValue(stop),
+        update: vi.fn(),
+        count: vi.fn().mockResolvedValue(1),
+      },
+      deliveryRoute: { update: vi.fn() },
+      deliveryProof: {
+        create: vi.fn().mockResolvedValue(savedProof),
+        update: vi.fn(),
+      },
+    };
+
+    const prisma = {
+      $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as unknown as PrismaService;
+    const eventBus = { build: vi.fn().mockReturnValue({ id: 'evt-1' }) };
+    const outbox = { record: vi.fn() };
+
+    const handler = new ConfirmDeliveryHandler(
+      prisma,
+      { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
+      eventBus as unknown as EventBusService,
+      outbox as unknown as OutboxService,
+    );
+
+    const result = await handler.execute(
+      new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, {
+        recipientName: 'Jane Doe',
+        notes: 'Left at door',
+        photoObjectKey: 'proofs/photo-1.jpg',
+        latitude: 4.71,
+        longitude: -74.07,
+      }),
+    );
+
+    expect(tx.deliveryProof.create).toHaveBeenCalled();
+    expect(result.proof?.recipientName).toBe('Jane Doe');
+    expect(result.proof?.photoObjectKey).toBe('proofs/photo-1.jpg');
+    expect(eventBus.build).toHaveBeenCalledWith(
+      DomainEventName.DELIVERY_CONFIRMED,
+      expect.objectContaining({
+        proof: expect.objectContaining({
+          recipientName: 'Jane Doe',
+          photoObjectKey: 'proofs/photo-1.jpg',
+        }),
+      }),
+      expect.any(Object),
+    );
+  });
+
   it('does not complete route when other stops remain PLANNED', async () => {
     const stop = makeStop();
     const tx = {
@@ -109,6 +190,7 @@ describe('ConfirmDeliveryHandler', () => {
         count: vi.fn().mockResolvedValue(1),
       },
       deliveryRoute: { update: vi.fn() },
+      deliveryProof: { create: vi.fn(), update: vi.fn() },
     };
 
     const prisma = {
@@ -134,13 +216,17 @@ describe('ConfirmDeliveryHandler', () => {
     const stop = makeStop({
       status: DeliveryRouteStopStatus.DELIVERED,
       deliveredAt: new Date('2026-05-25T16:00:00.000Z'),
+      deliveryProof: makeProof(),
       deliveryRoute: {
         id: 'route-1',
         branchId: 'branch-1',
         status: DeliveryRouteStatus.COMPLETED,
       },
     });
-    const tx = { deliveryRouteStop: { findFirst: vi.fn().mockResolvedValue(stop) } };
+    const tx = {
+      deliveryRouteStop: { findFirst: vi.fn().mockResolvedValue(stop) },
+      deliveryProof: { create: vi.fn(), update: vi.fn() },
+    };
     const prisma = {
       $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
     } as unknown as PrismaService;
@@ -156,6 +242,49 @@ describe('ConfirmDeliveryHandler', () => {
     const result = await handler.execute(new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId));
 
     expect(result.deliveredAt).toBe('2026-05-25T16:00:00.000Z');
+    expect(result.proof?.recipientName).toBe('Jane Doe');
+    expect(outbox.record).not.toHaveBeenCalled();
+    expect(tx.deliveryProof.create).not.toHaveBeenCalled();
+  });
+
+  it('updates proof on idempotent retry when new proof data is provided', async () => {
+    const existingProof = makeProof();
+    const stop = makeStop({
+      status: DeliveryRouteStopStatus.DELIVERED,
+      deliveredAt: new Date('2026-05-25T16:00:00.000Z'),
+      deliveryProof: existingProof,
+      deliveryRoute: {
+        id: 'route-1',
+        branchId: 'branch-1',
+        status: DeliveryRouteStatus.COMPLETED,
+      },
+    });
+    const updatedProof = makeProof({ notes: 'Updated notes' });
+    const tx = {
+      deliveryRouteStop: { findFirst: vi.fn().mockResolvedValue(stop) },
+      deliveryProof: {
+        create: vi.fn(),
+        update: vi.fn().mockResolvedValue(updatedProof),
+      },
+    };
+    const prisma = {
+      $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as unknown as PrismaService;
+    const outbox = { record: vi.fn() };
+
+    const handler = new ConfirmDeliveryHandler(
+      prisma,
+      { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
+      { build: vi.fn() } as unknown as EventBusService,
+      outbox as unknown as OutboxService,
+    );
+
+    const result = await handler.execute(
+      new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, { notes: 'Updated notes' }),
+    );
+
+    expect(tx.deliveryProof.update).toHaveBeenCalled();
+    expect(result.proof?.notes).toBe('Updated notes');
     expect(outbox.record).not.toHaveBeenCalled();
   });
 

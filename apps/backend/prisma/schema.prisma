@@ -384,11 +384,33 @@ model DeliveryRouteStop {
   deliveredByUserId   String?
   createdAt           DateTime                @default(now())
   deliveryRoute       DeliveryRoute           @relation(fields: [deliveryRouteId], references: [id], onDelete: Cascade)
+  deliveryProof       DeliveryProof?
 
   @@unique([tenantId, deliveryRouteId, orderId])
   @@unique([tenantId, deliveryRouteId, sequence])
   @@index([tenantId, deliveryRouteId])
   @@index([tenantId, orderId])
+}
+
+/// Proof metadata for a confirmed delivery stop (photo/signature object keys, notes, GPS).
+model DeliveryProof {
+  id                  String            @id @default(cuid())
+  tenantId            String
+  deliveryRouteStopId String            @unique
+  recipientName       String?
+  notes               String?
+  photoObjectKey      String?
+  signatureObjectKey  String?
+  latitude            Float?
+  longitude           Float?
+  capturedByUserId    String
+  capturedAt          DateTime          @default(now())
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  deliveryRouteStop   DeliveryRouteStop @relation(fields: [deliveryRouteStopId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([tenantId, deliveryRouteStopId])
 }
 
 /// Logistics projection of orders ready for delivery route assignment.

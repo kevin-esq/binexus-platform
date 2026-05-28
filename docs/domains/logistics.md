@@ -1,6 +1,6 @@
 ﻿# Logistics domain
 
-Status: **active** (planning + dispatch + confirmation base). Bounded context: `logistics`.
+Status: **active** (planning + dispatch + confirmation + proof base). Bounded context: `logistics`.
 
 Logistics owns delivery route planning, dispatch handoff, delivery confirmation, failed delivery handling, and route liquidation. Planning starts after Orders, Inventory, and Warehouse produce route-ready work.
 
@@ -14,7 +14,7 @@ Models use explicit compound names to avoid collision with framework concepts (H
 - `DeliveryRouteStop` - customer/order stop in a delivery route.
 - `DeliveryRouteCandidate` - projection of orders ready for route assignment.
 - `DispatchHandoff` - handoff from branch/warehouse to driver (planned).
-- `DeliveryProof` - confirmation, signature/photo/GPS metadata (planned).
+- `DeliveryProof` - confirmation metadata (notes, recipient, MinIO object keys, GPS) tied one-to-one to a delivered stop.
 - `DeliveryRouteLiquidation` - cash/returns/reconciliation at route close (planned).
 
 ## Does not own
@@ -30,7 +30,7 @@ Implemented:
 - `CreateDeliveryRouteCommand` - creates `DeliveryRoute(PLANNED)`.
 - `AssignOrderToDeliveryRouteCommand` - assigns `READY` candidates as stops on a planned route.
 - `DispatchDeliveryRouteCommand` - transitions `PLANNED -> DISPATCHED`, sets driver and dispatch metadata, emits `DELIVERY_ROUTE_DISPATCHED`.
-- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, auto-completes route when all stops delivered, emits `DELIVERY_CONFIRMED`.
+- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, optionally persists `DeliveryProof`, auto-completes route when all stops delivered, emits `DELIVERY_CONFIRMED` (payload may include optional `proof`).
 
 Planned:
 
@@ -45,7 +45,7 @@ Implemented:
 - `DELIVERY_ROUTE_CREATED`.
 - `DELIVERY_ROUTE_ASSIGNED`.
 - `DELIVERY_ROUTE_DISPATCHED` - consumed by Orders to mark assigned orders `OUT_FOR_DELIVERY`.
-- `DELIVERY_CONFIRMED` - consumed by Orders to mark order `DELIVERED`.
+- `DELIVERY_CONFIRMED` - consumed by Orders to mark order `DELIVERED`; optional `proof` object (recipient, notes, photo/signature object keys, GPS).
 
 Planned:
 
@@ -87,11 +87,12 @@ POST /logistics/delivery-routes/:id/assign-orders
 POST /logistics/delivery-routes/:id/dispatch
 GET /logistics/delivery-routes/:id/stops
 POST /logistics/delivery-route-stops/:id/confirm-delivery
+  Body (optional): `{ proof?: { recipientName?, notes?, photoObjectKey?, signatureObjectKey?, latitude?, longitude? } }`
 ```
 
 ## Web UI
 
-- `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops and **Confirm delivery**, and completed routes with `completedAt`.
+- `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops, **Confirm delivery** (optional proof prompts), proof summary column on stops, and completed routes with `completedAt`.
 
 ## Open questions
 
