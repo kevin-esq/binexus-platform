@@ -59,6 +59,16 @@ apps/backend/prisma/migrations/dev.db*
 .prettiercache
 .pnpm-store/
 
+# Vendored skill source repos (referenced by .cursor/skills/*/SKILL.md but
+# not part of the project). Drop them under skills/ locally; do not commit.
+/skills/
+
+# Graphify knowledge graph output. Per-machine; rebuild via `graphify .`
+/graphify-out/
+/.graphify/
+# Artifacts built via the web-artifacts skill (one-off demos and sandboxes).
+/artifacts/
+
 # Cursor IDE
 # Track project-wide rules and skills under .cursor/{rules,skills}/.
 # Ignore personal/runtime/local state and any hook scripts that depend on
