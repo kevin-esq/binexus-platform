@@ -187,6 +187,7 @@ export default function OrderDetailPage() {
 
           <section className="grid gap-3 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-2">
             <Field label="State" value={order.state} />
+            <Field label="Payment" value={order.paymentMethod} />
             <Field label="Customer" value={order.customerId} />
             <Field label="Branch" value={order.branchId} />
             <Field label="Total" value={formatMoney(order.totalCents, order.currency)} />

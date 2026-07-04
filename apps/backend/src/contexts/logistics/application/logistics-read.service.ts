@@ -74,7 +74,10 @@ export class LogisticsReadService {
       where: cursorWhere,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
-      include: { _count: { select: { stops: true } } },
+      include: {
+        _count: { select: { stops: true } },
+        liquidation: { include: { lines: true } },
+      },
     });
 
     const hasMore = rows.length > limit;

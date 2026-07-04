@@ -30,15 +30,25 @@ stateDiagram-v2
 | `APPROVED`                 | `cancel`                | `CANCELLED`                | `ORDER_CANCELLED`                                     | Triggers stock release.                                     |
 | `PICKING`                  | `pickingComplete`       | `READY_FOR_DELIVERY_ROUTE` | `PICKING_COMPLETED`, `ORDER_READY_FOR_DELIVERY_ROUTE` | Items prepared; Logistics projects route candidate.         |
 | `READY_FOR_DELIVERY_ROUTE` | `dispatchDeliveryRoute` | `OUT_FOR_DELIVERY`         | `DELIVERY_ROUTE_DISPATCHED`                           | Assigned to a delivery route + driver.                      |
-| `OUT_FOR_DELIVERY`         | `confirmDelivery`       | `DELIVERED`                | `ORDER_DELIVERED`                                     | Proof of delivery captured.                                 |
+| `OUT_FOR_DELIVERY`         | `confirmDelivery`       | `DELIVERED` or `SETTLED`   | `ORDER_DELIVERED` (+ `ORDER_SETTLED` when prepaid)    | `CARD`/`TRANSFER` auto-`SETTLED` on delivery (ADR-0012 D1). |
 | `OUT_FOR_DELIVERY`         | `reportFailedDelivery`  | `DELIVERY_ATTEMPT_FAILED`  | `DELIVERY_FAILED` (Logistics)                         | Operational pause until dispatcher resolves.                |
 | `DELIVERY_ATTEMPT_FAILED`  | `requeueForDelivery`    | `READY_FOR_DELIVERY_ROUTE` | `ORDER_READY_FOR_DELIVERY_ROUTE`                      | Manual; Logistics resets candidate `ASSIGNED → READY`.      |
 | `DELIVERY_ATTEMPT_FAILED`  | `cancel`                | `CANCELLED`                | `ORDER_CANCELLED`                                     | Release stock via existing cancel path.                     |
-| `DELIVERED`                | `liquidate`             | `SETTLED`                  | `ORDER_SETTLED`                                       | Cash + returns reconciled.                                  |
+| `DELIVERED`                | `liquidateRoute` (COD)  | `SETTLED`                  | `ORDER_SETTLED`                                       | `CASH` only; triggered by `DELIVERY_ROUTE_LIQUIDATED`.      |
+
+## `SETTLED` semantics (ADR-0012)
+
+**Operational closure** — nothing left for branch ops on this order. This is **not** fiscal settlement (invoice issued / receivable paid). Billing (F7) owns financial truth; `CREDIT` orders stay `DELIVERED` until Billing.
+
+| `paymentMethod`    | Path to `SETTLED`                                                                  |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| `CASH`             | Route liquidation closes COD (`DELIVERY_ROUTE_LIQUIDATED` → `SettleOrderCommand`). |
+| `CARD`, `TRANSFER` | Auto on delivery confirmation (`MarkOrderDeliveredCommand`).                       |
+| `CREDIT`           | Stays `DELIVERED` until Billing F7.                                                |
 
 ## Terminal states
 
-- `SETTLED` — happy path complete.
+- `SETTLED` — operational path complete (see table above).
 - `CANCELLED` — order halted; allowed from `DRAFT`, `APPROVED`, or `DELIVERY_ATTEMPT_FAILED`.
 
 ## Disallowed transitions

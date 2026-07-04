@@ -1,7 +1,7 @@
 import { DomainEventName } from '@binexus/events';
 import { OrderState as SharedOrderState, type OrderId, type UserId } from '@binexus/types';
 import { BadRequestException } from '@nestjs/common';
-import { OrderState } from '@prisma/client';
+import { OrderState, PaymentMethod as PrismaPaymentMethod } from '@prisma/client';
 import { describe, expect, it, vi } from 'vitest';
 
 import { type EventBusService } from '../../../../common/events/event-bus.service';
@@ -28,6 +28,7 @@ describe('MarkOrderDeliveredHandler', () => {
       id: 'order-1',
       branchId: 'branch-1',
       state: OrderState.OUT_FOR_DELIVERY,
+      paymentMethod: PrismaPaymentMethod.CASH,
     };
     const tx = {
       order: { findFirst: vi.fn().mockResolvedValue(order), update: vi.fn() },
@@ -71,7 +72,12 @@ describe('MarkOrderDeliveredHandler', () => {
   });
 
   it('is idempotent when already DELIVERED', async () => {
-    const order = { id: 'order-1', branchId: 'branch-1', state: OrderState.DELIVERED };
+    const order = {
+      id: 'order-1',
+      branchId: 'branch-1',
+      state: OrderState.DELIVERED,
+      paymentMethod: PrismaPaymentMethod.CASH,
+    };
     const tx = {
       order: { findFirst: vi.fn().mockResolvedValue(order), update: vi.fn() },
       orderTransition: { create: vi.fn() },
@@ -113,5 +119,53 @@ describe('MarkOrderDeliveredHandler', () => {
     await expect(
       handler.execute(new MarkOrderDeliveredCommand('order-1' as OrderId, 'user-1' as UserId)),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('auto-settles CARD orders to SETTLED and emits ORDER_SETTLED', async () => {
+    const order = {
+      id: 'order-1',
+      branchId: 'branch-1',
+      state: OrderState.OUT_FOR_DELIVERY,
+      paymentMethod: PrismaPaymentMethod.CARD,
+    };
+    const tx = {
+      order: { findFirst: vi.fn().mockResolvedValue(order), update: vi.fn() },
+      orderTransition: { create: vi.fn() },
+    };
+    const prisma = {
+      $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as unknown as PrismaService;
+
+    const deliveredEvent = {
+      id: 'evt-delivered-1',
+      name: DomainEventName.ORDER_DELIVERED,
+    };
+    const settledEvent = {
+      id: 'evt-settled-1',
+      name: DomainEventName.ORDER_SETTLED,
+    };
+    const eventBus = {
+      build: vi.fn().mockReturnValueOnce(deliveredEvent).mockReturnValueOnce(settledEvent),
+    };
+    const outbox = { record: vi.fn().mockResolvedValue(undefined) };
+
+    const handler = new MarkOrderDeliveredHandler(
+      prisma,
+      { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
+      eventBus as unknown as EventBusService,
+      outbox as unknown as OutboxService,
+    );
+
+    const result = await handler.execute(
+      new MarkOrderDeliveredCommand('order-1' as OrderId, 'user-1' as UserId),
+    );
+
+    expect(result.state).toBe(SharedOrderState.SETTLED);
+    expect(eventBus.build).toHaveBeenCalledWith(
+      DomainEventName.ORDER_SETTLED,
+      expect.objectContaining({ orderId: 'order-1' }),
+      expect.any(Object),
+    );
+    expect(outbox.record).toHaveBeenCalledTimes(2);
   });
 });

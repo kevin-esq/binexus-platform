@@ -23,6 +23,7 @@ const tenantContext = {
 const commandInput = {
   customerId: 'customer-1',
   currency: 'MXN',
+  paymentMethod: 'CASH' as const,
   lines: [
     {
       productId: 'product-1',
@@ -108,6 +109,16 @@ describe('CreateOrderCommand', () => {
 
     await expect(validateAppCommand(command)).rejects.toBeInstanceOf(BadRequestException);
   });
+
+  it('requires paymentMethod', async () => {
+    const command = new CreateOrderCommand(
+      { ...commandInput, paymentMethod: undefined as never },
+      'user-1' as UserId,
+      { commandId: 'cmd-1' },
+    );
+
+    await expect(validateAppCommand(command)).rejects.toBeInstanceOf(BadRequestException);
+  });
 });
 
 describe('CreateOrderHandler', () => {
@@ -131,6 +142,7 @@ describe('CreateOrderHandler', () => {
         branchId: 'branch-1',
         customerId: 'customer-1',
         state: OrderState.DRAFT,
+        paymentMethod: 'CASH',
         totalCents: 6000,
         currency: 'MXN',
         createdByUserId: 'user-1',

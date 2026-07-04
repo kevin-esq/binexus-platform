@@ -17,6 +17,8 @@ import { OutboxService } from '../../../../common/events/outbox.service';
 import { PrismaService } from '../../../../common/prisma/prisma.service';
 import { TenantContextService } from '../../../../common/tenant/tenant-context.service';
 
+import { settleOrderInTransaction, shouldAutoSettleOnDelivery } from './settle-order.command';
+
 export class MarkOrderDeliveredCommand extends AppCommand<MarkOrderDeliveredResult> {
   constructor(
     readonly orderId: OrderId,
@@ -56,7 +58,7 @@ export class MarkOrderDeliveredHandler extends AppCommandHandler<MarkOrderDelive
     return this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findFirst({
         where: { id: command.orderId, tenantId: ctx.tenantId },
-        select: { id: true, branchId: true, state: true },
+        select: { id: true, branchId: true, state: true, paymentMethod: true },
       });
 
       if (!order) {
@@ -64,6 +66,9 @@ export class MarkOrderDeliveredHandler extends AppCommandHandler<MarkOrderDelive
       }
 
       const fromState = order.state as SharedOrderState;
+      if (fromState === SharedOrderState.SETTLED) {
+        return { id: order.id as OrderId, state: SharedOrderState.SETTLED };
+      }
       if (fromState === targetState) {
         return { id: order.id as OrderId, state: targetState };
       }
@@ -107,6 +112,25 @@ export class MarkOrderDeliveredHandler extends AppCommandHandler<MarkOrderDelive
       );
 
       await this.outbox.record(event, tx);
+
+      if (shouldAutoSettleOnDelivery(order.paymentMethod)) {
+        await settleOrderInTransaction(
+          tx,
+          {
+            tenantId: ctx.tenantId,
+            orderId: order.id,
+            issuedBy: command.issuedBy,
+            reason: 'Prepaid order settled on delivery',
+            correlationId: command.correlationId,
+            causationId: command.causationId ?? command.commandId,
+            commandId: command.commandId,
+            fromStateOverride: SharedOrderState.DELIVERED,
+          },
+          this.eventBus,
+          this.outbox,
+        );
+        return { id: order.id as OrderId, state: SharedOrderState.SETTLED };
+      }
 
       return { id: order.id as OrderId, state: targetState };
     });

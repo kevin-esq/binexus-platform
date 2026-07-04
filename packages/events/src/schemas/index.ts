@@ -7,6 +7,7 @@ import { deliveryFailedPayload } from './delivery-failed';
 import { deliveryRouteAssignedPayload } from './delivery-route-assigned';
 import { deliveryRouteCreatedPayload } from './delivery-route-created';
 import { deliveryRouteDispatchedPayload } from './delivery-route-dispatched';
+import { deliveryRouteLiquidatedPayload } from './delivery-route-liquidated';
 import { inventoryReleasedPayload } from './inventory-released';
 import { inventoryReservationFailedPayload } from './inventory-reservation-failed';
 import { inventoryReservedPayload } from './inventory-reserved';
@@ -16,6 +17,7 @@ import { orderCreatedPayload } from './order-created';
 import { orderDeliveredPayload } from './order-delivered';
 import { orderPickingStartedPayload } from './order-picking-started';
 import { orderReadyForDeliveryRoutePayload } from './order-ready-for-delivery-route';
+import { orderSettledPayload } from './order-settled';
 import { paymentRegisteredPayload } from './payment-registered';
 import { pickingCompletedPayload } from './picking-completed';
 import { saleCreatedPayload } from './sale-created';
@@ -34,6 +36,8 @@ export * from './order-cancelled';
 export * from './order-created';
 export * from './order-delivered';
 export * from './order-picking-started';
+export * from './delivery-route-liquidated';
+export * from './order-settled';
 export * from './order-ready-for-delivery-route';
 export * from './picking-completed';
 export * from './payment-registered';
@@ -52,11 +56,13 @@ export const EventPayloadSchemas = {
   [DomainEventName.PICKING_COMPLETED]: pickingCompletedPayload,
   [DomainEventName.ORDER_READY_FOR_DELIVERY_ROUTE]: orderReadyForDeliveryRoutePayload,
   [DomainEventName.ORDER_DELIVERED]: orderDeliveredPayload,
+  [DomainEventName.ORDER_SETTLED]: orderSettledPayload,
   [DomainEventName.DELIVERY_ROUTE_CREATED]: deliveryRouteCreatedPayload,
   [DomainEventName.DELIVERY_ROUTE_ASSIGNED]: deliveryRouteAssignedPayload,
   [DomainEventName.DELIVERY_ROUTE_DISPATCHED]: deliveryRouteDispatchedPayload,
   [DomainEventName.DELIVERY_CONFIRMED]: deliveryConfirmedPayload,
   [DomainEventName.DELIVERY_FAILED]: deliveryFailedPayload,
+  [DomainEventName.DELIVERY_ROUTE_LIQUIDATED]: deliveryRouteLiquidatedPayload,
   [DomainEventName.SALE_CREATED]: saleCreatedPayload,
   [DomainEventName.PAYMENT_REGISTERED]: paymentRegisteredPayload,
 } as const;

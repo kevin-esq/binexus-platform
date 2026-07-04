@@ -22,6 +22,13 @@ enum Role {
   DRIVER
 }
 
+enum PaymentMethod {
+  CASH
+  CARD
+  TRANSFER
+  CREDIT
+}
+
 enum OrderState {
   DRAFT
   APPROVED
@@ -168,6 +175,7 @@ model Order {
   branchId        String
   customerId      String
   state           OrderState        @default(DRAFT)
+  paymentMethod   PaymentMethod     @default(CASH)
   totalCents      Int
   currency        String
   createdByUserId String
@@ -375,7 +383,8 @@ model DeliveryRoute {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   stops               DeliveryRouteStop[]
-  candidates      DeliveryRouteCandidate[]
+  candidates          DeliveryRouteCandidate[]
+  liquidation         DeliveryRouteLiquidation?
 
   @@index([tenantId, status])
   @@index([tenantId, branchId])
@@ -443,4 +452,40 @@ model DeliveryRouteCandidate {
   @@index([tenantId, status])
   @@index([tenantId, branchId])
   @@index([tenantId, deliveryRouteId])
+}
+
+/// Cash reconciliation when a completed route is liquidated (COD only).
+model DeliveryRouteLiquidation {
+  id                String                       @id @default(cuid())
+  tenantId          String
+  deliveryRouteId   String                       @unique
+  expectedCents     Int
+  declaredCents     Int
+  discrepancyCents  Int
+  currency          String
+  closedByUserId    String
+  closedAt          DateTime                     @default(now())
+  discrepancyReason String?
+  notes             String?
+  createdAt         DateTime                     @default(now())
+  deliveryRoute     DeliveryRoute                @relation(fields: [deliveryRouteId], references: [id], onDelete: Cascade)
+  lines             DeliveryRouteLiquidationLine[]
+
+  @@index([tenantId])
+  @@index([tenantId, deliveryRouteId])
+}
+
+/// Per-stop breakdown when declared cash does not match expected (B3 hybrid).
+model DeliveryRouteLiquidationLine {
+  id                         String                   @id @default(cuid())
+  tenantId                   String
+  deliveryRouteLiquidationId String
+  deliveryRouteStopId        String
+  orderId                    String
+  expectedCents              Int
+  declaredCents              Int
+  deliveryRouteLiquidation   DeliveryRouteLiquidation @relation(fields: [deliveryRouteLiquidationId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, deliveryRouteStopId])
+  @@index([tenantId, deliveryRouteLiquidationId])
 }

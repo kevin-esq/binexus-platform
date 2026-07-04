@@ -5,6 +5,7 @@ import {
   type ListOrdersResult,
   type OrderDetail,
   type OrderId,
+  PaymentMethod,
   type RequeueFailedDeliveryOrderResult,
   type UserId,
 } from '@binexus/types';
@@ -23,6 +24,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -71,6 +73,10 @@ class CreateOrderDto {
   @IsString()
   @Length(3, 3)
   currency!: string;
+
+  @IsString()
+  @IsIn(Object.values(PaymentMethod))
+  paymentMethod!: PaymentMethod;
 
   @IsArray()
   @ArrayMinSize(1)
@@ -189,6 +195,7 @@ export class OrdersController {
       customerId: dto.customerId,
       branchId: dto.branchId as BranchId | undefined,
       currency: dto.currency.toUpperCase(),
+      paymentMethod: dto.paymentMethod,
       lines: dto.lines,
     };
 

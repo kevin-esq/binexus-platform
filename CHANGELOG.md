@@ -12,6 +12,8 @@ All notable changes to Binexus Platform are documented here. Format follows [Kee
 
 - **Logistics — failed delivery (#3):** `ReportFailedDeliveryCommand`, `POST /logistics/delivery-route-stops/:id/report-failed-delivery`, `DELIVERY_FAILED` event, stop failure metadata, terminal-stop route completion, Orders `DELIVERY_ATTEMPT_FAILED` pause state, SDK `reportFailedDelivery`, `/logistics` report-failed UI. ADR: [`docs/adr/0011-failed-delivery-order-and-route-completion.md`](docs/adr/0011-failed-delivery-order-and-route-completion.md).
 
+- **Logistics — route liquidation (#4):** `paymentMethod` on `Order`, `LiquidateDeliveryRouteCommand`, `POST /logistics/delivery-routes/:id/liquidate`, `DELIVERY_ROUTE_LIQUIDATED`, `SettleOrderCommand`, `ORDER_SETTLED`, COD hybrid arqueo (B3), feature flag `LIQUIDATION`. ADR: [`docs/adr/0012-route-liquidation-cod-reconciliation.md`](docs/adr/0012-route-liquidation-cod-reconciliation.md).
+
 - **Orders — failed delivery resolution (#3b):** `RequeueFailedDeliveryOrderCommand`, `POST /orders/:id/requeue-for-delivery`, cancel from `DELIVERY_ATTEMPT_FAILED`, Logistics candidate reset `ASSIGNED → READY` and cancel via `ORDER_CANCELLED` handler.
 
 ### Documentation
