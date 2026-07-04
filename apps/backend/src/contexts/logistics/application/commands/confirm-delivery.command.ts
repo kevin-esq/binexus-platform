@@ -23,6 +23,7 @@ import {
   proofUpdateData,
   toDeliveryConfirmedProofPayload,
 } from '../confirm-delivery-proof';
+import { validateProofObjectKeys } from '../delivery-proof-object-key';
 import { toDeliveryProofSummary } from '../delivery-proof-summary';
 
 export class ConfirmDeliveryCommand extends AppCommand<ConfirmDeliveryResult> {
@@ -62,6 +63,10 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
 
   async execute(command: ConfirmDeliveryCommand): Promise<ConfirmDeliveryResult> {
     const ctx = this.tenantContext.current();
+
+    if (command.proof) {
+      validateProofObjectKeys(ctx.tenantId, command.deliveryRouteStopId, command.proof);
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const stop = await tx.deliveryRouteStop.findFirst({

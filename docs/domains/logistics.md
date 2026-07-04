@@ -1,6 +1,6 @@
 ﻿# Logistics domain
 
-Status: **active** (planning + dispatch + confirmation + proof base). Bounded context: `logistics`.
+Status: **active** (planning + dispatch + confirmation + proof uploads). Bounded context: `logistics`.
 
 Logistics owns delivery route planning, dispatch handoff, delivery confirmation, failed delivery handling, and route liquidation. Planning starts after Orders, Inventory, and Warehouse produce route-ready work.
 
@@ -30,11 +30,11 @@ Implemented:
 - `CreateDeliveryRouteCommand` - creates `DeliveryRoute(PLANNED)`.
 - `AssignOrderToDeliveryRouteCommand` - assigns `READY` candidates as stops on a planned route.
 - `DispatchDeliveryRouteCommand` - transitions `PLANNED -> DISPATCHED`, sets driver and dispatch metadata, emits `DELIVERY_ROUTE_DISPATCHED`.
-- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, optionally persists `DeliveryProof`, auto-completes route when all stops delivered, emits `DELIVERY_CONFIRMED` (payload may include optional `proof`).
+- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, optionally persists `DeliveryProof`, auto-completes route when all stops delivered, emits `DELIVERY_CONFIRMED` (payload may include optional `proof`). Validates tenant-scoped proof object keys when provided.
+- `CreateDeliveryProofUploadCommand` - issues short-lived, tenant-scoped MinIO presigned upload URLs for proof photos/signatures on a `PLANNED` stop of a `DISPATCHED` route.
 
 Planned:
 
-- `CreateDeliveryProofUploadCommand` - issues short-lived, tenant-scoped MinIO presigned upload URLs for proof photos/signatures.
 - `ReportFailedDeliveryCommand`.
 - `StartDeliveryRouteLiquidationCommand`.
 - `CloseDeliveryRouteLiquidationCommand`.
@@ -87,43 +87,32 @@ POST /logistics/delivery-routes
 POST /logistics/delivery-routes/:id/assign-orders
 POST /logistics/delivery-routes/:id/dispatch
 GET /logistics/delivery-routes/:id/stops
+POST /logistics/delivery-route-stops/:id/proof-uploads
+  Body: `{ kind: "PHOTO" | "SIGNATURE", contentType: string, sizeBytes: number }`
+  Returns: `{ objectKey, uploadUrl, expiresAt }`
 POST /logistics/delivery-route-stops/:id/confirm-delivery
   Body (optional): `{ proof?: { recipientName?, notes?, photoObjectKey?, signatureObjectKey?, latitude?, longitude? } }`
 ```
 
-Planned (next slice):
+Object keys issued by `proof-uploads` follow:
 
 ```txt
-POST /logistics/delivery-route-stops/:id/proof-uploads
-  Body: `{ kind: "PHOTO" | "SIGNATURE", contentType: string, sizeBytes: number }`
-  Returns: `{ objectKey, uploadUrl, expiresAt }`
+tenants/<tenantId>/delivery-proofs/<stopId>/<photo|signature>-<uuid>.<ext>
+```
 
 ## Web UI
 
-- `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops, **Confirm delivery** (optional proof prompts), proof summary column on stops, and completed routes with `completedAt`.
+- `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops, **Confirm delivery** (optional proof file uploads + metadata prompts), proof summary column on stops, and completed routes with `completedAt`.
 
-## Next slice — Presigned Proof Upload Base
-
-Goal: replace manual MinIO object-key prompts with a backend-issued upload flow for proof media.
-
-Scope:
-
-- Add `CreateDeliveryProofUploadCommand`.
-- Add `POST /logistics/delivery-route-stops/:id/proof-uploads`.
-- Return a short-lived presigned URL plus the object key that `ConfirmDeliveryCommand` will later persist in `DeliveryProof`.
-- Enforce tenant-scoped object keys, e.g. `tenants/<tenantId>/delivery-proofs/<stopId>/<kind>-<uuid>`.
-- Validate allowed proof media kinds (`PHOTO`, `SIGNATURE`), content type, and max size before issuing the URL.
-- Update `/logistics` so proof photo/signature fields upload files first, then pass object keys into confirmation.
-
-Out of scope:
+## Out of scope (follow-up slices)
 
 - Driver mobile/offline capture.
 - Failed delivery (`DELIVERY_FAILED`).
 - Public read/download URLs for proof media.
 - Virus scanning or long-term retention policies.
+- Orphan object cleanup in MinIO.
 
 ## Open questions
 
 - Are delivery routes pre-planned by dispatcher or generated automatically from zones?
 - Does delivery route liquidation live fully in Logistics or split with Billing once accounting is richer?
-```

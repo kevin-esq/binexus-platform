@@ -1,6 +1,6 @@
 ﻿# Logistics bounded context
 
-Status: **active** (F4 · Logistics — through proof base; presigned uploads next).
+Status: **active** (F4 · Logistics — through presigned proof uploads).
 
 Domain reference: [`docs/domains/logistics.md`](../../../../../docs/domains/logistics.md).
 
@@ -12,14 +12,13 @@ Current structure:
 logistics/
 ├── logistics.module.ts
 ├── application/
-│   ├── commands/ (create route, assign, dispatch, confirm delivery)
+│   ├── commands/ (create route, assign, dispatch, confirm delivery, proof upload)
+│   ├── delivery-proof-object-key.ts
 │   ├── logistics-read.service.ts
 │   └── logistics-candidate.service.ts
 └── presentation/logistics.controller.ts
 ```
 
-Implemented: route planning, dispatch, confirm delivery with optional `DeliveryProof`, read APIs under `/logistics/*`.
-
-Next slice: presigned MinIO proof uploads (`CreateDeliveryProofUploadCommand`).
+Implemented: route planning, dispatch, confirm delivery with optional `DeliveryProof`, presigned MinIO proof uploads, read APIs under `/logistics/*`.
 
 Planned: failed delivery, route liquidation.

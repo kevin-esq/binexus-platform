@@ -11,6 +11,8 @@ import type {
   CreateDeliveryRouteResult,
   ConfirmDeliveryInput,
   ConfirmDeliveryResult,
+  CreateDeliveryProofUploadInput,
+  CreateDeliveryProofUploadResult,
   DispatchDeliveryRouteInput,
   DispatchDeliveryRouteResult,
   ListDeliveryRouteStopsResult,
@@ -262,6 +264,17 @@ export class BinexusClient {
     return this.request<ConfirmDeliveryResult>(
       'POST',
       `/logistics/delivery-route-stops/${encodeURIComponent(deliveryRouteStopId)}/confirm-delivery`,
+      { body: input, auth: true },
+    );
+  }
+
+  async createDeliveryProofUpload(
+    deliveryRouteStopId: string,
+    input: CreateDeliveryProofUploadInput,
+  ): Promise<CreateDeliveryProofUploadResult> {
+    return this.request<CreateDeliveryProofUploadResult>(
+      'POST',
+      `/logistics/delivery-route-stops/${encodeURIComponent(deliveryRouteStopId)}/proof-uploads`,
       { body: input, auth: true },
     );
   }

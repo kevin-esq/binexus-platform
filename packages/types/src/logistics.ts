@@ -131,3 +131,17 @@ export interface ConfirmDeliveryResult {
   routeStatus: DeliveryRouteStatus;
   proof: DeliveryProofSummary | null;
 }
+
+export type DeliveryProofUploadKind = 'PHOTO' | 'SIGNATURE';
+
+export interface CreateDeliveryProofUploadInput {
+  kind: DeliveryProofUploadKind;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface CreateDeliveryProofUploadResult {
+  objectKey: string;
+  uploadUrl: string;
+  expiresAt: ISODateString;
+}

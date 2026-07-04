@@ -4,9 +4,13 @@ All notable changes to Binexus Platform are documented here. Format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- **Logistics — presigned proof uploads:** `CreateDeliveryProofUploadCommand`, `POST /logistics/delivery-route-stops/:id/proof-uploads`, `S3StorageService`, tenant-scoped object keys, prefix validation on `ConfirmDeliveryCommand`, SDK `createDeliveryProofUpload`, `/logistics` file pickers + direct MinIO PUT, MinIO CORS in docker-compose.
+
 ### Documentation
 
-- **2026-05-28 — PR #34 title correction:** GitHub PR #34 is titled `feat(logistics): add presigned proof uploads` but the merge was **docs-only** (scope for the next slice in `docs/domains/logistics.md` and `docs/workflows/order-creation.md`). No backend, SDK, or web code shipped in that PR. The **implementation** of presigned MinIO proof uploads remains the next coding slice after delivery proof base (#31).
+- **2026-05-28 — PR #34 title correction:** GitHub PR #34 was titled `feat(logistics): add presigned proof uploads` but merged **docs-only**. The code implementation ships in this unreleased slice (see Added above).
 
 ## [0.0.0] — product slices on `main` (2026-05-23 → 2026-05-28)
 

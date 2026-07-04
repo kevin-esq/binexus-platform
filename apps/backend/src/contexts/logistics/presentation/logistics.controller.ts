@@ -2,11 +2,13 @@ import {
   type AssignOrderToDeliveryRouteResult,
   type BranchId,
   type ConfirmDeliveryResult,
+  type CreateDeliveryProofUploadResult,
   type CreateDeliveryRouteResult,
   type DispatchDeliveryRouteResult,
   type ListDeliveryRouteStopsResult,
   type DeliveryRouteCandidateStatus,
   type DeliveryRouteStatus,
+  type DeliveryProofUploadKind,
   type ListDeliveryRouteCandidatesResult,
   type ListDeliveryRoutesResult,
   type OrderId,
@@ -31,6 +33,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -39,6 +42,7 @@ import { AppCommandBus } from '../../../common/commands/command-bus.service';
 import { CurrentUser, type RequestUser } from '../../../common/decorators/current-user.decorator';
 import { AssignOrderToDeliveryRouteCommand } from '../application/commands/assign-order-to-delivery-route.command';
 import { ConfirmDeliveryCommand } from '../application/commands/confirm-delivery.command';
+import { CreateDeliveryProofUploadCommand } from '../application/commands/create-delivery-proof-upload.command';
 import { CreateDeliveryRouteCommand } from '../application/commands/create-delivery-route.command';
 import { DispatchDeliveryRouteCommand } from '../application/commands/dispatch-delivery-route.command';
 import { LogisticsReadService } from '../application/logistics-read.service';
@@ -143,6 +147,20 @@ class ConfirmDeliveryDto {
   proof?: ConfirmDeliveryProofDto;
 }
 
+class CreateDeliveryProofUploadDto {
+  @IsIn(['PHOTO', 'SIGNATURE'])
+  kind!: DeliveryProofUploadKind;
+
+  @IsString()
+  contentType!: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(10_485_760)
+  @Type(() => Number)
+  sizeBytes!: number;
+}
+
 @Controller('logistics')
 export class LogisticsController {
   constructor(
@@ -234,6 +252,24 @@ export class LogisticsController {
         dto.driverUserId as UserId | undefined,
         { commandId: idempotencyKey, correlationId },
       ),
+    );
+  }
+
+  @Post('delivery-route-stops/:id/proof-uploads')
+  async createDeliveryProofUpload(
+    @Param('id') id: string,
+    @Body() dto: CreateDeliveryProofUploadDto,
+    @CurrentUser() user: RequestUser | null,
+    @Headers('idempotency-key') idempotencyKey?: string,
+    @Headers('x-correlation-id') correlationId?: string,
+  ): Promise<CreateDeliveryProofUploadResult> {
+    if (!user) throw new UnauthorizedException();
+
+    return this.commandBus.execute(
+      new CreateDeliveryProofUploadCommand(id, dto.kind, dto.contentType, dto.sizeBytes, {
+        commandId: idempotencyKey,
+        correlationId,
+      }),
     );
   }
 
