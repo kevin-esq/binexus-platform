@@ -2,22 +2,22 @@
 
 A **domain** is a conceptual area of the business. A **bounded context** is the implementation boundary inside the modular monolith (see [`architecture/bounded-contexts.md`](../architecture/bounded-contexts.md)).
 
-For Phase 1 we intentionally map domains 1:1 with bounded contexts. This is slightly more explicit than the previous five-context sketch, but it keeps ownership clean before the first real workflow (`CreateOrder -> ApproveOrder -> ReserveInventory -> GeneratePicking`) is implemented.
+For Phase 1+ we map domains 1:1 with bounded contexts. The first end-to-end workflow (`CreateOrder → ApproveOrder → ReserveInventory → Picking → DeliveryRoute → ConfirmDelivery`) is **implemented** through logistics proof base; presigned proof uploads are the next slice.
 
 ## Domain map
 
-| Domain    | Bounded context | Phase | Status              | Source-of-truth ownership                                      |
-| --------- | --------------- | ----- | ------------------- | -------------------------------------------------------------- |
-| Identity  | `identity`      | 0     | Active              | tenants, branches, users, roles, refresh tokens                |
-| Catalog   | `catalog`       | 1+    | Planned             | products, SKUs, units, price lists, tax categories             |
-| Customers | `customers`     | 1+    | Planned             | customers, addresses, credit profile, contacts                 |
-| Orders    | `orders`        | 1     | Next                | order header, order lines, order state transitions             |
-| Inventory | `inventory`     | 2     | Planned             | stock balances, reservations, movements, transfers             |
-| Warehouse | `warehouse`     | 3     | Planned             | picking tasks, packing, staging, warehouse execution           |
-| Logistics | `logistics`     | 4-6   | Active (proof base) | delivery routes, dispatch handoff, delivery proof, liquidation |
-| Sales     | `sales`         | 5     | Planned             | POS tickets, sales sessions, payment capture                   |
-| Billing   | `billing`       | 7     | Planned             | invoices, receivables, payment allocation                      |
-| Reporting | `reporting`     | 8+    | Planned             | projections/read models only                                   |
+| Domain    | Bounded context | Phase | Status                | Source-of-truth ownership                                      |
+| --------- | --------------- | ----- | --------------------- | -------------------------------------------------------------- |
+| Identity  | `identity`      | F0    | Active                | tenants, branches, users, roles, refresh tokens                |
+| Catalog   | `catalog`       | F1+   | Planned               | products, SKUs, units, price lists, tax categories             |
+| Customers | `customers`     | F1+   | Planned               | customers, addresses, credit profile, contacts                 |
+| Orders    | `orders`        | F1    | Active                | order header, order lines, order state transitions             |
+| Inventory | `inventory`     | F2    | Active                | stock balances, reservations, movements, transfers             |
+| Warehouse | `warehouse`     | F3    | Active (picking base) | picking tasks, packing, staging, warehouse execution           |
+| Logistics | `logistics`     | F4    | Active (proof base)   | delivery routes, dispatch handoff, delivery proof, liquidation |
+| Sales     | `sales`         | F5    | Planned               | POS tickets, sales sessions, payment capture                   |
+| Billing   | `billing`       | F7    | Planned               | invoices, receivables, payment allocation                      |
+| Reporting | `reporting`     | F8+   | Planned               | projections/read models only                                   |
 
 ## Dependency direction
 

@@ -4,18 +4,18 @@ Binexus is organized as a modular monolith with ten initial bounded contexts. Th
 
 The contexts intentionally map 1:1 with the operational domains documented in [`docs/domains`](../domains/). This keeps ownership clear while the product is still learning the business. We can merge or split later with a new ADR, but Phase 1 starts with explicit boundaries.
 
-| Context     | Phase | Responsibility                                                              |
-| ----------- | ----- | --------------------------------------------------------------------------- |
-| `identity`  | 0     | Tenants, users, branches, auth (JWT), RBAC                                  |
-| `catalog`   | 1+    | Products, SKUs, units, price lists, tax categories                          |
-| `customers` | 1+    | Customers, billing identity, addresses, credit profile                      |
-| `orders`    | 1     | Order lifecycle, approvals, state machine                                   |
-| `inventory` | 2     | Stock per branch, reservations, movements, transfers                        |
-| `warehouse` | 3     | Picking, packing, staging, warehouse-lite operational execution             |
-| `logistics` | 4-6   | Delivery routes, dispatch handoff, delivery confirmation, route liquidation |
-| `sales`     | 5     | POS retail and restaurant, tickets, payment registration                    |
-| `billing`   | 7     | Invoices, fiscal documents, payment allocation, receivables                 |
-| `reporting` | 8+    | Read models, operational dashboards, analytics projections                  |
+| Context     | Phase | Status in repo | Responsibility                                                              |
+| ----------- | ----- | -------------- | --------------------------------------------------------------------------- |
+| `identity`  | F0    | Active         | Tenants, users, branches, auth (JWT), RBAC                                  |
+| `catalog`   | F1+   | Planned        | Products, SKUs, units, price lists, tax categories                          |
+| `customers` | F1+   | Planned        | Customers, billing identity, addresses, credit profile                      |
+| `orders`    | F1    | Active         | Order lifecycle, approvals, state machine                                   |
+| `inventory` | F2    | Active         | Stock per branch, reservations, movements, transfers                        |
+| `warehouse` | F3    | Active         | Picking, packing, staging, warehouse-lite operational execution             |
+| `logistics` | F4    | Active         | Delivery routes, dispatch handoff, delivery confirmation, route liquidation |
+| `sales`     | F5    | Planned        | POS retail and restaurant, tickets, payment registration                    |
+| `billing`   | F7    | Planned        | Invoices, fiscal documents, payment allocation, receivables                 |
+| `reporting` | F8+   | Planned        | Read models, operational dashboards, analytics projections                  |
 
 ## Rules of engagement
 
@@ -38,7 +38,9 @@ The contexts intentionally map 1:1 with the operational domains documented in [`
 └── presentation/            HTTP controllers (or other transport)
 ```
 
-In Phase 0 only `identity` has the full shape. The others are README placeholders.
+Five bounded contexts are registered in `AppModule` and implemented beyond README placeholders: `identity`, `orders`, `inventory`, `warehouse`, and `logistics`. The remaining contexts (`catalog`, `customers`, `sales`, `billing`, `reporting`) still have folder stubs only.
+
+Implemented contexts follow the structure below (some omit empty `domain/` or `infrastructure/` folders until needed):
 
 ## Future extraction
 

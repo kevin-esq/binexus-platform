@@ -10,7 +10,7 @@ Operational SaaS platform — **modular monolith**, **event-driven**, **offline-
 - **Backend**: NestJS 11 (Fastify) — bounded contexts, CQRS-lite commands, domain events, outbox pattern
 - **Web**: Next.js 15 (App Router) + Tailwind 3 + React 19
 - **Desktop**: Tauri 2 wrapper around the web app
-- **Mobile**: not under active development in Phase 0
+- **Mobile**: placeholder — driver app planned after F5 Sales / POS stabilizes
 - **DB**: PostgreSQL 16 + Prisma
 - **Cache / event transport (planned)**: Redis 7.4
 - **Object storage**: MinIO (S3-compatible)
@@ -76,14 +76,15 @@ Start with [`docs/architecture/overview.md`](docs/architecture/overview.md).
 
 ## Roadmap
 
-| Phase | Scope                                  | Status      |
-| ----- | -------------------------------------- | ----------- |
-| 0     | Foundation (this)                      | In progress |
-| 1     | Orders (the core operational workflow) | Next        |
-| 2     | Inventory                              | Planned     |
-| 3     | Sales / POS retail                     | Planned     |
-| 4     | Warehouse (lite, not WMS enterprise)   | Planned     |
-| 5     | Routes                                 | Planned     |
-| 6     | Liquidation                            | Planned     |
-| 7     | Billing                                | Planned     |
-| 8     | Analytics & dashboards                 | Planned     |
+| Phase            | Scope                                          | Status                                          |
+| ---------------- | ---------------------------------------------- | ----------------------------------------------- |
+| F0 · Foundation  | Monorepo, auth, multi-tenant, outbox, CI, docs | Complete                                        |
+| F1 · Orders      | Order lifecycle, approvals, warehouse handoff  | Active                                          |
+| F2 · Inventory   | Stock, reservations, adjustments, transfers    | Active                                          |
+| F3 · Warehouse   | Picking base (warehouse-lite)                  | Active                                          |
+| F4 · Logistics   | Delivery routes, dispatch, confirmation, proof | Active — **next slice:** presigned proof upload |
+| F5 · Sales / POS | Retail and restaurant POS tickets              | Planned                                         |
+| F7 · Billing     | Invoices, receivables, payment allocation      | Planned                                         |
+| F8 · Reporting   | Dashboards and analytics projections           | Planned                                         |
+
+See [`CHANGELOG.md`](CHANGELOG.md) for merged PR history. Domain detail lives in [`docs/domains/`](docs/domains/).
