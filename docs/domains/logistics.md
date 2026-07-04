@@ -30,7 +30,7 @@ Implemented:
 - `CreateDeliveryRouteCommand` - creates `DeliveryRoute(PLANNED)`.
 - `AssignOrderToDeliveryRouteCommand` - assigns `READY` candidates as stops on a planned route.
 - `DispatchDeliveryRouteCommand` - transitions `PLANNED -> DISPATCHED`, sets driver and dispatch metadata, emits `DELIVERY_ROUTE_DISPATCHED`.
-- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, optionally persists `DeliveryProof`, auto-completes route when all stops delivered, emits `DELIVERY_CONFIRMED` (payload may include optional `proof`). Validates tenant-scoped proof object keys when provided.
+- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, optionally persists `DeliveryProof`, auto-completes route when all stops delivered, emits `DELIVERY_CONFIRMED` (payload may include optional `proof`). Validates tenant-scoped proof object keys and verifies uploaded media exists in MinIO when object keys are provided.
 - `CreateDeliveryProofUploadCommand` - issues short-lived, tenant-scoped MinIO presigned upload URLs for proof photos/signatures on a `PLANNED` stop of a `DISPATCHED` route.
 
 Planned:
@@ -108,7 +108,7 @@ tenants/<tenantId>/delivery-proofs/<stopId>/<photo|signature>-<uuid>.<ext>
 
 - Driver mobile/offline capture.
 - Failed delivery (`DELIVERY_FAILED`).
-- Public read/download URLs for proof media.
+- Presigned GET URLs for proof media in the UI (bucket remains private; use short-lived presigned GET when needed).
 - Virus scanning or long-term retention policies.
 - Orphan object cleanup in MinIO.
 

@@ -1,11 +1,12 @@
 import { DomainEventName } from '@binexus/events';
 import type { UserId } from '@binexus/types';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import { DeliveryRouteStatus, DeliveryRouteStopStatus } from '@prisma/client';
 import { describe, expect, it, vi } from 'vitest';
 
 import { type EventBusService } from '../../../../common/events/event-bus.service';
 import { type OutboxService } from '../../../../common/events/outbox.service';
+import { type S3StorageService } from '../../../../common/object-storage/s3-storage.service';
 import { type PrismaService } from '../../../../common/prisma/prisma.service';
 import { type TenantContextService } from '../../../../common/tenant/tenant-context.service';
 
@@ -46,8 +47,7 @@ function makeProof(overrides: Record<string, unknown> = {}) {
     deliveryRouteStopId: 'stop-1',
     recipientName: 'Jane Doe',
     notes: 'Left at door',
-    photoObjectKey:
-      'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg',
+    photoObjectKey: photoKey,
     signatureObjectKey: null,
     latitude: 4.71,
     longitude: -74.07,
@@ -57,6 +57,26 @@ function makeProof(overrides: Record<string, unknown> = {}) {
     updatedAt: new Date('2026-05-25T17:00:00.000Z'),
     ...overrides,
   };
+}
+
+const photoKey =
+  'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg';
+
+function makeStorage(overrides: Partial<S3StorageService> = {}) {
+  return {
+    assertObjectExists: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  } as unknown as S3StorageService;
+}
+
+function makeHandler(
+  prisma: PrismaService,
+  tenant: TenantContextService,
+  eventBus: EventBusService,
+  outbox: OutboxService,
+  storage: S3StorageService = makeStorage(),
+) {
+  return new ConfirmDeliveryHandler(prisma, tenant, eventBus, outbox, storage);
 }
 
 describe('ConfirmDeliveryHandler', () => {
@@ -98,7 +118,7 @@ describe('ConfirmDeliveryHandler', () => {
     const eventBus = { build: vi.fn().mockReturnValue(event) };
     const outbox = { record: vi.fn().mockResolvedValue(undefined) };
 
-    const handler = new ConfirmDeliveryHandler(
+    const handler = makeHandler(
       prisma,
       tenant,
       eventBus as unknown as EventBusService,
@@ -131,6 +151,7 @@ describe('ConfirmDeliveryHandler', () => {
   it('persists proof and enriches DELIVERY_CONFIRMED payload', async () => {
     const stop = makeStop();
     const savedProof = makeProof();
+    const storage = makeStorage();
     const tx = {
       deliveryRouteStop: {
         findFirst: vi.fn().mockResolvedValue(stop),
@@ -150,36 +171,34 @@ describe('ConfirmDeliveryHandler', () => {
     const eventBus = { build: vi.fn().mockReturnValue({ id: 'evt-1' }) };
     const outbox = { record: vi.fn() };
 
-    const handler = new ConfirmDeliveryHandler(
+    const handler = makeHandler(
       prisma,
       { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
       eventBus as unknown as EventBusService,
       outbox as unknown as OutboxService,
+      storage,
     );
 
     const result = await handler.execute(
       new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, {
         recipientName: 'Jane Doe',
         notes: 'Left at door',
-        photoObjectKey:
-          'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg',
+        photoObjectKey: photoKey,
         latitude: 4.71,
         longitude: -74.07,
       }),
     );
 
     expect(tx.deliveryProof.create).toHaveBeenCalled();
+    expect(storage.assertObjectExists).toHaveBeenCalledWith(photoKey, 'photoObjectKey');
     expect(result.proof?.recipientName).toBe('Jane Doe');
-    expect(result.proof?.photoObjectKey).toBe(
-      'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg',
-    );
+    expect(result.proof?.photoObjectKey).toBe(photoKey);
     expect(eventBus.build).toHaveBeenCalledWith(
       DomainEventName.DELIVERY_CONFIRMED,
       expect.objectContaining({
         proof: expect.objectContaining({
           recipientName: 'Jane Doe',
-          photoObjectKey:
-            'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg',
+          photoObjectKey: photoKey,
         }),
       }),
       expect.any(Object),
@@ -202,7 +221,7 @@ describe('ConfirmDeliveryHandler', () => {
       $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
     } as unknown as PrismaService;
 
-    const handler = new ConfirmDeliveryHandler(
+    const handler = makeHandler(
       prisma,
       { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
       {
@@ -237,7 +256,7 @@ describe('ConfirmDeliveryHandler', () => {
     } as unknown as PrismaService;
     const outbox = { record: vi.fn() };
 
-    const handler = new ConfirmDeliveryHandler(
+    const handler = makeHandler(
       prisma,
       { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
       { build: vi.fn() } as unknown as EventBusService,
@@ -277,7 +296,7 @@ describe('ConfirmDeliveryHandler', () => {
     } as unknown as PrismaService;
     const outbox = { record: vi.fn() };
 
-    const handler = new ConfirmDeliveryHandler(
+    const handler = makeHandler(
       prisma,
       { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
       { build: vi.fn() } as unknown as EventBusService,
@@ -300,7 +319,7 @@ describe('ConfirmDeliveryHandler', () => {
       $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
     } as unknown as PrismaService;
 
-    const handler = new ConfirmDeliveryHandler(
+    const handler = makeHandler(
       prisma,
       { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
       { build: vi.fn() } as unknown as EventBusService,
@@ -325,7 +344,7 @@ describe('ConfirmDeliveryHandler', () => {
       $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
     } as unknown as PrismaService;
 
-    const handler = new ConfirmDeliveryHandler(
+    const handler = makeHandler(
       prisma,
       { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
       { build: vi.fn() } as unknown as EventBusService,
@@ -340,7 +359,7 @@ describe('ConfirmDeliveryHandler', () => {
   it('rejects invalid proof object keys', async () => {
     const prisma = { $transaction: vi.fn() } as unknown as PrismaService;
 
-    const handler = new ConfirmDeliveryHandler(
+    const handler = makeHandler(
       prisma,
       { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
       { build: vi.fn() } as unknown as EventBusService,
@@ -354,6 +373,96 @@ describe('ConfirmDeliveryHandler', () => {
         }),
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('does not verify object storage when confirm has no proof object keys', async () => {
+    const storage = makeStorage();
+    const stop = makeStop();
+    const tx = {
+      deliveryRouteStop: {
+        findFirst: vi.fn().mockResolvedValue(stop),
+        update: vi.fn(),
+        count: vi.fn().mockResolvedValue(0),
+      },
+      deliveryRoute: {
+        update: vi.fn().mockResolvedValue({
+          id: 'route-1',
+          status: DeliveryRouteStatus.COMPLETED,
+        }),
+      },
+      deliveryProof: { create: vi.fn(), update: vi.fn() },
+    };
+    const prisma = {
+      $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as unknown as PrismaService;
+
+    const handler = makeHandler(
+      prisma,
+      { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
+      {
+        build: vi.fn().mockReturnValue({ id: 'evt-1', name: DomainEventName.DELIVERY_CONFIRMED }),
+      } as unknown as EventBusService,
+      { record: vi.fn() } as unknown as OutboxService,
+      storage,
+    );
+
+    await handler.execute(new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId));
+
+    expect(storage.assertObjectExists).not.toHaveBeenCalled();
+  });
+
+  it('rejects when proof object key was not uploaded', async () => {
+    const storage = makeStorage({
+      assertObjectExists: vi
+        .fn()
+        .mockRejectedValue(
+          new BadRequestException('photoObjectKey was not found in object storage.'),
+        ),
+    });
+    const prisma = { $transaction: vi.fn() } as unknown as PrismaService;
+
+    const handler = makeHandler(
+      prisma,
+      { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
+      { build: vi.fn() } as unknown as EventBusService,
+      { record: vi.fn() } as unknown as OutboxService,
+      storage,
+    );
+
+    await expect(
+      handler.execute(
+        new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, { photoObjectKey: photoKey }),
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects when object storage is unavailable', async () => {
+    const storage = makeStorage({
+      assertObjectExists: vi
+        .fn()
+        .mockRejectedValue(
+          new ServiceUnavailableException('Object storage is unavailable; try again later.'),
+        ),
+    });
+    const prisma = { $transaction: vi.fn() } as unknown as PrismaService;
+
+    const handler = makeHandler(
+      prisma,
+      { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
+      { build: vi.fn() } as unknown as EventBusService,
+      { record: vi.fn() } as unknown as OutboxService,
+      storage,
+    );
+
+    await expect(
+      handler.execute(
+        new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, { photoObjectKey: photoKey }),
+      ),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
 
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });

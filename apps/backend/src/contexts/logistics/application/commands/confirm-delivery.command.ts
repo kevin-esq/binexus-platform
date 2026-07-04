@@ -15,9 +15,11 @@ import { AppCommand, type AppCommandMetadata } from '../../../../common/commands
 import { AppCommandHandler } from '../../../../common/commands/app-command-handler';
 import { EventBusService } from '../../../../common/events/event-bus.service';
 import { OutboxService } from '../../../../common/events/outbox.service';
+import { S3StorageService } from '../../../../common/object-storage/s3-storage.service';
 import { PrismaService } from '../../../../common/prisma/prisma.service';
 import { TenantContextService } from '../../../../common/tenant/tenant-context.service';
 import {
+  assertProofMediaExists,
   hasProofInput,
   proofCreateData,
   proofUpdateData,
@@ -57,6 +59,8 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
     private readonly eventBus: EventBusService,
     @Inject(OutboxService)
     private readonly outbox: OutboxService,
+    @Inject(S3StorageService)
+    private readonly storage: S3StorageService,
   ) {
     super();
   }
@@ -66,6 +70,7 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
 
     if (command.proof) {
       validateProofObjectKeys(ctx.tenantId, command.deliveryRouteStopId, command.proof);
+      await assertProofMediaExists(this.storage, command.proof);
     }
 
     return this.prisma.$transaction(async (tx) => {
