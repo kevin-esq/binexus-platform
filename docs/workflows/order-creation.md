@@ -1,6 +1,6 @@
 # Workflow: order creation → ready for delivery route
 
-The end-to-end flow we will implement in Phase 1. Documents the choreography between bounded contexts so we keep contracts honest **before** writing code.
+The end-to-end operational flow from order creation through delivery confirmation (steps 1–12). Documents the choreography between bounded contexts and stays aligned with [`docs/domains/`](../domains/) and Notion Roadmap.
 
 ```mermaid
 sequenceDiagram

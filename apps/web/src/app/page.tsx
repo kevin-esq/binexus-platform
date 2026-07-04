@@ -5,12 +5,13 @@ export default function HomePage() {
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-start justify-center gap-6 p-8">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-          Foundation — Phase 0
+          F0–F4 active · Next: presigned proof upload
         </p>
         <h1 className="mt-1 text-4xl font-bold text-slate-900">Binexus Platform</h1>
         <p className="mt-3 max-w-prose text-slate-600">
-          Operational SaaS — modular monolith, event-driven, offline-first, multi-tenant. The
-          backend, packages, infrastructure and contracts are wired. Business modules ship next.
+          Operational SaaS — modular monolith, event-driven, offline-first, multi-tenant. Orders
+          through delivery confirmation run end-to-end in the web UI. Next logistics slice:
+          presigned MinIO proof uploads.
         </p>
       </div>
 
@@ -59,11 +60,12 @@ export default function HomePage() {
         <div className="rounded border border-slate-200 bg-white p-4">
           <div className="font-semibold text-slate-900">Bounded contexts</div>
           <ul className="mt-2 list-disc pl-4">
-            <li>Identity (active)</li>
-            <li>Orders (next)</li>
-            <li>Inventory</li>
-            <li>Sales / POS</li>
-            <li>Logistics</li>
+            <li>F0 · Identity (active)</li>
+            <li>F1 · Orders (active)</li>
+            <li>F2 · Inventory (active)</li>
+            <li>F3 · Warehouse (active)</li>
+            <li>F4 · Logistics (active)</li>
+            <li>F5 · Sales / POS (planned)</li>
           </ul>
         </div>
         <div className="rounded border border-slate-200 bg-white p-4">

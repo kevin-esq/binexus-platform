@@ -87,12 +87,16 @@ POST /logistics/delivery-routes
 POST /logistics/delivery-routes/:id/assign-orders
 POST /logistics/delivery-routes/:id/dispatch
 GET /logistics/delivery-routes/:id/stops
-POST /logistics/delivery-route-stops/:id/proof-uploads
-  Body: `{ kind: "PHOTO" | "SIGNATURE", contentType: string, sizeBytes: number }`
-  Returns: `{ objectKey, uploadUrl, expiresAt }`
 POST /logistics/delivery-route-stops/:id/confirm-delivery
   Body (optional): `{ proof?: { recipientName?, notes?, photoObjectKey?, signatureObjectKey?, latitude?, longitude? } }`
 ```
+
+Planned (next slice):
+
+```txt
+POST /logistics/delivery-route-stops/:id/proof-uploads
+  Body: `{ kind: "PHOTO" | "SIGNATURE", contentType: string, sizeBytes: number }`
+  Returns: `{ objectKey, uploadUrl, expiresAt }`
 
 ## Web UI
 
@@ -122,3 +126,4 @@ Out of scope:
 
 - Are delivery routes pre-planned by dispatcher or generated automatically from zones?
 - Does delivery route liquidation live fully in Logistics or split with Billing once accounting is richer?
+```
