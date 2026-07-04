@@ -17,8 +17,28 @@ Extends `common-testing.md` with stack-specific guidance for this monorepo.
 ## Where Tests Live
 
 - Co-located next to the unit under test: `feature.ts` + `feature.spec.ts`.
-- Integration tests that need Postgres/Redis: `__integration__/` subfolder, gated behind a `INTEGRATION=1` env flag so they don't run in unit mode.
+- Integration tests that need real infrastructure (MinIO, Postgres, Redis): `apps/backend/src/__integration__/` — **excluded** from the default unit run; run via `pnpm test:integration` (sets `INTEGRATION=1` via `vitest.integration.config.ts`).
 - E2E tests: `apps/web/e2e/` (when added).
+
+## Unit vs integration runs
+
+| Command                 | Scope                                                             | Config                                      | Requires                    |
+| ----------------------- | ----------------------------------------------------------------- | ------------------------------------------- | --------------------------- |
+| `pnpm test`             | Unit specs only (`src/**/*.spec.ts`, excludes `__integration__/`) | `apps/backend/vitest.config.ts`             | Nothing extra               |
+| `pnpm test:integration` | Integration specs only (`src/**/__integration__/**/*.spec.ts`)    | `apps/backend/vitest.integration.config.ts` | MinIO up (`pnpm docker:up`) |
+
+Integration files are **not loaded** during `pnpm test` — Vitest excludes the folder entirely (not `describe.skip`).
+
+Preflight: if MinIO is down, integration tests fail in `beforeAll` with:
+
+```text
+Integration tests require MinIO. Start it with: pnpm docker:up
+Expected S3_ENDPOINT=http://localhost:9000. Health check failed: ...
+```
+
+Current integration coverage (slice #5): presigned proof upload → real PUT → HeadObject → `ConfirmDeliveryHandler` proof gate against live MinIO. See `docs/runbooks/object-storage.md`.
+
+CI: integration tests are **manual / pre-release** for now — not wired into `.github/workflows/ci.yml`.
 
 ## Unit Test Structure
 

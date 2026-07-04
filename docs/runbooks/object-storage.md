@@ -50,3 +50,36 @@ Confirming **without** proof object keys is unchanged — no HeadObject call.
 ## Environment variables
 
 See root `.env.example`: `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`, `S3_PRESIGNED_UPLOAD_TTL_SECONDS`, `S3_REQUEST_TIMEOUT_MS`.
+
+## Integration tests (real MinIO)
+
+Validates the presign → PUT → HeadObject → confirm-delivery proof gate against a **live** MinIO instance (no AWS SDK mocks). Unit tests still mock `S3StorageService`; this suite closes the gap.
+
+**Prerequisites**
+
+1. MinIO running: `pnpm docker:up` (health: `http://localhost:9000/minio/health/live`)
+2. Root `.env` with S3 vars (defaults match `infrastructure/compose/docker-compose.yml`)
+
+**Run**
+
+```bash
+pnpm test:integration
+```
+
+PowerShell (from repo root, same as above):
+
+```powershell
+pnpm test:integration
+```
+
+Backend only:
+
+```bash
+pnpm --filter @binexus/backend test:integration
+```
+
+**If MinIO is down:** the suite fails in `beforeAll` within a few seconds with an actionable message (`pnpm docker:up`, expected `S3_ENDPOINT`). It does not hang.
+
+**Not in CI:** run manually before a release or after changing object-storage / proof-upload code. See `.cursor/rules/typescript-testing.md`.
+
+**Location:** `apps/backend/src/__integration__/logistics/delivery-proof-minio.integration.spec.ts`
