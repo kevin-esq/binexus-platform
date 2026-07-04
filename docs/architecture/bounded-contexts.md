@@ -17,6 +17,8 @@ The contexts intentionally map 1:1 with the operational domains documented in [`
 | `billing`   | F7    | Planned        | Invoices, fiscal documents, payment allocation, receivables                 |
 | `reporting` | F8+   | Planned        | Read models, operational dashboards, analytics projections                  |
 
+**Status in repo** means the bounded context is implemented (`Active`) or still a stub (`Planned`). **Phase complete** (F1–F4) means the scoped vertical slice for that roadmap phase is shipped; contexts stay `Active` because they remain live code paths under maintenance. See the roadmap table in [`README.md`](../../README.md).
+
 ## Rules of engagement
 
 1. **No direct service calls across contexts.** If `Sales` needs `Inventory` to reserve stock, it publishes a domain event. The other context's handler reacts.

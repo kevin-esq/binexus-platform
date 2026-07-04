@@ -1,10 +1,10 @@
 ﻿# Logistics bounded context
 
-Status: **active** (F4 · Logistics — through failed delivery resolution #3b).
+Status: **active** — F4 phase **complete** (planning through MinIO integration tests).
 
 Domain reference: [`docs/domains/logistics.md`](../../../../../docs/domains/logistics.md).
 
-Logistics owns delivery routes, dispatch, delivery confirmation, failed delivery handling, and route liquidation.
+Logistics owns delivery routes, dispatch, delivery confirmation, presigned proof uploads, failed delivery handling, and route liquidation.
 
 Current structure:
 
@@ -12,14 +12,15 @@ Current structure:
 logistics/
 ├── logistics.module.ts
 ├── application/
-│   ├── commands/ (create route, assign, dispatch, confirm delivery, report failed, proof upload)
+│   ├── commands/ (create route, assign, dispatch, confirm delivery, report failed, proof upload, liquidate)
 │   ├── route-completion.ts
-│   ├── logistics-candidate.service.ts  (ORDER_READY_FOR_DELIVERY_ROUTE + ORDER_CANCELLED)
+│   ├── route-cod-expected.ts
+│   ├── logistics-candidate.service.ts  (ORDER_READY_FOR_DELIVERY_ROUTE + ORDER_CANCELLED + requeue)
 │   └── logistics-read.service.ts
 ├── events/ (order-ready-for-delivery-route, order-cancelled)
 └── presentation/logistics.controller.ts
 ```
 
-Implemented: route planning, dispatch, confirm delivery, presigned proof uploads, failed delivery, candidate requeue (`ASSIGNED → READY`) and cancel on order events, read APIs under `/logistics/*`.
+Implemented: route planning, dispatch, confirm delivery, presigned proof uploads (MinIO hardening), failed delivery + resolution hooks, route liquidation (COD arqueo, `@RequireFeature(LIQUIDATION)`), read APIs under `/logistics/*`.
 
-Planned: route liquidation (#4).
+Integration tests: `apps/backend/src/__integration__/logistics/delivery-proof-minio.integration.spec.ts` (`pnpm test:integration`).

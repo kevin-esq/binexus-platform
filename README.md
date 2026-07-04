@@ -76,15 +76,15 @@ Start with [`docs/architecture/overview.md`](docs/architecture/overview.md).
 
 ## Roadmap
 
-| Phase            | Scope                                          | Status                                       |
-| ---------------- | ---------------------------------------------- | -------------------------------------------- |
-| F0 · Foundation  | Monorepo, auth, multi-tenant, outbox, CI, docs | Complete                                     |
-| F1 · Orders      | Order lifecycle, approvals, warehouse handoff  | Active                                       |
-| F2 · Inventory   | Stock, reservations, adjustments, transfers    | Active                                       |
-| F3 · Warehouse   | Picking base (warehouse-lite)                  | Active                                       |
-| F4 · Logistics   | Delivery routes, dispatch, confirmation, proof | Active — presigned proof uploads implemented |
-| F5 · Sales / POS | Retail and restaurant POS tickets              | Planned                                      |
-| F7 · Billing     | Invoices, receivables, payment allocation      | Planned                                      |
-| F8 · Reporting   | Dashboards and analytics projections           | Planned                                      |
+| Phase            | Scope                                                               | Status                                                                                                           |
+| ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| F0 · Foundation  | Monorepo, auth, multi-tenant, outbox, CI, docs                      | Complete                                                                                                         |
+| F1 · Orders      | Order lifecycle, approvals, warehouse handoff                       | Complete (lifecycle through delivery handoff)                                                                    |
+| F2 · Inventory   | Stock, reservations, adjustments, transfers                         | Complete                                                                                                         |
+| F3 · Warehouse   | Picking base (warehouse-lite)                                       | Complete (picking base)                                                                                          |
+| F4 · Logistics   | Routes, dispatch, confirmation, proof, failed delivery, liquidation | Complete (happy path + MinIO hardening + failed delivery/resolution + COD liquidation + MinIO integration tests) |
+| F5 · Sales / POS | Retail and restaurant POS tickets                                   | Planned — next phase                                                                                             |
+| F7 · Billing     | Invoices, receivables, payment allocation                           | Planned                                                                                                          |
+| F8 · Reporting   | Dashboards and analytics projections                                | Planned                                                                                                          |
 
 See [`CHANGELOG.md`](CHANGELOG.md) for merged PR history. Domain detail lives in [`docs/domains/`](docs/domains/).
