@@ -5,13 +5,13 @@ export default function HomePage() {
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-start justify-center gap-6 p-8">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-          F0–F4 active · Logistics presigned proof uploads shipped
+          F0–F4 complete · Next: F5 Sales / POS
         </p>
         <h1 className="mt-1 text-4xl font-bold text-slate-900">Binexus Platform</h1>
         <p className="mt-3 max-w-prose text-slate-600">
-          Operational SaaS — modular monolith, event-driven, offline-first, multi-tenant. Orders
-          through delivery confirmation with presigned MinIO proof uploads run end-to-end in the web
-          UI.
+          Operational SaaS — modular monolith, event-driven, offline-first, multi-tenant. The web UI
+          runs orders through inventory, picking, delivery routes, proof uploads, failed-delivery
+          resolution, and route liquidation end-to-end.
         </p>
       </div>
 
@@ -61,10 +61,10 @@ export default function HomePage() {
           <div className="font-semibold text-slate-900">Bounded contexts</div>
           <ul className="mt-2 list-disc pl-4">
             <li>F0 · Identity (active)</li>
-            <li>F1 · Orders (active)</li>
-            <li>F2 · Inventory (active)</li>
-            <li>F3 · Warehouse (active)</li>
-            <li>F4 · Logistics (active)</li>
+            <li>F1 · Orders (complete)</li>
+            <li>F2 · Inventory (complete)</li>
+            <li>F3 · Warehouse (complete)</li>
+            <li>F4 · Logistics (complete)</li>
             <li>F5 · Sales / POS (planned)</li>
           </ul>
         </div>

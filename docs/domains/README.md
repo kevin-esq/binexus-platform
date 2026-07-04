@@ -2,22 +2,22 @@
 
 A **domain** is a conceptual area of the business. A **bounded context** is the implementation boundary inside the modular monolith (see [`architecture/bounded-contexts.md`](../architecture/bounded-contexts.md)).
 
-For Phase 1+ we map domains 1:1 with bounded contexts. The first end-to-end workflow (`CreateOrder → ApproveOrder → ReserveInventory → Picking → DeliveryRoute → ConfirmDelivery`) is **implemented** through logistics presigned proof uploads.
+For Phase 1+ we map domains 1:1 with bounded contexts. The first end-to-end workflow (`CreateOrder → ApproveOrder → ReserveInventory → Picking → DeliveryRoute → Dispatch → ConfirmDelivery → optional proof upload → route liquidation`) is **implemented** in the web UI through F4 Logistics (including failed-delivery handling and COD reconciliation).
 
 ## Domain map
 
-| Domain    | Bounded context | Phase | Status                | Source-of-truth ownership                                      |
-| --------- | --------------- | ----- | --------------------- | -------------------------------------------------------------- |
-| Identity  | `identity`      | F0    | Active                | tenants, branches, users, roles, refresh tokens                |
-| Catalog   | `catalog`       | F1+   | Planned               | products, SKUs, units, price lists, tax categories             |
-| Customers | `customers`     | F1+   | Planned               | customers, addresses, credit profile, contacts                 |
-| Orders    | `orders`        | F1    | Active                | order header, order lines, order state transitions             |
-| Inventory | `inventory`     | F2    | Active                | stock balances, reservations, movements, transfers             |
-| Warehouse | `warehouse`     | F3    | Active (picking base) | picking tasks, packing, staging, warehouse execution           |
-| Logistics | `logistics`     | F4    | Active (proof base)   | delivery routes, dispatch handoff, delivery proof, liquidation |
-| Sales     | `sales`         | F5    | Planned               | POS tickets, sales sessions, payment capture                   |
-| Billing   | `billing`       | F7    | Planned               | invoices, receivables, payment allocation                      |
-| Reporting | `reporting`     | F8+   | Planned               | projections/read models only                                   |
+| Domain    | Bounded context | Phase | Status               | Source-of-truth ownership                                                            |
+| --------- | --------------- | ----- | -------------------- | ------------------------------------------------------------------------------------ |
+| Identity  | `identity`      | F0    | Active               | tenants, branches, users, roles, refresh tokens                                      |
+| Catalog   | `catalog`       | F1+   | Planned              | products, SKUs, units, price lists, tax categories                                   |
+| Customers | `customers`     | F1+   | Planned              | customers, addresses, credit profile, contacts                                       |
+| Orders    | `orders`        | F1    | Active — F1 complete | order header, order lines, order state transitions                                   |
+| Inventory | `inventory`     | F2    | Active — F2 complete | stock balances, reservations, movements, transfers                                   |
+| Warehouse | `warehouse`     | F3    | Active — F3 complete | picking tasks, packing, staging, warehouse execution (picking base shipped)          |
+| Logistics | `logistics`     | F4    | Active — F4 complete | delivery routes, dispatch, confirmation, proof uploads, failed delivery, liquidation |
+| Sales     | `sales`         | F5    | Planned              | POS tickets, sales sessions, payment capture                                         |
+| Billing   | `billing`       | F7    | Planned              | invoices, receivables, payment allocation                                            |
+| Reporting | `reporting`     | F8+   | Planned              | projections/read models only                                                         |
 
 ## Dependency direction
 
