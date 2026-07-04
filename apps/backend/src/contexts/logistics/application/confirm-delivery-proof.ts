@@ -1,6 +1,8 @@
 import type { ConfirmDeliveryProofInput } from '@binexus/types';
 import type { DeliveryProof } from '@prisma/client';
 
+import { type S3StorageService } from '../../../common/object-storage/s3-storage.service';
+
 import { toDeliveryProofSummary } from './delivery-proof-summary';
 
 export function hasProofInput(proof?: ConfirmDeliveryProofInput): boolean {
@@ -57,4 +59,16 @@ export function proofUpdateData(proof: ConfirmDeliveryProofInput) {
     latitude: proof.latitude ?? null,
     longitude: proof.longitude ?? null,
   };
+}
+
+export async function assertProofMediaExists(
+  storage: S3StorageService,
+  proof: ConfirmDeliveryProofInput,
+): Promise<void> {
+  if (proof.photoObjectKey !== undefined) {
+    await storage.assertObjectExists(proof.photoObjectKey, 'photoObjectKey');
+  }
+  if (proof.signatureObjectKey !== undefined) {
+    await storage.assertObjectExists(proof.signatureObjectKey, 'signatureObjectKey');
+  }
 }

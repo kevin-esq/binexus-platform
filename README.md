@@ -60,7 +60,7 @@ pnpm dev
 - Web: <http://localhost:3000>
 - Postgres: `localhost:5432` (user: `binexus` / pass: `binexus` / db: `binexus`)
 - Redis: `localhost:6379`
-- MinIO console: <http://localhost:9001> (user: `binexus` / pass: `binexus123`)
+- MinIO console: <http://localhost:9001> (user: `binexus` / pass: `binexus123`) — bucket is **private**; see [`docs/runbooks/object-storage.md`](docs/runbooks/object-storage.md)
 
 ## Conventions
 

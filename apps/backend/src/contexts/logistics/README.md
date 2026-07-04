@@ -19,6 +19,6 @@ logistics/
 └── presentation/logistics.controller.ts
 ```
 
-Implemented: route planning, dispatch, confirm delivery with optional `DeliveryProof`, presigned MinIO proof uploads, read APIs under `/logistics/*`.
+Implemented: route planning, dispatch, confirm delivery with optional `DeliveryProof` (MinIO upload verification on confirm), presigned MinIO proof uploads, read APIs under `/logistics/*`.
 
 Planned: failed delivery, route liquidation.
