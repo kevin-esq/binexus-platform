@@ -236,6 +236,48 @@ describe('ConfirmDeliveryHandler', () => {
     expect(tx.deliveryRoute.update).not.toHaveBeenCalled();
   });
 
+  it('completes route when only non-terminal stops are FAILED', async () => {
+    const stop = makeStop();
+    const tx = {
+      deliveryRouteStop: {
+        findFirst: vi.fn().mockResolvedValue(stop),
+        update: vi.fn(),
+        count: vi.fn().mockResolvedValue(0),
+      },
+      deliveryRoute: {
+        update: vi.fn().mockResolvedValue({
+          id: 'route-1',
+          status: DeliveryRouteStatus.COMPLETED,
+        }),
+      },
+      deliveryProof: { create: vi.fn(), update: vi.fn() },
+    };
+    const prisma = {
+      $transaction: vi.fn((cb: (client: typeof tx) => Promise<unknown>) => cb(tx)),
+    } as unknown as PrismaService;
+
+    const handler = makeHandler(
+      prisma,
+      { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
+      {
+        build: vi.fn().mockReturnValue({ id: 'evt-1', name: DomainEventName.DELIVERY_CONFIRMED }),
+      } as unknown as EventBusService,
+      { record: vi.fn() } as unknown as OutboxService,
+    );
+
+    const result = await handler.execute(new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId));
+
+    expect(result.routeStatus).toBe('COMPLETED');
+    expect(tx.deliveryRouteStop.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          status: { notIn: expect.arrayContaining([DeliveryRouteStopStatus.FAILED]) },
+        }),
+      }),
+    );
+    expect(tx.deliveryRoute.update).toHaveBeenCalled();
+  });
+
   it('is idempotent when stop already DELIVERED without re-emitting', async () => {
     const stop = makeStop({
       status: DeliveryRouteStopStatus.DELIVERED,

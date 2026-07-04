@@ -1,4 +1,4 @@
-import { type DeliveryRouteStopSummary } from '@binexus/types';
+import { type DeliveryRouteStopSummary, type DeliveryFailureReason } from '@binexus/types';
 import type { DeliveryProof, DeliveryRouteStop } from '@prisma/client';
 
 import { toDeliveryProofSummary } from './delivery-proof-summary';
@@ -17,6 +17,9 @@ export function toDeliveryRouteStopSummary(
     sequence: row.sequence,
     status: row.status,
     deliveredAt: row.deliveredAt?.toISOString() ?? null,
+    failedAt: row.failedAt?.toISOString() ?? null,
+    failureReason: (row.failureReason as DeliveryFailureReason | null) ?? null,
+    failureNotes: row.failureNotes ?? null,
     proof: row.deliveryProof ? toDeliveryProofSummary(row.deliveryProof) : null,
   };
 }

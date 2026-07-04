@@ -28,6 +28,7 @@ enum OrderState {
   PICKING
   READY_FOR_DELIVERY_ROUTE
   OUT_FOR_DELIVERY
+  DELIVERY_ATTEMPT_FAILED
   DELIVERED
   SETTLED
   CANCELLED
@@ -345,6 +346,14 @@ enum DeliveryRouteStopStatus {
   SKIPPED
 }
 
+enum DeliveryFailureReason {
+  NO_RECIPIENT
+  WRONG_ADDRESS
+  REFUSED
+  DAMAGED
+  OTHER
+}
+
 enum DeliveryRouteCandidateStatus {
   READY
   ASSIGNED
@@ -382,6 +391,10 @@ model DeliveryRouteStop {
   status              DeliveryRouteStopStatus @default(PLANNED)
   deliveredAt         DateTime?
   deliveredByUserId   String?
+  failedAt            DateTime?
+  failedByUserId      String?
+  failureReason       DeliveryFailureReason?
+  failureNotes        String?
   createdAt           DateTime                @default(now())
   deliveryRoute       DeliveryRoute           @relation(fields: [deliveryRouteId], references: [id], onDelete: Cascade)
   deliveryProof       DeliveryProof?

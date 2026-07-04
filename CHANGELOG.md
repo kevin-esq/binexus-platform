@@ -10,6 +10,8 @@ All notable changes to Binexus Platform are documented here. Format follows [Kee
 
 - **Logistics — MinIO proof hardening:** private dev bucket (no anonymous download), `HeadObject` verification on `confirm-delivery` when proof object keys are sent, S3 client timeouts (3s connect / 5s request). CORS for local browser uploads via `MINIO_API_CORS_ALLOW_ORIGIN` (Community MinIO does not support bucket-level `mc cors set`). Runbook: `docs/runbooks/object-storage.md`.
 
+- **Logistics — failed delivery (#3):** `ReportFailedDeliveryCommand`, `POST /logistics/delivery-route-stops/:id/report-failed-delivery`, `DELIVERY_FAILED` event, stop failure metadata (`failedAt`, `failureReason`, …), route completion when all stops are terminal (`DELIVERED | FAILED | SKIPPED`), Orders `DELIVERY_ATTEMPT_FAILED` pause state, SDK `reportFailedDelivery`, `/logistics` report-failed UI. ADR: [`docs/adr/0011-failed-delivery-order-and-route-completion.md`](docs/adr/0011-failed-delivery-order-and-route-completion.md).
+
 ### Documentation
 
 - **2026-05-28 — PR #34 title correction:** GitHub PR #34 was titled `feat(logistics): add presigned proof uploads` but merged **docs-only**. The code implementation ships in this unreleased slice (see Added above).

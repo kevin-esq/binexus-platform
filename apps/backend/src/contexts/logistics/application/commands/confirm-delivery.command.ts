@@ -27,6 +27,7 @@ import {
 } from '../confirm-delivery-proof';
 import { validateProofObjectKeys } from '../delivery-proof-object-key';
 import { toDeliveryProofSummary } from '../delivery-proof-summary';
+import { completeRouteIfAllTerminal } from '../route-completion';
 
 export class ConfirmDeliveryCommand extends AppCommand<ConfirmDeliveryResult> {
   constructor(
@@ -139,26 +140,11 @@ export class ConfirmDeliveryHandler extends AppCommandHandler<ConfirmDeliveryCom
         stop.deliveryProof,
       );
 
-      const pendingStops = await tx.deliveryRouteStop.count({
-        where: {
-          deliveryRouteId: route.id,
-          tenantId: ctx.tenantId,
-          status: { not: DeliveryRouteStopStatus.DELIVERED },
-        },
-      });
-
-      let routeStatus = route.status as DeliveryRouteStatus;
-
-      if (pendingStops === 0) {
-        const completed = await tx.deliveryRoute.update({
-          where: { id: route.id },
-          data: {
-            status: PrismaRouteStatus.COMPLETED,
-            completedAt: deliveredAt,
-          },
-        });
-        routeStatus = completed.status as DeliveryRouteStatus;
-      }
+      const routeStatus = (await completeRouteIfAllTerminal(
+        tx,
+        route,
+        deliveredAt,
+      )) as DeliveryRouteStatus;
 
       const eventPayload: DeliveryConfirmedPayload = {
         deliveryRouteId: route.id,

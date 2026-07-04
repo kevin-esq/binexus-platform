@@ -4,6 +4,13 @@ export type DeliveryRouteStatus = 'PLANNED' | 'DISPATCHED' | 'COMPLETED' | 'CANC
 
 export type DeliveryRouteStopStatus = 'PLANNED' | 'DELIVERED' | 'FAILED' | 'SKIPPED';
 
+export type DeliveryFailureReason =
+  | 'NO_RECIPIENT'
+  | 'WRONG_ADDRESS'
+  | 'REFUSED'
+  | 'DAMAGED'
+  | 'OTHER';
+
 export type DeliveryRouteCandidateStatus = 'READY' | 'ASSIGNED' | 'CANCELLED';
 
 export interface DeliveryRouteSummary {
@@ -103,6 +110,9 @@ export interface DeliveryRouteStopSummary {
   sequence: number;
   status: DeliveryRouteStopStatus;
   deliveredAt: ISODateString | null;
+  failedAt: ISODateString | null;
+  failureReason: DeliveryFailureReason | null;
+  failureNotes: string | null;
   proof: DeliveryProofSummary | null;
 }
 
@@ -130,6 +140,28 @@ export interface ConfirmDeliveryResult {
   deliveredAt: ISODateString;
   routeStatus: DeliveryRouteStatus;
   proof: DeliveryProofSummary | null;
+}
+
+export interface DeliveryRouteStopCounts {
+  planned: number;
+  delivered: number;
+  failed: number;
+  skipped: number;
+}
+
+export interface ReportFailedDeliveryInput {
+  reason: DeliveryFailureReason;
+  notes?: string;
+}
+
+export interface ReportFailedDeliveryResult {
+  deliveryRouteStopId: string;
+  orderId: OrderId;
+  status: 'FAILED';
+  failedAt: ISODateString;
+  failureReason: DeliveryFailureReason;
+  routeStatus: DeliveryRouteStatus;
+  routeStopCounts: DeliveryRouteStopCounts;
 }
 
 export type DeliveryProofUploadKind = 'PHOTO' | 'SIGNATURE';
