@@ -15,6 +15,7 @@ import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../lib/api';
 import { formatDate, shortId } from '../../lib/format';
+import { uploadDeliveryProofFile } from '../../lib/proof-upload';
 import { hasStoredSession } from '../../lib/token-storage';
 
 export default function LogisticsPage() {
@@ -27,6 +28,10 @@ export default function LogisticsPage() {
   const [routeStops, setRouteStops] = useState<Record<string, DeliveryRouteStopSummary[]>>({});
   const [loadingStopsRouteId, setLoadingStopsRouteId] = useState<string | null>(null);
   const [confirmingStopId, setConfirmingStopId] = useState<string | null>(null);
+  const [uploadingProofForStopId, setUploadingProofForStopId] = useState<string | null>(null);
+  const [proofFiles, setProofFiles] = useState<Record<string, { photo?: File; signature?: File }>>(
+    {},
+  );
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [assigningRouteId, setAssigningRouteId] = useState<string | null>(null);
@@ -169,16 +174,12 @@ export default function LogisticsPage() {
   function collectProofInput(): ConfirmDeliveryProofInput | undefined {
     const recipientName = window.prompt('Recipient name (optional)?')?.trim();
     const notes = window.prompt('Delivery notes (optional)?')?.trim();
-    const photoObjectKey = window.prompt('Photo object key in MinIO (optional)?')?.trim();
-    const signatureObjectKey = window.prompt('Signature object key in MinIO (optional)?')?.trim();
     const latRaw = window.prompt('GPS latitude (optional)?')?.trim();
     const lngRaw = window.prompt('GPS longitude (optional)?')?.trim();
 
     const proof: ConfirmDeliveryProofInput = {};
     if (recipientName) proof.recipientName = recipientName;
     if (notes) proof.notes = notes;
-    if (photoObjectKey) proof.photoObjectKey = photoObjectKey;
-    if (signatureObjectKey) proof.signatureObjectKey = signatureObjectKey;
     if (latRaw) {
       const latitude = Number(latRaw);
       if (!Number.isNaN(latitude)) proof.latitude = latitude;
@@ -189,6 +190,16 @@ export default function LogisticsPage() {
     }
 
     return Object.keys(proof).length > 0 ? proof : undefined;
+  }
+
+  function setProofFile(stopId: string, kind: 'photo' | 'signature', file: File | undefined): void {
+    setProofFiles((prev) => ({
+      ...prev,
+      [stopId]: {
+        ...prev[stopId],
+        [kind]: file,
+      },
+    }));
   }
 
   function formatProofSummary(stop: DeliveryRouteStopSummary): string {
@@ -202,11 +213,32 @@ export default function LogisticsPage() {
   }
 
   async function onConfirmDelivery(stop: DeliveryRouteStopSummary, routeId: string): Promise<void> {
-    const proof = collectProofInput();
+    const proof = collectProofInput() ?? {};
+    const selectedFiles = proofFiles[stop.id];
 
     setConfirmingStopId(stop.id);
+    setUploadingProofForStopId(selectedFiles?.photo || selectedFiles?.signature ? stop.id : null);
+
     try {
-      await api.confirmDelivery(stop.id, proof ? { proof } : {});
+      if (selectedFiles?.photo) {
+        proof.photoObjectKey = await uploadDeliveryProofFile(stop.id, 'PHOTO', selectedFiles.photo);
+      }
+      if (selectedFiles?.signature) {
+        proof.signatureObjectKey = await uploadDeliveryProofFile(
+          stop.id,
+          'SIGNATURE',
+          selectedFiles.signature,
+        );
+      }
+
+      setUploadingProofForStopId(null);
+
+      await api.confirmDelivery(stop.id, Object.keys(proof).length > 0 ? { proof } : {});
+      setProofFiles((prev) => {
+        const next = { ...prev };
+        delete next[stop.id];
+        return next;
+      });
       const stops = await api.listDeliveryRouteStops(routeId);
       setRouteStops((prev) => ({ ...prev, [routeId]: stops.items }));
       await loadData();
@@ -215,6 +247,7 @@ export default function LogisticsPage() {
       setError(err instanceof Error ? err.message : 'Failed to confirm delivery');
     } finally {
       setConfirmingStopId(null);
+      setUploadingProofForStopId(null);
     }
   }
 
@@ -287,14 +320,46 @@ export default function LogisticsPage() {
                           </td>
                           <td className="py-2 text-right">
                             {stop.status === 'PLANNED' ? (
-                              <button
-                                type="button"
-                                disabled={confirmingStopId === stop.id}
-                                onClick={() => void onConfirmDelivery(stop, route.id)}
-                                className="rounded bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-                              >
-                                {confirmingStopId === stop.id ? 'Confirming…' : 'Confirm delivery'}
-                              </button>
+                              <div className="flex flex-col items-end gap-2">
+                                <div className="flex flex-wrap justify-end gap-2 text-left">
+                                  <label className="flex flex-col text-[10px] uppercase tracking-wide text-slate-500">
+                                    Photo
+                                    <input
+                                      type="file"
+                                      accept="image/jpeg,image/png,image/webp"
+                                      disabled={confirmingStopId === stop.id}
+                                      onChange={(event) =>
+                                        setProofFile(stop.id, 'photo', event.target.files?.[0])
+                                      }
+                                      className="max-w-[9rem] text-[11px] normal-case text-slate-700"
+                                    />
+                                  </label>
+                                  <label className="flex flex-col text-[10px] uppercase tracking-wide text-slate-500">
+                                    Signature
+                                    <input
+                                      type="file"
+                                      accept="image/png,image/svg+xml"
+                                      disabled={confirmingStopId === stop.id}
+                                      onChange={(event) =>
+                                        setProofFile(stop.id, 'signature', event.target.files?.[0])
+                                      }
+                                      className="max-w-[9rem] text-[11px] normal-case text-slate-700"
+                                    />
+                                  </label>
+                                </div>
+                                <button
+                                  type="button"
+                                  disabled={confirmingStopId === stop.id}
+                                  onClick={() => void onConfirmDelivery(stop, route.id)}
+                                  className="rounded bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                >
+                                  {uploadingProofForStopId === stop.id
+                                    ? 'Uploading proof…'
+                                    : confirmingStopId === stop.id
+                                      ? 'Confirming…'
+                                      : 'Confirm delivery'}
+                                </button>
+                              </div>
                             ) : null}
                           </td>
                         </tr>

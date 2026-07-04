@@ -63,6 +63,8 @@ services:
       /bin/sh -c "
         mc alias set local http://minio:9000 binexus binexus123 &&
         mc mb --ignore-existing local/binexus-dev &&
+        printf '%s' '[{\"AllowedOrigins\":[\"http://localhost:3000\"],\"AllowedMethods\":[\"PUT\",\"GET\"],\"AllowedHeaders\":[\"*\"],\"ExposeHeaders\":[\"ETag\"],\"MaxAgeSeconds\":3600}]' > /tmp/cors.json &&
+        mc cors set local/binexus-dev /tmp/cors.json &&
         mc anonymous set download local/binexus-dev || true
       "
 

@@ -46,7 +46,8 @@ function makeProof(overrides: Record<string, unknown> = {}) {
     deliveryRouteStopId: 'stop-1',
     recipientName: 'Jane Doe',
     notes: 'Left at door',
-    photoObjectKey: 'proofs/photo-1.jpg',
+    photoObjectKey:
+      'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg',
     signatureObjectKey: null,
     latitude: 4.71,
     longitude: -74.07,
@@ -160,7 +161,8 @@ describe('ConfirmDeliveryHandler', () => {
       new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, {
         recipientName: 'Jane Doe',
         notes: 'Left at door',
-        photoObjectKey: 'proofs/photo-1.jpg',
+        photoObjectKey:
+          'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg',
         latitude: 4.71,
         longitude: -74.07,
       }),
@@ -168,13 +170,16 @@ describe('ConfirmDeliveryHandler', () => {
 
     expect(tx.deliveryProof.create).toHaveBeenCalled();
     expect(result.proof?.recipientName).toBe('Jane Doe');
-    expect(result.proof?.photoObjectKey).toBe('proofs/photo-1.jpg');
+    expect(result.proof?.photoObjectKey).toBe(
+      'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg',
+    );
     expect(eventBus.build).toHaveBeenCalledWith(
       DomainEventName.DELIVERY_CONFIRMED,
       expect.objectContaining({
         proof: expect.objectContaining({
           recipientName: 'Jane Doe',
-          photoObjectKey: 'proofs/photo-1.jpg',
+          photoObjectKey:
+            'tenants/tenant-1/delivery-proofs/stop-1/photo-550e8400-e29b-41d4-a716-446655440000.jpg',
         }),
       }),
       expect.any(Object),
@@ -330,5 +335,26 @@ describe('ConfirmDeliveryHandler', () => {
     await expect(
       handler.execute(new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId)),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects invalid proof object keys', async () => {
+    const prisma = { $transaction: vi.fn() } as unknown as PrismaService;
+
+    const handler = new ConfirmDeliveryHandler(
+      prisma,
+      { current: vi.fn().mockReturnValue(tenantContext) } as unknown as TenantContextService,
+      { build: vi.fn() } as unknown as EventBusService,
+      { record: vi.fn() } as unknown as OutboxService,
+    );
+
+    await expect(
+      handler.execute(
+        new ConfirmDeliveryCommand('stop-1', 'user-1' as UserId, {
+          photoObjectKey: 'proofs/photo-1.jpg',
+        }),
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

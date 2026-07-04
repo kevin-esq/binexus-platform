@@ -7,6 +7,7 @@ import { TenantModule } from '../../common/tenant/tenant.module';
 
 import { AssignOrderToDeliveryRouteHandler } from './application/commands/assign-order-to-delivery-route.command';
 import { ConfirmDeliveryHandler } from './application/commands/confirm-delivery.command';
+import { CreateDeliveryProofUploadHandler } from './application/commands/create-delivery-proof-upload.command';
 import { CreateDeliveryRouteHandler } from './application/commands/create-delivery-route.command';
 import { DispatchDeliveryRouteHandler } from './application/commands/dispatch-delivery-route.command';
 import { LogisticsCandidateService } from './application/logistics-candidate.service';
@@ -24,6 +25,7 @@ import { LogisticsController } from './presentation/logistics.controller';
     AssignOrderToDeliveryRouteHandler,
     DispatchDeliveryRouteHandler,
     ConfirmDeliveryHandler,
+    CreateDeliveryProofUploadHandler,
     OrderReadyForDeliveryRouteLogisticsHandler,
   ],
 })

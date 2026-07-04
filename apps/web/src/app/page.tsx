@@ -5,13 +5,13 @@ export default function HomePage() {
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-start justify-center gap-6 p-8">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-          F0–F4 active · Next: presigned proof upload
+          F0–F4 active · Logistics presigned proof uploads shipped
         </p>
         <h1 className="mt-1 text-4xl font-bold text-slate-900">Binexus Platform</h1>
         <p className="mt-3 max-w-prose text-slate-600">
           Operational SaaS — modular monolith, event-driven, offline-first, multi-tenant. Orders
-          through delivery confirmation run end-to-end in the web UI. Next logistics slice:
-          presigned MinIO proof uploads.
+          through delivery confirmation with presigned MinIO proof uploads run end-to-end in the web
+          UI.
         </p>
       </div>
 

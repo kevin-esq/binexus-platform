@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { HealthModule } from './common/health/health.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { ObjectStorageModule } from './common/object-storage/object-storage.module';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { TenantContextMiddleware } from './common/tenant/tenant-context.middleware';
 import { TenantModule } from './common/tenant/tenant.module';
@@ -25,6 +26,7 @@ import { WarehouseModule } from './contexts/warehouse/warehouse.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, cache: true }),
     LoggerModule,
+    ObjectStorageModule,
     EventEmitterModule.forRoot({ wildcard: true, maxListeners: 50 }),
     CqrsModule.forRoot(),
     PrismaModule,

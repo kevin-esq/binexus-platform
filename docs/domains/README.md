@@ -2,7 +2,7 @@
 
 A **domain** is a conceptual area of the business. A **bounded context** is the implementation boundary inside the modular monolith (see [`architecture/bounded-contexts.md`](../architecture/bounded-contexts.md)).
 
-For Phase 1+ we map domains 1:1 with bounded contexts. The first end-to-end workflow (`CreateOrder → ApproveOrder → ReserveInventory → Picking → DeliveryRoute → ConfirmDelivery`) is **implemented** through logistics proof base; presigned proof uploads are the next slice.
+For Phase 1+ we map domains 1:1 with bounded contexts. The first end-to-end workflow (`CreateOrder → ApproveOrder → ReserveInventory → Picking → DeliveryRoute → ConfirmDelivery`) is **implemented** through logistics presigned proof uploads.
 
 ## Domain map
 
