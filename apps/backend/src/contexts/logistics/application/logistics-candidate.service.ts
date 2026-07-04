@@ -1,6 +1,7 @@
 import {
   type DomainEvent,
   type DomainEventName,
+  orderCancelledPayload,
   orderReadyForDeliveryRoutePayload,
 } from '@binexus/events';
 import { Inject, Injectable, Logger } from '@nestjs/common';
@@ -51,6 +52,21 @@ export class LogisticsCandidateService {
             });
             return;
           }
+          if (existing.status === DeliveryRouteCandidateStatus.ASSIGNED) {
+            await db.deliveryRouteCandidate.update({
+              where: { id: existing.id },
+              data: {
+                branchId: payload.branchId,
+                status: DeliveryRouteCandidateStatus.READY,
+                deliveryRouteId: null,
+                createdFromEventId: event.id,
+              },
+            });
+            this.logger.debug(
+              `requeued delivery route candidate for order=${payload.orderId} (ASSIGNED -> READY)`,
+            );
+            return;
+          }
           this.logger.debug(
             `delivery route candidate skip: order ${payload.orderId} status=${existing.status}`,
           );
@@ -68,6 +84,42 @@ export class LogisticsCandidateService {
         });
 
         this.logger.debug(`created delivery route candidate for order=${payload.orderId}`);
+      },
+    );
+  }
+
+  async handleOrderCancelled(
+    event: DomainEvent<typeof DomainEventName.ORDER_CANCELLED>,
+  ): Promise<void> {
+    const payload = orderCancelledPayload.parse(event.payload);
+
+    await this.tenantContext.run(
+      {
+        tenantId: event.tenantId,
+        userId: payload.cancelledBy,
+        role: 'SYSTEM',
+        branchId: null,
+        requestId: event.correlationId ?? event.id,
+      },
+      async () => {
+        const db = this.prisma.forTenant();
+        const existing = await db.deliveryRouteCandidate.findFirst({
+          where: { orderId: payload.orderId },
+        });
+
+        if (!existing || existing.status === DeliveryRouteCandidateStatus.CANCELLED) {
+          return;
+        }
+
+        await db.deliveryRouteCandidate.update({
+          where: { id: existing.id },
+          data: {
+            status: DeliveryRouteCandidateStatus.CANCELLED,
+            deliveryRouteId: null,
+          },
+        });
+
+        this.logger.debug(`cancelled delivery route candidate for order=${payload.orderId}`);
       },
     );
   }

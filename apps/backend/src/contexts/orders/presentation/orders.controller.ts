@@ -5,6 +5,7 @@ import {
   type ListOrdersResult,
   type OrderDetail,
   type OrderId,
+  type RequeueFailedDeliveryOrderResult,
   type UserId,
 } from '@binexus/types';
 import {
@@ -37,6 +38,7 @@ import { ApproveOrderCommand } from '../application/commands/approve-order.comma
 import { CancelOrderCommand } from '../application/commands/cancel-order.command';
 import { CreateOrderCommand } from '../application/commands/create-order.command';
 import type { CreateOrderInput } from '../application/commands/create-order.command';
+import { RequeueFailedDeliveryOrderCommand } from '../application/commands/requeue-failed-delivery-order.command';
 import { OrdersReadService } from '../application/orders-read.service';
 
 class CreateOrderLineDto {
@@ -95,6 +97,12 @@ class CancelOrderDto {
   reason?: string;
 }
 
+class RequeueForDeliveryDto {
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+
 @Controller('orders')
 export class OrdersController {
   constructor(
@@ -144,6 +152,24 @@ export class OrdersController {
 
     return this.commandBus.execute(
       new CancelOrderCommand(id as OrderId, user.userId as UserId, dto.reason, {
+        commandId: idempotencyKey,
+        correlationId,
+      }),
+    );
+  }
+
+  @Post(':id/requeue-for-delivery')
+  async requeueForDelivery(
+    @Param('id') id: string,
+    @Body() dto: RequeueForDeliveryDto,
+    @CurrentUser() user: RequestUser | null,
+    @Headers('idempotency-key') idempotencyKey?: string,
+    @Headers('x-correlation-id') correlationId?: string,
+  ): Promise<RequeueFailedDeliveryOrderResult> {
+    if (!user) throw new UnauthorizedException();
+
+    return this.commandBus.execute(
+      new RequeueFailedDeliveryOrderCommand(id as OrderId, user.userId as UserId, dto.reason, {
         commandId: idempotencyKey,
         correlationId,
       }),

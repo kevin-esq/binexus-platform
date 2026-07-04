@@ -142,6 +142,26 @@ describe('CancelOrderHandler', () => {
     ).resolves.toEqual({ id: 'order-1', state: SharedOrderState.CANCELLED });
   });
 
+  it('cancels a DELIVERY_ATTEMPT_FAILED order and writes ORDER_CANCELLED', async () => {
+    const { handler, outbox } = createHandlerFixture(OrderState.DELIVERY_ATTEMPT_FAILED);
+
+    await expect(
+      handler.execute(
+        new CancelOrderCommand('order-1' as OrderId, 'user-1' as UserId, 'Failed delivery'),
+      ),
+    ).resolves.toEqual({ id: 'order-1', state: SharedOrderState.CANCELLED });
+
+    expect(outbox.record).toHaveBeenCalled();
+  });
+
+  it('rejects cancel from DELIVERED', async () => {
+    const { handler } = createHandlerFixture(OrderState.DELIVERED);
+
+    await expect(
+      handler.execute(new CancelOrderCommand('order-1' as OrderId, 'user-1' as UserId)),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it('rejects when order is not found', async () => {
     const { handler, tx } = createHandlerFixture();
     tx.order.findFirst.mockResolvedValue(null);

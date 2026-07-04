@@ -40,11 +40,11 @@ Implemented (warehouse flow):
 - `MarkOrderOutForDeliveryCommand` — `READY_FOR_DELIVERY_ROUTE -> OUT_FOR_DELIVERY` (no new domain event in dispatch slice).
 - `MarkOrderDeliveredCommand` — `OUT_FOR_DELIVERY -> DELIVERED`, emits `ORDER_DELIVERED`.
 - `MarkOrderDeliveryAttemptFailedCommand` — `OUT_FOR_DELIVERY -> DELIVERY_ATTEMPT_FAILED` (no new domain event; triggered by `DELIVERY_FAILED`).
+- `RequeueFailedDeliveryOrderCommand` — `DELIVERY_ATTEMPT_FAILED -> READY_FOR_DELIVERY_ROUTE`, emits `ORDER_READY_FOR_DELIVERY_ROUTE`.
 
 Later:
 
 - `SettleOrderCommand`.
-- Re-queue / cancel from `DELIVERY_ATTEMPT_FAILED` (#3b).
 
 ## Events emitted
 
@@ -144,7 +144,9 @@ POST /orders/:id/cancel
 
 `POST /orders/:id/approve` transitions `DRAFT -> APPROVED`, records the transition, and writes `ORDER_APPROVED` to the outbox in the same transaction.
 
-`POST /orders/:id/cancel` transitions `DRAFT -> CANCELLED` or `APPROVED -> CANCELLED`, records the transition, and writes `ORDER_CANCELLED` to the outbox in the same transaction.
+`POST /orders/:id/cancel` transitions `DRAFT -> CANCELLED`, `APPROVED -> CANCELLED`, or `DELIVERY_ATTEMPT_FAILED -> CANCELLED`, records the transition, and writes `ORDER_CANCELLED` to the outbox in the same transaction.
+
+`POST /orders/:id/requeue-for-delivery` transitions `DELIVERY_ATTEMPT_FAILED -> READY_FOR_DELIVERY_ROUTE`, records the transition, and writes `ORDER_READY_FOR_DELIVERY_ROUTE` to the outbox (Logistics resets `DeliveryRouteCandidate` to `READY`).
 
 ```txt
 Idempotency-Key: <command id>

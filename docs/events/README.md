@@ -4,26 +4,26 @@ Every domain event in the platform. Schemas live in [`packages/events/src/schema
 
 ## Registered events
 
-| Event                            | Producer    | Consumers                              | Schema                                                                                                     |
-| -------------------------------- | ----------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `USER_REGISTERED`                | `identity`  | (audit only in F0)                     | [`user-registered.ts`](../../packages/events/src/schemas/user-registered.ts)                               |
-| `ORDER_CREATED`                  | `orders`    | `audit` (active), reporting (F8+)      | [`order-created.ts`](../../packages/events/src/schemas/order-created.ts)                                   |
-| `ORDER_APPROVED`                 | `orders`    | `audit` (active), `inventory` (active) | [`order-approved.ts`](../../packages/events/src/schemas/order-approved.ts)                                 |
-| `ORDER_CANCELLED`                | `orders`    | `audit` (active), `inventory` (active) | [`order-cancelled.ts`](../../packages/events/src/schemas/order-cancelled.ts)                               |
-| `INVENTORY_RESERVED`             | `inventory` | (none yet)                             | [`inventory-reserved.ts`](../../packages/events/src/schemas/inventory-reserved.ts)                         |
-| `INVENTORY_RESERVATION_FAILED`   | `inventory` | `orders` (active)                      | [`inventory-reservation-failed.ts`](../../packages/events/src/schemas/inventory-reservation-failed.ts)     |
-| `INVENTORY_RELEASED`             | `inventory` | (none yet)                             | [`inventory-released.ts`](../../packages/events/src/schemas/inventory-released.ts)                         |
-| `ORDER_PICKING_STARTED`          | `orders`    | `warehouse` (active)                   | [`order-picking-started.ts`](../../packages/events/src/schemas/order-picking-started.ts)                   |
-| `PICKING_COMPLETED`              | `warehouse` | `orders` (active)                      | [`picking-completed.ts`](../../packages/events/src/schemas/picking-completed.ts)                           |
-| `ORDER_READY_FOR_DELIVERY_ROUTE` | `orders`    | `logistics` (active)                   | [`order-ready-for-delivery-route.ts`](../../packages/events/src/schemas/order-ready-for-delivery-route.ts) |
-| `DELIVERY_ROUTE_CREATED`         | `logistics` | (none yet)                             | [`delivery-route-created.ts`](../../packages/events/src/schemas/delivery-route-created.ts)                 |
-| `DELIVERY_ROUTE_ASSIGNED`        | `logistics` | (none yet)                             | [`delivery-route-assigned.ts`](../../packages/events/src/schemas/delivery-route-assigned.ts)               |
-| `DELIVERY_ROUTE_DISPATCHED`      | `logistics` | `orders` (active)                      | [`delivery-route-dispatched.ts`](../../packages/events/src/schemas/delivery-route-dispatched.ts)           |
-| `DELIVERY_CONFIRMED`             | `logistics` | `orders` (active)                      | [`delivery-confirmed.ts`](../../packages/events/src/schemas/delivery-confirmed.ts)                         |
-| `DELIVERY_FAILED`                | `logistics` | `orders` (active)                      | [`delivery-failed.ts`](../../packages/events/src/schemas/delivery-failed.ts)                               |
-| `ORDER_DELIVERED`                | `orders`    | (none yet)                             | [`order-delivered.ts`](../../packages/events/src/schemas/order-delivered.ts)                               |
-| `SALE_CREATED`                   | `sales`\*   | `inventory`, `billing`\*               | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
-| `PAYMENT_REGISTERED`             | `sales`\*   | `billing`\*                            | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |
+| Event                            | Producer    | Consumers                                                    | Schema                                                                                                     |
+| -------------------------------- | ----------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `USER_REGISTERED`                | `identity`  | (audit only in F0)                                           | [`user-registered.ts`](../../packages/events/src/schemas/user-registered.ts)                               |
+| `ORDER_CREATED`                  | `orders`    | `audit` (active), reporting (F8+)                            | [`order-created.ts`](../../packages/events/src/schemas/order-created.ts)                                   |
+| `ORDER_APPROVED`                 | `orders`    | `audit` (active), `inventory` (active)                       | [`order-approved.ts`](../../packages/events/src/schemas/order-approved.ts)                                 |
+| `ORDER_CANCELLED`                | `orders`    | `audit` (active), `inventory` (active), `logistics` (active) | [`order-cancelled.ts`](../../packages/events/src/schemas/order-cancelled.ts)                               |
+| `INVENTORY_RESERVED`             | `inventory` | (none yet)                                                   | [`inventory-reserved.ts`](../../packages/events/src/schemas/inventory-reserved.ts)                         |
+| `INVENTORY_RESERVATION_FAILED`   | `inventory` | `orders` (active)                                            | [`inventory-reservation-failed.ts`](../../packages/events/src/schemas/inventory-reservation-failed.ts)     |
+| `INVENTORY_RELEASED`             | `inventory` | (none yet)                                                   | [`inventory-released.ts`](../../packages/events/src/schemas/inventory-released.ts)                         |
+| `ORDER_PICKING_STARTED`          | `orders`    | `warehouse` (active)                                         | [`order-picking-started.ts`](../../packages/events/src/schemas/order-picking-started.ts)                   |
+| `PICKING_COMPLETED`              | `warehouse` | `orders` (active)                                            | [`picking-completed.ts`](../../packages/events/src/schemas/picking-completed.ts)                           |
+| `ORDER_READY_FOR_DELIVERY_ROUTE` | `orders`    | `logistics` (active)                                         | [`order-ready-for-delivery-route.ts`](../../packages/events/src/schemas/order-ready-for-delivery-route.ts) |
+| `DELIVERY_ROUTE_CREATED`         | `logistics` | (none yet)                                                   | [`delivery-route-created.ts`](../../packages/events/src/schemas/delivery-route-created.ts)                 |
+| `DELIVERY_ROUTE_ASSIGNED`        | `logistics` | (none yet)                                                   | [`delivery-route-assigned.ts`](../../packages/events/src/schemas/delivery-route-assigned.ts)               |
+| `DELIVERY_ROUTE_DISPATCHED`      | `logistics` | `orders` (active)                                            | [`delivery-route-dispatched.ts`](../../packages/events/src/schemas/delivery-route-dispatched.ts)           |
+| `DELIVERY_CONFIRMED`             | `logistics` | `orders` (active)                                            | [`delivery-confirmed.ts`](../../packages/events/src/schemas/delivery-confirmed.ts)                         |
+| `DELIVERY_FAILED`                | `logistics` | `orders` (active)                                            | [`delivery-failed.ts`](../../packages/events/src/schemas/delivery-failed.ts)                               |
+| `ORDER_DELIVERED`                | `orders`    | (none yet)                                                   | [`order-delivered.ts`](../../packages/events/src/schemas/order-delivered.ts)                               |
+| `SALE_CREATED`                   | `sales`\*   | `inventory`, `billing`\*                                     | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
+| `PAYMENT_REGISTERED`             | `sales`\*   | `billing`\*                                                  | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |
 
 `*` = schema registered, producer not implemented until the marked phase.
 

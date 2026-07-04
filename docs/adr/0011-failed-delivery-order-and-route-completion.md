@@ -114,8 +114,18 @@ Resolution of failed orders (re-queue for retry or cancel) is explicitly **out o
 - Liquidation (#4) can list `COMPLETED` routes and exclude `FAILED` stops from COD reconciliation without new route enums.
 - Re-evaluation if: tenants need mandatory dispatcher sign-off before route close (→ reconsider 2B/2C), or retry rate makes 1A preferable over 1B.
 
+## Resolution (#3b) — implemented
+
+Slice **#3b** closes the loop opened by decision 1B:
+
+| Action               | Command / endpoint                                                            | Order transition                                     | Side effects                                                                                                                                     |
+| -------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Requeue** (manual) | `RequeueFailedDeliveryOrderCommand` · `POST /orders/:id/requeue-for-delivery` | `DELIVERY_ATTEMPT_FAILED → READY_FOR_DELIVERY_ROUTE` | Emits `ORDER_READY_FOR_DELIVERY_ROUTE`; Logistics resets existing `DeliveryRouteCandidate` from `ASSIGNED → READY` and clears `deliveryRouteId`. |
+| **Cancel** (manual)  | `CancelOrderCommand` · `POST /orders/:id/cancel`                              | `DELIVERY_ATTEMPT_FAILED → CANCELLED`                | Emits `ORDER_CANCELLED`; Inventory releases stock; Logistics marks candidate `CANCELLED`.                                                        |
+
+**Retry policy (v1):** unlimited requeues; no `retryCount` field. Operators decide; audit trail via `OrderTransition`. Future tenant policy may cap retries without schema change (count transitions).
+
 ## More information
 
 - Related docs: [`docs/states/order.md`](../states/order.md), [`docs/domains/logistics.md`](../domains/logistics.md), [`docs/domains/orders.md`](../domains/orders.md)
-- Follow-up slice: **#3b** — re-queue or cancel from `DELIVERY_ATTEMPT_FAILED`
 - Follow-up slice: **#4** — route liquidation on `COMPLETED` routes

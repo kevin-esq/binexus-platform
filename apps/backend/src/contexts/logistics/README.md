@@ -1,6 +1,6 @@
 ﻿# Logistics bounded context
 
-Status: **active** (F4 · Logistics — through failed delivery #3).
+Status: **active** (F4 · Logistics — through failed delivery resolution #3b).
 
 Domain reference: [`docs/domains/logistics.md`](../../../../../docs/domains/logistics.md).
 
@@ -14,12 +14,12 @@ logistics/
 ├── application/
 │   ├── commands/ (create route, assign, dispatch, confirm delivery, report failed, proof upload)
 │   ├── route-completion.ts
-│   ├── delivery-proof-object-key.ts
-│   ├── logistics-read.service.ts
-│   └── logistics-candidate.service.ts
+│   ├── logistics-candidate.service.ts  (ORDER_READY_FOR_DELIVERY_ROUTE + ORDER_CANCELLED)
+│   └── logistics-read.service.ts
+├── events/ (order-ready-for-delivery-route, order-cancelled)
 └── presentation/logistics.controller.ts
 ```
 
-Implemented: route planning, dispatch, confirm delivery with optional `DeliveryProof` (MinIO upload verification on confirm), presigned MinIO proof uploads, failed delivery report with `DELIVERY_FAILED`, terminal-stop route completion, read APIs under `/logistics/*`.
+Implemented: route planning, dispatch, confirm delivery, presigned proof uploads, failed delivery, candidate requeue (`ASSIGNED → READY`) and cancel on order events, read APIs under `/logistics/*`.
 
-Planned: failed delivery resolution (#3b), route liquidation (#4).
+Planned: route liquidation (#4).
