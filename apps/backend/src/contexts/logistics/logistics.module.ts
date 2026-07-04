@@ -10,6 +10,7 @@ import { ConfirmDeliveryHandler } from './application/commands/confirm-delivery.
 import { CreateDeliveryProofUploadHandler } from './application/commands/create-delivery-proof-upload.command';
 import { CreateDeliveryRouteHandler } from './application/commands/create-delivery-route.command';
 import { DispatchDeliveryRouteHandler } from './application/commands/dispatch-delivery-route.command';
+import { ReportFailedDeliveryHandler } from './application/commands/report-failed-delivery.command';
 import { LogisticsCandidateService } from './application/logistics-candidate.service';
 import { LogisticsReadService } from './application/logistics-read.service';
 import { OrderReadyForDeliveryRouteLogisticsHandler } from './events/order-ready-for-delivery-route.handler';
@@ -26,6 +27,7 @@ import { LogisticsController } from './presentation/logistics.controller';
     DispatchDeliveryRouteHandler,
     ConfirmDeliveryHandler,
     CreateDeliveryProofUploadHandler,
+    ReportFailedDeliveryHandler,
     OrderReadyForDeliveryRouteLogisticsHandler,
   ],
 })

@@ -34,6 +34,8 @@ import type {
   OrderDetail,
   OrderId,
   ReceiveStockTransferResult,
+  ReportFailedDeliveryInput,
+  ReportFailedDeliveryResult,
 } from '@binexus/types';
 
 import { BinexusApiError } from './errors';
@@ -264,6 +266,17 @@ export class BinexusClient {
     return this.request<ConfirmDeliveryResult>(
       'POST',
       `/logistics/delivery-route-stops/${encodeURIComponent(deliveryRouteStopId)}/confirm-delivery`,
+      { body: input, auth: true },
+    );
+  }
+
+  async reportFailedDelivery(
+    deliveryRouteStopId: string,
+    input: ReportFailedDeliveryInput,
+  ): Promise<ReportFailedDeliveryResult> {
+    return this.request<ReportFailedDeliveryResult>(
+      'POST',
+      `/logistics/delivery-route-stops/${encodeURIComponent(deliveryRouteStopId)}/report-failed-delivery`,
       { body: input, auth: true },
     );
   }

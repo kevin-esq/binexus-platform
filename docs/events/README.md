@@ -20,6 +20,7 @@ Every domain event in the platform. Schemas live in [`packages/events/src/schema
 | `DELIVERY_ROUTE_ASSIGNED`        | `logistics` | (none yet)                             | [`delivery-route-assigned.ts`](../../packages/events/src/schemas/delivery-route-assigned.ts)               |
 | `DELIVERY_ROUTE_DISPATCHED`      | `logistics` | `orders` (active)                      | [`delivery-route-dispatched.ts`](../../packages/events/src/schemas/delivery-route-dispatched.ts)           |
 | `DELIVERY_CONFIRMED`             | `logistics` | `orders` (active)                      | [`delivery-confirmed.ts`](../../packages/events/src/schemas/delivery-confirmed.ts)                         |
+| `DELIVERY_FAILED`                | `logistics` | `orders` (active)                      | [`delivery-failed.ts`](../../packages/events/src/schemas/delivery-failed.ts)                               |
 | `ORDER_DELIVERED`                | `orders`    | (none yet)                             | [`order-delivered.ts`](../../packages/events/src/schemas/order-delivered.ts)                               |
 | `SALE_CREATED`                   | `sales`\*   | `inventory`, `billing`\*               | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
 | `PAYMENT_REGISTERED`             | `sales`\*   | `billing`\*                            | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |

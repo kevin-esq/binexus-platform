@@ -12,6 +12,9 @@ stateDiagram-v2
     PICKING --> READY_FOR_DELIVERY_ROUTE: pickingComplete
     READY_FOR_DELIVERY_ROUTE --> OUT_FOR_DELIVERY: dispatchDeliveryRoute
     OUT_FOR_DELIVERY --> DELIVERED: confirmDelivery
+    OUT_FOR_DELIVERY --> DELIVERY_ATTEMPT_FAILED: reportFailedDelivery
+    DELIVERY_ATTEMPT_FAILED --> READY_FOR_DELIVERY_ROUTE: requeue (#3b)
+    DELIVERY_ATTEMPT_FAILED --> CANCELLED: cancel (#3b)
     DELIVERED --> SETTLED: liquidate
     SETTLED --> [*]
     CANCELLED --> [*]
@@ -28,12 +31,15 @@ stateDiagram-v2
 | `PICKING`                  | `pickingComplete`       | `READY_FOR_DELIVERY_ROUTE` | `PICKING_COMPLETED`, `ORDER_READY_FOR_DELIVERY_ROUTE` | Items prepared; Logistics projects route candidate.         |
 | `READY_FOR_DELIVERY_ROUTE` | `dispatchDeliveryRoute` | `OUT_FOR_DELIVERY`         | `DELIVERY_ROUTE_DISPATCHED`                           | Assigned to a delivery route + driver.                      |
 | `OUT_FOR_DELIVERY`         | `confirmDelivery`       | `DELIVERED`                | `ORDER_DELIVERED`                                     | Proof of delivery captured.                                 |
+| `OUT_FOR_DELIVERY`         | `reportFailedDelivery`  | `DELIVERY_ATTEMPT_FAILED`  | `DELIVERY_FAILED` (Logistics)                         | Operational pause; human resolves in slice #3b.             |
+| `DELIVERY_ATTEMPT_FAILED`  | `requeue` (#3b)         | `READY_FOR_DELIVERY_ROUTE` | (planned)                                             | Retry on a future route.                                    |
+| `DELIVERY_ATTEMPT_FAILED`  | `cancel` (#3b)          | `CANCELLED`                | `ORDER_CANCELLED` (planned)                           | Release stock via existing cancel path.                     |
 | `DELIVERED`                | `liquidate`             | `SETTLED`                  | `ORDER_SETTLED`                                       | Cash + returns reconciled.                                  |
 
 ## Terminal states
 
 - `SETTLED` — happy path complete.
-- `CANCELLED` — order halted; allowed only from `DRAFT` or `APPROVED`.
+- `CANCELLED` — order halted; allowed from `DRAFT`, `APPROVED`, or (planned #3b) `DELIVERY_ATTEMPT_FAILED`.
 
 ## Disallowed transitions
 

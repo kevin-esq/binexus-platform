@@ -9,6 +9,7 @@ export const OrderState = {
   PICKING: 'PICKING',
   READY_FOR_DELIVERY_ROUTE: 'READY_FOR_DELIVERY_ROUTE',
   OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
+  DELIVERY_ATTEMPT_FAILED: 'DELIVERY_ATTEMPT_FAILED',
   DELIVERED: 'DELIVERED',
   SETTLED: 'SETTLED',
   CANCELLED: 'CANCELLED',
@@ -21,7 +22,8 @@ export const ORDER_TRANSITIONS: Readonly<Record<OrderState, readonly OrderState[
   APPROVED: ['PICKING', 'CANCELLED'],
   PICKING: ['READY_FOR_DELIVERY_ROUTE'],
   READY_FOR_DELIVERY_ROUTE: ['OUT_FOR_DELIVERY'],
-  OUT_FOR_DELIVERY: ['DELIVERED'],
+  OUT_FOR_DELIVERY: ['DELIVERED', 'DELIVERY_ATTEMPT_FAILED'],
+  DELIVERY_ATTEMPT_FAILED: [],
   DELIVERED: ['SETTLED'],
   SETTLED: [],
   CANCELLED: [],
@@ -105,4 +107,9 @@ export interface MarkOrderOutForDeliveryResult {
 export interface MarkOrderDeliveredResult {
   id: OrderId;
   state: typeof OrderState.DELIVERED;
+}
+
+export interface MarkOrderDeliveryAttemptFailedResult {
+  id: OrderId;
+  state: typeof OrderState.DELIVERY_ATTEMPT_FAILED;
 }

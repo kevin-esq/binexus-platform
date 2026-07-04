@@ -39,10 +39,12 @@ Implemented (warehouse flow):
 - `MarkOrderReadyForDeliveryRouteCommand` — `PICKING -> READY_FOR_DELIVERY_ROUTE`.
 - `MarkOrderOutForDeliveryCommand` — `READY_FOR_DELIVERY_ROUTE -> OUT_FOR_DELIVERY` (no new domain event in dispatch slice).
 - `MarkOrderDeliveredCommand` — `OUT_FOR_DELIVERY -> DELIVERED`, emits `ORDER_DELIVERED`.
+- `MarkOrderDeliveryAttemptFailedCommand` — `OUT_FOR_DELIVERY -> DELIVERY_ATTEMPT_FAILED` (no new domain event; triggered by `DELIVERY_FAILED`).
 
 Later:
 
 - `SettleOrderCommand`.
+- Re-queue / cancel from `DELIVERY_ATTEMPT_FAILED` (#3b).
 
 ## Events emitted
 
@@ -74,6 +76,7 @@ Implemented:
 - `PICKING_COMPLETED` — auto `MarkOrderReadyForDeliveryRouteCommand` when order is `PICKING`.
 - `DELIVERY_ROUTE_DISPATCHED` — auto `MarkOrderOutForDeliveryCommand` via system user when order is `READY_FOR_DELIVERY_ROUTE` (skips already `OUT_FOR_DELIVERY` or cancelled orders).
 - `DELIVERY_CONFIRMED` — auto `MarkOrderDeliveredCommand` via system user when order is `OUT_FOR_DELIVERY`.
+- `DELIVERY_FAILED` — auto `MarkOrderDeliveryAttemptFailedCommand` via system user when order is `OUT_FOR_DELIVERY`.
 
 Future:
 

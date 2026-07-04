@@ -1,6 +1,6 @@
 ﻿# Logistics domain
 
-Status: **active** (planning + dispatch + confirmation + proof uploads). Bounded context: `logistics`.
+Status: **active** (planning + dispatch + confirmation + proof uploads + failed delivery). Bounded context: `logistics`.
 
 Logistics owns delivery route planning, dispatch handoff, delivery confirmation, failed delivery handling, and route liquidation. Planning starts after Orders, Inventory, and Warehouse produce route-ready work.
 
@@ -30,12 +30,12 @@ Implemented:
 - `CreateDeliveryRouteCommand` - creates `DeliveryRoute(PLANNED)`.
 - `AssignOrderToDeliveryRouteCommand` - assigns `READY` candidates as stops on a planned route.
 - `DispatchDeliveryRouteCommand` - transitions `PLANNED -> DISPATCHED`, sets driver and dispatch metadata, emits `DELIVERY_ROUTE_DISPATCHED`.
-- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, optionally persists `DeliveryProof`, auto-completes route when all stops delivered, emits `DELIVERY_CONFIRMED` (payload may include optional `proof`). Validates tenant-scoped proof object keys and verifies uploaded media exists in MinIO when object keys are provided.
+- `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, optionally persists `DeliveryProof`, auto-completes route when all stops are terminal (`DELIVERED | FAILED | SKIPPED`), emits `DELIVERY_CONFIRMED` (payload may include optional `proof`). Validates tenant-scoped proof object keys and verifies uploaded media exists in MinIO when object keys are provided.
 - `CreateDeliveryProofUploadCommand` - issues short-lived, tenant-scoped MinIO presigned upload URLs for proof photos/signatures on a `PLANNED` stop of a `DISPATCHED` route.
+- `ReportFailedDeliveryCommand` - marks stop `PLANNED -> FAILED` with failure metadata, auto-completes route when all stops are terminal, emits `DELIVERY_FAILED`.
 
 Planned:
 
-- `ReportFailedDeliveryCommand`.
 - `StartDeliveryRouteLiquidationCommand`.
 - `CloseDeliveryRouteLiquidationCommand`.
 
@@ -47,10 +47,10 @@ Implemented:
 - `DELIVERY_ROUTE_ASSIGNED`.
 - `DELIVERY_ROUTE_DISPATCHED` - consumed by Orders to mark assigned orders `OUT_FOR_DELIVERY`.
 - `DELIVERY_CONFIRMED` - consumed by Orders to mark order `DELIVERED`; optional `proof` object (recipient, notes, photo/signature object keys, GPS).
+- `DELIVERY_FAILED` - consumed by Orders to mark order `DELIVERY_ATTEMPT_FAILED` (operational pause; resolution in slice #3b).
 
 Planned:
 
-- `DELIVERY_FAILED`.
 - `DELIVERY_ROUTE_LIQUIDATED`.
 
 ## Events consumed
@@ -92,6 +92,9 @@ POST /logistics/delivery-route-stops/:id/proof-uploads
   Returns: `{ objectKey, uploadUrl, expiresAt }`
 POST /logistics/delivery-route-stops/:id/confirm-delivery
   Body (optional): `{ proof?: { recipientName?, notes?, photoObjectKey?, signatureObjectKey?, latitude?, longitude? } }`
+POST /logistics/delivery-route-stops/:id/report-failed-delivery
+  Body: `{ reason: "NO_RECIPIENT" | "WRONG_ADDRESS" | "REFUSED" | "DAMAGED" | "OTHER", notes?: string }`
+  Returns: `{ deliveryRouteStopId, orderId, status: "FAILED", failedAt, failureReason, routeStatus, routeStopCounts }`
 ```
 
 Object keys issued by `proof-uploads` follow:
@@ -102,12 +105,13 @@ tenants/<tenantId>/delivery-proofs/<stopId>/<photo|signature>-<uuid>.<ext>
 
 ## Web UI
 
-- `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops, **Confirm delivery** (optional proof file uploads + metadata prompts), proof summary column on stops, and completed routes with `completedAt`.
+- `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops, **Confirm delivery** and **Report failed** on `PLANNED` stops, proof/failure summary columns, and completed routes with expandable stop breakdown and client-side counts.
 
 ## Out of scope (follow-up slices)
 
 - Driver mobile/offline capture.
-- Failed delivery (`DELIVERY_FAILED`).
+- Failed delivery resolution (#3b — re-queue or cancel from `DELIVERY_ATTEMPT_FAILED`).
+- Route liquidation (#4).
 - Presigned GET URLs for proof media in the UI (bucket remains private; use short-lived presigned GET when needed).
 - Virus scanning or long-term retention policies.
 - Orphan object cleanup in MinIO.

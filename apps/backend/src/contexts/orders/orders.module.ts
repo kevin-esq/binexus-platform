@@ -9,11 +9,13 @@ import { ApproveOrderHandler } from './application/commands/approve-order.comman
 import { CancelOrderHandler } from './application/commands/cancel-order.command';
 import { CreateOrderHandler } from './application/commands/create-order.command';
 import { MarkOrderDeliveredHandler } from './application/commands/mark-order-delivered.command';
+import { MarkOrderDeliveryAttemptFailedHandler } from './application/commands/mark-order-delivery-attempt-failed.command';
 import { MarkOrderOutForDeliveryHandler } from './application/commands/mark-order-out-for-delivery.command';
 import { MarkOrderReadyForDeliveryRouteHandler } from './application/commands/mark-order-ready-for-delivery-route.command';
 import { MoveOrderToPickingHandler } from './application/commands/move-order-to-picking.command';
 import { OrdersReadService } from './application/orders-read.service';
 import { DeliveryConfirmedOrdersHandler } from './events/delivery-confirmed.handler';
+import { DeliveryFailedOrdersHandler } from './events/delivery-failed.handler';
 import { DeliveryRouteDispatchedOrdersHandler } from './events/delivery-route-dispatched.handler';
 import { InventoryReservationFailedOrdersHandler } from './events/inventory-reservation-failed.handler';
 import { InventoryReservedOrdersHandler } from './events/inventory-reserved.handler';
@@ -28,6 +30,7 @@ const commandHandlers = [
   MarkOrderReadyForDeliveryRouteHandler,
   MarkOrderOutForDeliveryHandler,
   MarkOrderDeliveredHandler,
+  MarkOrderDeliveryAttemptFailedHandler,
 ];
 
 @Module({
@@ -41,6 +44,7 @@ const commandHandlers = [
     PickingCompletedOrdersHandler,
     DeliveryRouteDispatchedOrdersHandler,
     DeliveryConfirmedOrdersHandler,
+    DeliveryFailedOrdersHandler,
   ],
 })
 export class OrdersModule {}

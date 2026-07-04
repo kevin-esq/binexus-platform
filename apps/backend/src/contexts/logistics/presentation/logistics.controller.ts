@@ -5,6 +5,7 @@ import {
   type CreateDeliveryProofUploadResult,
   type CreateDeliveryRouteResult,
   type DispatchDeliveryRouteResult,
+  type DeliveryFailureReason,
   type ListDeliveryRouteStopsResult,
   type DeliveryRouteCandidateStatus,
   type DeliveryRouteStatus,
@@ -12,6 +13,7 @@ import {
   type ListDeliveryRouteCandidatesResult,
   type ListDeliveryRoutesResult,
   type OrderId,
+  type ReportFailedDeliveryResult,
   type UserId,
 } from '@binexus/types';
 import {
@@ -45,6 +47,7 @@ import { ConfirmDeliveryCommand } from '../application/commands/confirm-delivery
 import { CreateDeliveryProofUploadCommand } from '../application/commands/create-delivery-proof-upload.command';
 import { CreateDeliveryRouteCommand } from '../application/commands/create-delivery-route.command';
 import { DispatchDeliveryRouteCommand } from '../application/commands/dispatch-delivery-route.command';
+import { ReportFailedDeliveryCommand } from '../application/commands/report-failed-delivery.command';
 import { LogisticsReadService } from '../application/logistics-read.service';
 
 class ListDeliveryRouteCandidatesQueryDto {
@@ -145,6 +148,15 @@ class ConfirmDeliveryDto {
   @ValidateNested()
   @Type(() => ConfirmDeliveryProofDto)
   proof?: ConfirmDeliveryProofDto;
+}
+
+class ReportFailedDeliveryDto {
+  @IsIn(['NO_RECIPIENT', 'WRONG_ADDRESS', 'REFUSED', 'DAMAGED', 'OTHER'])
+  reason!: DeliveryFailureReason;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 class CreateDeliveryProofUploadDto {
@@ -285,6 +297,24 @@ export class LogisticsController {
 
     return this.commandBus.execute(
       new ConfirmDeliveryCommand(id, user.userId as UserId, dto.proof, {
+        commandId: idempotencyKey,
+        correlationId,
+      }),
+    );
+  }
+
+  @Post('delivery-route-stops/:id/report-failed-delivery')
+  async reportFailedDelivery(
+    @Param('id') id: string,
+    @Body() dto: ReportFailedDeliveryDto,
+    @CurrentUser() user: RequestUser | null,
+    @Headers('idempotency-key') idempotencyKey?: string,
+    @Headers('x-correlation-id') correlationId?: string,
+  ): Promise<ReportFailedDeliveryResult> {
+    if (!user) throw new UnauthorizedException();
+
+    return this.commandBus.execute(
+      new ReportFailedDeliveryCommand(id, user.userId as UserId, dto.reason, dto.notes, {
         commandId: idempotencyKey,
         correlationId,
       }),

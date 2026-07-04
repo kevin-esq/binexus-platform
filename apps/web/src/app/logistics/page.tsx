@@ -3,6 +3,7 @@
 import type {
   BranchId,
   ConfirmDeliveryProofInput,
+  DeliveryFailureReason,
   DeliveryRouteCandidateSummary,
   DeliveryRouteStopSummary,
   DeliveryRouteSummary,
@@ -28,6 +29,7 @@ export default function LogisticsPage() {
   const [routeStops, setRouteStops] = useState<Record<string, DeliveryRouteStopSummary[]>>({});
   const [loadingStopsRouteId, setLoadingStopsRouteId] = useState<string | null>(null);
   const [confirmingStopId, setConfirmingStopId] = useState<string | null>(null);
+  const [failingStopId, setFailingStopId] = useState<string | null>(null);
   const [uploadingProofForStopId, setUploadingProofForStopId] = useState<string | null>(null);
   const [proofFiles, setProofFiles] = useState<Record<string, { photo?: File; signature?: File }>>(
     {},
@@ -202,6 +204,45 @@ export default function LogisticsPage() {
     }));
   }
 
+  function formatFailureReason(reason: DeliveryFailureReason): string {
+    return reason.toLowerCase().replaceAll('_', ' ');
+  }
+
+  function collectFailureInput(): { reason: DeliveryFailureReason; notes?: string } | null {
+    const raw = window.prompt(
+      'Failure reason? (NO_RECIPIENT, WRONG_ADDRESS, REFUSED, DAMAGED, OTHER)',
+    );
+    if (!raw?.trim()) return null;
+
+    const reason = raw.trim().toUpperCase() as DeliveryFailureReason;
+    const allowed: DeliveryFailureReason[] = [
+      'NO_RECIPIENT',
+      'WRONG_ADDRESS',
+      'REFUSED',
+      'DAMAGED',
+      'OTHER',
+    ];
+    if (!allowed.includes(reason)) {
+      setError(`Invalid failure reason: ${raw}`);
+      return null;
+    }
+
+    const notes = window.prompt('Failure notes (optional)?')?.trim();
+    return notes ? { reason, notes } : { reason };
+  }
+
+  function formatStopCounts(stops: DeliveryRouteStopSummary[]): string | null {
+    if (stops.length === 0) return null;
+    const delivered = stops.filter((s) => s.status === 'DELIVERED').length;
+    const failed = stops.filter((s) => s.status === 'FAILED').length;
+    const skipped = stops.filter((s) => s.status === 'SKIPPED').length;
+    const parts: string[] = [];
+    if (delivered > 0) parts.push(`${delivered} delivered`);
+    if (failed > 0) parts.push(`${failed} failed`);
+    if (skipped > 0) parts.push(`${skipped} skipped`);
+    return parts.length > 0 ? parts.join(' · ') : null;
+  }
+
   function formatProofSummary(stop: DeliveryRouteStopSummary): string {
     if (!stop.proof) return '—';
     const parts: string[] = [];
@@ -248,6 +289,27 @@ export default function LogisticsPage() {
     } finally {
       setConfirmingStopId(null);
       setUploadingProofForStopId(null);
+    }
+  }
+
+  async function onReportFailedDelivery(
+    stop: DeliveryRouteStopSummary,
+    routeId: string,
+  ): Promise<void> {
+    const input = collectFailureInput();
+    if (!input) return;
+
+    setFailingStopId(stop.id);
+    try {
+      await api.reportFailedDelivery(stop.id, input);
+      const stops = await api.listDeliveryRouteStops(routeId);
+      setRouteStops((prev) => ({ ...prev, [routeId]: stops.items }));
+      await loadData();
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to report delivery failure');
+    } finally {
+      setFailingStopId(null);
     }
   }
 
@@ -308,9 +370,21 @@ export default function LogisticsPage() {
                               {shortId(stop.orderId)}
                             </Link>
                           </td>
-                          <td className="py-2 pr-4 text-slate-700">{stop.status}</td>
+                          <td className="py-2 pr-4 text-slate-700">
+                            {stop.status === 'FAILED' && stop.failureReason ? (
+                              <span className="text-amber-800">
+                                {formatFailureReason(stop.failureReason)}
+                              </span>
+                            ) : (
+                              stop.status
+                            )}
+                          </td>
                           <td className="py-2 pr-4 text-slate-500">
-                            {stop.deliveredAt ? formatDate(stop.deliveredAt) : '—'}
+                            {stop.deliveredAt
+                              ? formatDate(stop.deliveredAt)
+                              : stop.failedAt
+                                ? formatDate(stop.failedAt)
+                                : '—'}
                           </td>
                           <td
                             className="py-2 pr-4 text-slate-500"
@@ -349,7 +423,9 @@ export default function LogisticsPage() {
                                 </div>
                                 <button
                                   type="button"
-                                  disabled={confirmingStopId === stop.id}
+                                  disabled={
+                                    confirmingStopId === stop.id || failingStopId === stop.id
+                                  }
                                   onClick={() => void onConfirmDelivery(stop, route.id)}
                                   className="rounded bg-brand-600 px-3 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
                                 >
@@ -359,7 +435,19 @@ export default function LogisticsPage() {
                                       ? 'Confirming…'
                                       : 'Confirm delivery'}
                                 </button>
+                                <button
+                                  type="button"
+                                  disabled={
+                                    confirmingStopId === stop.id || failingStopId === stop.id
+                                  }
+                                  onClick={() => void onReportFailedDelivery(stop, route.id)}
+                                  className="rounded border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-50"
+                                >
+                                  {failingStopId === stop.id ? 'Reporting…' : 'Report failed'}
+                                </button>
                               </div>
+                            ) : stop.status === 'FAILED' && stop.failureNotes ? (
+                              <span className="text-xs text-slate-500">{stop.failureNotes}</span>
                             ) : null}
                           </td>
                         </tr>
@@ -387,7 +475,7 @@ export default function LogisticsPage() {
           </p>
           <h1 className="text-2xl font-bold text-slate-900">Delivery routes</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Plan routes, dispatch to drivers, and confirm deliveries stop by stop.
+            Plan routes, dispatch to drivers, confirm deliveries, or report failed stops.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -560,7 +648,8 @@ export default function LogisticsPage() {
             <h2 className="mb-3 text-lg font-semibold text-slate-900">Completed routes</h2>
             {completedRoutes.length === 0 ? (
               <div className="rounded border border-slate-200 bg-white p-4 text-sm text-slate-600">
-                No completed routes yet. Confirm all stops on a dispatched route to complete it.
+                No completed routes yet. Finish all stops (delivered or failed) on a dispatched
+                route.
               </div>
             ) : (
               <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -575,21 +664,100 @@ export default function LogisticsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {completedRoutes.map((route) => (
-                      <tr key={route.id} className="border-b border-slate-100 last:border-0">
-                        <td className="px-4 py-3 font-medium text-slate-900">
-                          {shortId(route.id)}
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">{route.branchId}</td>
-                        <td className="px-4 py-3 text-right text-slate-700">{route.stopCount}</td>
-                        <td className="px-4 py-3 text-slate-500">
-                          {route.driverUserId ? shortId(route.driverUserId) : '—'}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">
-                          {route.completedAt ? formatDate(route.completedAt) : '—'}
-                        </td>
-                      </tr>
-                    ))}
+                    {completedRoutes.map((route) => {
+                      const expanded = expandedRouteId === route.id;
+                      const stops = routeStops[route.id] ?? [];
+                      const stopSummary = formatStopCounts(stops);
+
+                      return (
+                        <Fragment key={route.id}>
+                          <tr className="border-b border-slate-100 last:border-0">
+                            <td className="px-4 py-3 font-medium text-slate-900">
+                              <button
+                                type="button"
+                                onClick={() => void toggleRouteStops(route.id)}
+                                className="text-left hover:text-brand-600"
+                              >
+                                {expanded ? '▼' : '▶'} {shortId(route.id)}
+                              </button>
+                              {stopSummary ? (
+                                <p className="mt-1 text-xs font-normal text-slate-500">
+                                  {stopSummary}
+                                </p>
+                              ) : null}
+                            </td>
+                            <td className="px-4 py-3 text-slate-700">{route.branchId}</td>
+                            <td className="px-4 py-3 text-right text-slate-700">
+                              {route.stopCount}
+                            </td>
+                            <td className="px-4 py-3 text-slate-500">
+                              {route.driverUserId ? shortId(route.driverUserId) : '—'}
+                            </td>
+                            <td className="px-4 py-3 text-slate-500">
+                              {route.completedAt ? formatDate(route.completedAt) : '—'}
+                            </td>
+                          </tr>
+                          {expanded ? (
+                            <tr
+                              key={`${route.id}-stops`}
+                              className="border-b border-slate-100 bg-slate-50"
+                            >
+                              <td colSpan={5} className="px-4 py-3">
+                                {loadingStopsRouteId === route.id ? (
+                                  <p className="text-sm text-slate-500">Loading stops…</p>
+                                ) : stops.length === 0 ? (
+                                  <p className="text-sm text-slate-500">No stops on this route.</p>
+                                ) : (
+                                  <table className="w-full text-left text-sm">
+                                    <thead>
+                                      <tr className="text-xs uppercase tracking-wide text-slate-500">
+                                        <th className="pb-2 pr-4">Seq</th>
+                                        <th className="pb-2 pr-4">Order</th>
+                                        <th className="pb-2 pr-4">Status</th>
+                                        <th className="pb-2 pr-4">When</th>
+                                        <th className="pb-2">Notes</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {stops.map((stop) => (
+                                        <tr key={stop.id}>
+                                          <td className="py-2 pr-4 text-slate-700">
+                                            {stop.sequence}
+                                          </td>
+                                          <td className="py-2 pr-4">
+                                            <Link
+                                              href={`/orders/${stop.orderId}`}
+                                              className="font-medium text-brand-600 hover:text-brand-700"
+                                            >
+                                              {shortId(stop.orderId)}
+                                            </Link>
+                                          </td>
+                                          <td className="py-2 pr-4 text-slate-700">
+                                            {stop.failureReason
+                                              ? formatFailureReason(stop.failureReason)
+                                              : stop.status}
+                                          </td>
+                                          <td className="py-2 pr-4 text-slate-500">
+                                            {stop.deliveredAt
+                                              ? formatDate(stop.deliveredAt)
+                                              : stop.failedAt
+                                                ? formatDate(stop.failedAt)
+                                                : '—'}
+                                          </td>
+                                          <td className="py-2 text-slate-500">
+                                            {stop.failureNotes ?? stop.proof?.notes ?? '—'}
+                                          </td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                )}
+                              </td>
+                            </tr>
+                          ) : null}
+                        </Fragment>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -3,6 +3,7 @@ import type { z } from 'zod';
 import { DomainEventName } from '../registry';
 
 import { deliveryConfirmedPayload } from './delivery-confirmed';
+import { deliveryFailedPayload } from './delivery-failed';
 import { deliveryRouteAssignedPayload } from './delivery-route-assigned';
 import { deliveryRouteCreatedPayload } from './delivery-route-created';
 import { deliveryRouteDispatchedPayload } from './delivery-route-dispatched';
@@ -21,6 +22,7 @@ import { saleCreatedPayload } from './sale-created';
 import { userRegisteredPayload } from './user-registered';
 
 export * from './delivery-confirmed';
+export * from './delivery-failed';
 export * from './delivery-route-assigned';
 export * from './delivery-route-created';
 export * from './delivery-route-dispatched';
@@ -54,6 +56,7 @@ export const EventPayloadSchemas = {
   [DomainEventName.DELIVERY_ROUTE_ASSIGNED]: deliveryRouteAssignedPayload,
   [DomainEventName.DELIVERY_ROUTE_DISPATCHED]: deliveryRouteDispatchedPayload,
   [DomainEventName.DELIVERY_CONFIRMED]: deliveryConfirmedPayload,
+  [DomainEventName.DELIVERY_FAILED]: deliveryFailedPayload,
   [DomainEventName.SALE_CREATED]: saleCreatedPayload,
   [DomainEventName.PAYMENT_REGISTERED]: paymentRegisteredPayload,
 } as const;
