@@ -7,6 +7,7 @@ import {
   type OrderState,
   type OrderSummary,
   type OrderTransitionSummary,
+  type PaymentMethod,
 } from '@binexus/types';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { Order, OrderLine, OrderTransition } from '@prisma/client';
@@ -35,6 +36,7 @@ export class OrdersReadService {
         branchId: true,
         customerId: true,
         state: true,
+        paymentMethod: true,
         totalCents: true,
         currency: true,
         createdAt: true,
@@ -95,7 +97,14 @@ export class OrdersReadService {
   private toSummary(
     row: Pick<
       Order,
-      'id' | 'branchId' | 'customerId' | 'state' | 'totalCents' | 'currency' | 'createdAt'
+      | 'id'
+      | 'branchId'
+      | 'customerId'
+      | 'state'
+      | 'paymentMethod'
+      | 'totalCents'
+      | 'currency'
+      | 'createdAt'
     > & {
       _count: { lines: number };
     },
@@ -105,6 +114,7 @@ export class OrdersReadService {
       branchId: row.branchId as OrderSummary['branchId'],
       customerId: row.customerId,
       state: row.state as OrderState,
+      paymentMethod: row.paymentMethod as PaymentMethod,
       totalCents: row.totalCents,
       currency: row.currency,
       createdAt: row.createdAt.toISOString(),

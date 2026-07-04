@@ -48,7 +48,8 @@ sequenceDiagram
 11. **Delivery confirmation** — **implemented:** `ConfirmDeliveryCommand` marks stop `PLANNED -> DELIVERED`, auto-completes route when all stops are terminal, emits `DELIVERY_CONFIRMED`. `Orders` consumes the event and runs `MarkOrderDeliveredCommand` (`OUT_FOR_DELIVERY -> DELIVERED`, emits `ORDER_DELIVERED`).
 12. **Failed delivery** — **implemented:** `ReportFailedDeliveryCommand` marks stop `PLANNED -> FAILED`, auto-completes route when all stops are terminal, emits `DELIVERY_FAILED`. `Orders` consumes the event and runs `MarkOrderDeliveryAttemptFailedCommand` (`OUT_FOR_DELIVERY -> DELIVERY_ATTEMPT_FAILED`).
 13. **Failed delivery resolution** — **implemented:** dispatcher manually `POST /orders/:id/requeue-for-delivery` (`DELIVERY_ATTEMPT_FAILED -> READY_FOR_DELIVERY_ROUTE`, `ORDER_READY_FOR_DELIVERY_ROUTE`, candidate `ASSIGNED -> READY`) or `POST /orders/:id/cancel` (`DELIVERY_ATTEMPT_FAILED -> CANCELLED`, `ORDER_CANCELLED`, stock release).
-14. **Proof of delivery** — **implemented:** optional `DeliveryProof` on confirm (notes, recipient, MinIO object keys via presigned upload, GPS); enriched `DELIVERY_CONFIRMED` payload. Driver mobile remains a later slice.
+14. **Route liquidation (COD)** — **implemented:** supervisor `POST /logistics/delivery-routes/:id/liquidate` on `COMPLETED` routes reconciles declared cash vs. expected COD totals (`DELIVERY_ROUTE_LIQUIDATED` → `SettleOrderCommand` for `CASH` orders). Prepaid `CARD`/`TRANSFER` auto-`SETTLED` on delivery; `CREDIT` stays `DELIVERED` until Billing.
+15. **Proof of delivery** — **implemented:** optional `DeliveryProof` on confirm (notes, recipient, MinIO object keys via presigned upload, GPS); enriched `DELIVERY_CONFIRMED` payload. Driver mobile remains a later slice.
 
 ## Cross-context contracts implied by this flow
 

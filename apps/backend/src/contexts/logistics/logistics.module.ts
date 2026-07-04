@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { CommandsModule } from '../../common/commands/commands.module';
 import { EventsModule } from '../../common/events/events.module';
+import { FeatureFlagsModule } from '../../common/feature-flags/feature-flags.module';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 import { TenantModule } from '../../common/tenant/tenant.module';
 
@@ -10,6 +11,7 @@ import { ConfirmDeliveryHandler } from './application/commands/confirm-delivery.
 import { CreateDeliveryProofUploadHandler } from './application/commands/create-delivery-proof-upload.command';
 import { CreateDeliveryRouteHandler } from './application/commands/create-delivery-route.command';
 import { DispatchDeliveryRouteHandler } from './application/commands/dispatch-delivery-route.command';
+import { LiquidateDeliveryRouteHandler } from './application/commands/liquidate-delivery-route.command';
 import { ReportFailedDeliveryHandler } from './application/commands/report-failed-delivery.command';
 import { LogisticsCandidateService } from './application/logistics-candidate.service';
 import { LogisticsReadService } from './application/logistics-read.service';
@@ -18,7 +20,7 @@ import { OrderReadyForDeliveryRouteLogisticsHandler } from './events/order-ready
 import { LogisticsController } from './presentation/logistics.controller';
 
 @Module({
-  imports: [CommandsModule, EventsModule, PrismaModule, TenantModule],
+  imports: [CommandsModule, EventsModule, FeatureFlagsModule, PrismaModule, TenantModule],
   controllers: [LogisticsController],
   providers: [
     LogisticsCandidateService,
@@ -29,6 +31,7 @@ import { LogisticsController } from './presentation/logistics.controller';
     ConfirmDeliveryHandler,
     CreateDeliveryProofUploadHandler,
     ReportFailedDeliveryHandler,
+    LiquidateDeliveryRouteHandler,
     OrderReadyForDeliveryRouteLogisticsHandler,
     OrderCancelledLogisticsHandler,
   ],

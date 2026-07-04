@@ -12,6 +12,8 @@ import {
   type DeliveryProofUploadKind,
   type ListDeliveryRouteCandidatesResult,
   type ListDeliveryRoutesResult,
+  FeatureKey,
+  type LiquidateDeliveryRouteResult,
   type OrderId,
   type ReportFailedDeliveryResult,
   type UserId,
@@ -26,7 +28,9 @@ import {
   Post,
   Query,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -42,11 +46,15 @@ import {
 
 import { AppCommandBus } from '../../../common/commands/command-bus.service';
 import { CurrentUser, type RequestUser } from '../../../common/decorators/current-user.decorator';
+import { RequireFeature } from '../../../common/decorators/require-feature.decorator';
+import { Roles } from '../../../common/decorators/roles.decorator';
+import { FeatureFlagGuard } from '../../../common/feature-flags/feature-flag.guard';
 import { AssignOrderToDeliveryRouteCommand } from '../application/commands/assign-order-to-delivery-route.command';
 import { ConfirmDeliveryCommand } from '../application/commands/confirm-delivery.command';
 import { CreateDeliveryProofUploadCommand } from '../application/commands/create-delivery-proof-upload.command';
 import { CreateDeliveryRouteCommand } from '../application/commands/create-delivery-route.command';
 import { DispatchDeliveryRouteCommand } from '../application/commands/dispatch-delivery-route.command';
+import { LiquidateDeliveryRouteCommand } from '../application/commands/liquidate-delivery-route.command';
 import { ReportFailedDeliveryCommand } from '../application/commands/report-failed-delivery.command';
 import { LogisticsReadService } from '../application/logistics-read.service';
 
@@ -171,6 +179,35 @@ class CreateDeliveryProofUploadDto {
   @Max(10_485_760)
   @Type(() => Number)
   sizeBytes!: number;
+}
+
+class LiquidateDeliveryRouteLineDto {
+  @IsString()
+  deliveryRouteStopId!: string;
+
+  @IsInt()
+  @Min(0)
+  declaredCents!: number;
+}
+
+class LiquidateDeliveryRouteDto {
+  @IsInt()
+  @Min(0)
+  declaredCents!: number;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsOptional()
+  @IsString()
+  discrepancyReason?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => LiquidateDeliveryRouteLineDto)
+  lines?: LiquidateDeliveryRouteLineDto[];
 }
 
 @Controller('logistics')
@@ -318,6 +355,34 @@ export class LogisticsController {
         commandId: idempotencyKey,
         correlationId,
       }),
+    );
+  }
+
+  @Post('delivery-routes/:id/liquidate')
+  @UseGuards(FeatureFlagGuard)
+  @RequireFeature(FeatureKey.LIQUIDATION)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  async liquidateDeliveryRoute(
+    @Param('id') id: string,
+    @Body() dto: LiquidateDeliveryRouteDto,
+    @CurrentUser() user: RequestUser | null,
+    @Headers('idempotency-key') idempotencyKey?: string,
+    @Headers('x-correlation-id') correlationId?: string,
+  ): Promise<LiquidateDeliveryRouteResult> {
+    if (!user) throw new UnauthorizedException();
+
+    return this.commandBus.execute(
+      new LiquidateDeliveryRouteCommand(
+        id,
+        {
+          declaredCents: dto.declaredCents,
+          notes: dto.notes,
+          discrepancyReason: dto.discrepancyReason,
+          lines: dto.lines,
+        },
+        user.userId as UserId,
+        { commandId: idempotencyKey, correlationId },
+      ),
     );
   }
 }

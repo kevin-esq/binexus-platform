@@ -13,11 +13,15 @@ import type {
   ConfirmDeliveryResult,
   CreateDeliveryProofUploadInput,
   CreateDeliveryProofUploadResult,
+  CreateOrderInput,
+  CreateOrderResult,
+  CreateStockTransferInput,
+  CreateStockTransferResult,
   DispatchDeliveryRouteInput,
   DispatchDeliveryRouteResult,
   ListDeliveryRouteStopsResult,
-  CreateStockTransferInput,
-  CreateStockTransferResult,
+  LiquidateDeliveryRouteInput,
+  LiquidateDeliveryRouteResult,
   ListDeliveryRouteCandidatesQuery,
   ListDeliveryRouteCandidatesResult,
   ListDeliveryRoutesQuery,
@@ -122,6 +126,10 @@ export class BinexusClient {
 
   async getOrder(id: OrderId | string): Promise<OrderDetail> {
     return this.request<OrderDetail>('GET', `/orders/${encodeURIComponent(id)}`, { auth: true });
+  }
+
+  async createOrder(input: CreateOrderInput): Promise<CreateOrderResult> {
+    return this.request<CreateOrderResult>('POST', '/orders', { body: input, auth: true });
   }
 
   async approveOrder(id: OrderId | string): Promise<ApproveOrderResult> {
@@ -305,6 +313,17 @@ export class BinexusClient {
     );
   }
 
+  async liquidateDeliveryRoute(
+    deliveryRouteId: string,
+    input: LiquidateDeliveryRouteInput,
+  ): Promise<LiquidateDeliveryRouteResult> {
+    return this.request<LiquidateDeliveryRouteResult>(
+      'POST',
+      `/logistics/delivery-routes/${encodeURIComponent(deliveryRouteId)}/liquidate`,
+      { body: input, auth: true },
+    );
+  }
+
   async listStockItems(query: ListStockItemsQuery = {}): Promise<ListStockItemsResult> {
     const params = new URLSearchParams();
     if (query.branchId) params.set('branchId', query.branchId);
@@ -321,18 +340,20 @@ export class BinexusClient {
     path: string,
     opts: { body?: unknown; auth?: boolean } = {},
   ): Promise<T> {
-    const headers: Record<string, string> = { 'content-type': 'application/json' };
+    const headers: Record<string, string> = {};
 
     if (opts.auth && this.tokenProvider) {
       const token = await this.tokenProvider.getAccessToken();
       if (token) headers.authorization = `Bearer ${token}`;
     }
 
-    const response = await this.fetchImpl(`${this.baseUrl}${path}`, {
-      method,
-      headers,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-    });
+    const init: RequestInit = { method, headers };
+    if (opts.body !== undefined) {
+      headers['content-type'] = 'application/json';
+      init.body = JSON.stringify(opts.body);
+    }
+
+    const response = await this.fetchImpl(`${this.baseUrl}${path}`, init);
 
     if (!response.ok) {
       const errPayload = await response.json().catch(() => ({}) as Record<string, unknown>);

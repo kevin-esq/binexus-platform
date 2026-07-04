@@ -21,7 +21,9 @@ Every domain event in the platform. Schemas live in [`packages/events/src/schema
 | `DELIVERY_ROUTE_DISPATCHED`      | `logistics` | `orders` (active)                                            | [`delivery-route-dispatched.ts`](../../packages/events/src/schemas/delivery-route-dispatched.ts)           |
 | `DELIVERY_CONFIRMED`             | `logistics` | `orders` (active)                                            | [`delivery-confirmed.ts`](../../packages/events/src/schemas/delivery-confirmed.ts)                         |
 | `DELIVERY_FAILED`                | `logistics` | `orders` (active)                                            | [`delivery-failed.ts`](../../packages/events/src/schemas/delivery-failed.ts)                               |
+| `DELIVERY_ROUTE_LIQUIDATED`      | `logistics` | `orders` (active)                                            | [`delivery-route-liquidated.ts`](../../packages/events/src/schemas/delivery-route-liquidated.ts)           |
 | `ORDER_DELIVERED`                | `orders`    | (none yet)                                                   | [`order-delivered.ts`](../../packages/events/src/schemas/order-delivered.ts)                               |
+| `ORDER_SETTLED`                  | `orders`    | (none yet)                                                   | [`order-settled.ts`](../../packages/events/src/schemas/order-settled.ts)                                   |
 | `SALE_CREATED`                   | `sales`\*   | `inventory`, `billing`\*                                     | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
 | `PAYMENT_REGISTERED`             | `sales`\*   | `billing`\*                                                  | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |
 

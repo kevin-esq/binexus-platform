@@ -1,8 +1,14 @@
 import { DomainEventName } from '@binexus/events';
-import { type BranchId, type OrderId, type UserId } from '@binexus/types';
+import {
+  isPaymentMethod,
+  type BranchId,
+  type OrderId,
+  type PaymentMethod,
+  type UserId,
+} from '@binexus/types';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { CommandHandler } from '@nestjs/cqrs';
-import { OrderState } from '@prisma/client';
+import { OrderState, type PaymentMethod as PrismaPaymentMethod } from '@prisma/client';
 
 import { AppCommand, type AppCommandMetadata } from '../../../../common/commands/app-command';
 import { AppCommandHandler } from '../../../../common/commands/app-command-handler';
@@ -22,6 +28,7 @@ export interface CreateOrderInput {
   customerId: string;
   branchId?: BranchId;
   currency: string;
+  paymentMethod: PaymentMethod;
   lines: CreateOrderLineInput[];
 }
 
@@ -37,6 +44,12 @@ export class CreateOrderCommand extends AppCommand<OrderId> {
   validate(): void {
     if (!this.input.customerId.trim()) {
       throw new BadRequestException('customerId is required.');
+    }
+
+    if (!this.input.paymentMethod || !isPaymentMethod(this.input.paymentMethod)) {
+      throw new BadRequestException(
+        'paymentMethod is required and must be one of CASH, CARD, TRANSFER, CREDIT.',
+      );
     }
 
     if (!/^[A-Z]{3}$/.test(this.input.currency)) {
@@ -111,6 +124,7 @@ export class CreateOrderHandler extends AppCommandHandler<CreateOrderCommand> {
           branchId,
           customerId: command.input.customerId,
           state: OrderState.DRAFT,
+          paymentMethod: command.input.paymentMethod as PrismaPaymentMethod,
           totalCents,
           currency: command.input.currency,
           createdByUserId: command.issuedBy,

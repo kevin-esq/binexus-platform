@@ -1,6 +1,6 @@
 ﻿# Logistics domain
 
-Status: **active** (planning + dispatch + confirmation + proof uploads + failed delivery). Bounded context: `logistics`.
+Status: **active** (planning + dispatch + confirmation + proof uploads + failed delivery + route liquidation).
 
 Logistics owns delivery route planning, dispatch handoff, delivery confirmation, failed delivery handling, and route liquidation. Planning starts after Orders, Inventory, and Warehouse produce route-ready work.
 
@@ -15,7 +15,7 @@ Models use explicit compound names to avoid collision with framework concepts (H
 - `DeliveryRouteCandidate` - projection of orders ready for route assignment.
 - `DispatchHandoff` - handoff from branch/warehouse to driver (planned).
 - `DeliveryProof` - confirmation metadata (notes, recipient, MinIO object keys, GPS) tied one-to-one to a delivered stop.
-- `DeliveryRouteLiquidation` - cash/returns/reconciliation at route close (planned).
+- `DeliveryRouteLiquidation` - COD cash reconciliation at route close (implemented #4).
 
 ## Does not own
 
@@ -33,11 +33,7 @@ Implemented:
 - `ConfirmDeliveryCommand` - marks stop `PLANNED -> DELIVERED`, optionally persists `DeliveryProof`, auto-completes route when all stops are terminal (`DELIVERED | FAILED | SKIPPED`), emits `DELIVERY_CONFIRMED` (payload may include optional `proof`). Validates tenant-scoped proof object keys and verifies uploaded media exists in MinIO when object keys are provided.
 - `CreateDeliveryProofUploadCommand` - issues short-lived, tenant-scoped MinIO presigned upload URLs for proof photos/signatures on a `PLANNED` stop of a `DISPATCHED` route.
 - `ReportFailedDeliveryCommand` - marks stop `PLANNED -> FAILED` with failure metadata, auto-completes route when all stops are terminal, emits `DELIVERY_FAILED`.
-
-Planned:
-
-- `StartDeliveryRouteLiquidationCommand`.
-- `CloseDeliveryRouteLiquidationCommand`.
+- `LiquidateDeliveryRouteCommand` - single-shot COD cash reconciliation on `COMPLETED` routes (hybrid B3: route total; stop breakdown on discrepancy). Gated by `@RequireFeature(LIQUIDATION)`.
 
 ## Events emitted
 
@@ -48,10 +44,9 @@ Implemented:
 - `DELIVERY_ROUTE_DISPATCHED` - consumed by Orders to mark assigned orders `OUT_FOR_DELIVERY`.
 - `DELIVERY_CONFIRMED` - consumed by Orders to mark order `DELIVERED`; optional `proof` object (recipient, notes, photo/signature object keys, GPS).
 - `DELIVERY_FAILED` - consumed by Orders to mark order `DELIVERY_ATTEMPT_FAILED`; resolved manually via Orders #3b (requeue or cancel).
+- `DELIVERY_ROUTE_LIQUIDATED` - consumed by Orders to `SettleOrderCommand` for COD orders on the route.
 
 Planned:
-
-- `DELIVERY_ROUTE_LIQUIDATED`.
 
 ## Events consumed
 
@@ -95,6 +90,9 @@ POST /logistics/delivery-route-stops/:id/confirm-delivery
 POST /logistics/delivery-route-stops/:id/report-failed-delivery
   Body: `{ reason: "NO_RECIPIENT" | "WRONG_ADDRESS" | "REFUSED" | "DAMAGED" | "OTHER", notes?: string }`
   Returns: `{ deliveryRouteStopId, orderId, status: "FAILED", failedAt, failureReason, routeStatus, routeStopCounts }`
+POST /logistics/delivery-routes/:id/liquidate
+  Body: `{ declaredCents: number, notes?, discrepancyReason?, lines?: [{ deliveryRouteStopId, declaredCents }] }`
+  Requires: feature `LIQUIDATION`, roles `ADMIN` | `SUPER_ADMIN`
 ```
 
 Object keys issued by `proof-uploads` follow:
@@ -105,12 +103,12 @@ tenants/<tenantId>/delivery-proofs/<stopId>/<photo|signature>-<uuid>.<ext>
 
 ## Web UI
 
-- `/logistics` - list ready candidates, planned routes (assign + dispatch), dispatched routes with expandable stops, **Confirm delivery** and **Report failed** on `PLANNED` stops, proof/failure summary columns, and completed routes with expandable stop breakdown and client-side counts.
+- `/logistics` - … completed routes with **Liquidate route** (COD arqueo) when `LIQUIDATION` feature enabled.
 
 ## Out of scope (follow-up slices)
 
 - Driver mobile/offline capture.
-- Route liquidation (#4).
+- Partial liquidations / reopen closed liquidations.
 - Presigned GET URLs for proof media in the UI (bucket remains private; use short-lived presigned GET when needed).
 - Virus scanning or long-term retention policies.
 - Orphan object cleanup in MinIO.

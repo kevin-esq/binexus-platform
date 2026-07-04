@@ -22,6 +22,7 @@ export interface DeliveryRouteSummary {
   dispatchedAt: ISODateString | null;
   completedAt: ISODateString | null;
   stopCount: number;
+  liquidation: DeliveryRouteLiquidationSummary | null;
   createdAt: ISODateString;
   updatedAt: ISODateString;
 }
@@ -176,4 +177,40 @@ export interface CreateDeliveryProofUploadResult {
   objectKey: string;
   uploadUrl: string;
   expiresAt: ISODateString;
+}
+
+export interface DeliveryRouteLiquidationLineInput {
+  deliveryRouteStopId: string;
+  declaredCents: number;
+}
+
+export interface LiquidateDeliveryRouteInput {
+  declaredCents: number;
+  notes?: string;
+  discrepancyReason?: string;
+  lines?: DeliveryRouteLiquidationLineInput[];
+}
+
+export interface DeliveryRouteLiquidationLineSummary {
+  deliveryRouteStopId: string;
+  orderId: OrderId;
+  expectedCents: number;
+  declaredCents: number;
+}
+
+export interface DeliveryRouteLiquidationSummary {
+  id: string;
+  deliveryRouteId: string;
+  expectedCents: number;
+  declaredCents: number;
+  discrepancyCents: number;
+  currency: string;
+  closedAt: ISODateString;
+  discrepancyReason: string | null;
+  lines: DeliveryRouteLiquidationLineSummary[];
+}
+
+export interface LiquidateDeliveryRouteResult {
+  deliveryRouteId: string;
+  liquidation: DeliveryRouteLiquidationSummary;
 }

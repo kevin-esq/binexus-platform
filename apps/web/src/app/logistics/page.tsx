@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../lib/api';
-import { formatDate, shortId } from '../../lib/format';
+import { formatDate, formatMoney, shortId } from '../../lib/format';
 import { uploadDeliveryProofFile } from '../../lib/proof-upload';
 import { hasStoredSession } from '../../lib/token-storage';
 
@@ -38,6 +38,8 @@ export default function LogisticsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [assigningRouteId, setAssigningRouteId] = useState<string | null>(null);
   const [dispatchingRouteId, setDispatchingRouteId] = useState<string | null>(null);
+  const [liquidatingRouteId, setLiquidatingRouteId] = useState<string | null>(null);
+  const [declaredByRoute, setDeclaredByRoute] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
@@ -149,6 +151,31 @@ export default function LogisticsPage() {
       setError(err instanceof Error ? err.message : 'Failed to dispatch route');
     } finally {
       setDispatchingRouteId(null);
+    }
+  }
+
+  async function onLiquidateRoute(route: DeliveryRouteSummary): Promise<void> {
+    const raw = declaredByRoute[route.id] ?? '';
+    const declaredCents = Number.parseInt(raw, 10);
+    if (!Number.isInteger(declaredCents) || declaredCents < 0) {
+      setError('Enter declared cash in centavos (non-negative integer).');
+      return;
+    }
+
+    setLiquidatingRouteId(route.id);
+    try {
+      await api.liquidateDeliveryRoute(route.id, { declaredCents });
+      await loadData();
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to liquidate route';
+      if (message.includes('discrepancy') || message.includes('lines')) {
+        setError(`${message} — use matching stop breakdown via API for discrepancies.`);
+      } else {
+        setError(message);
+      }
+    } finally {
+      setLiquidatingRouteId(null);
     }
   }
 
@@ -661,6 +688,7 @@ export default function LogisticsPage() {
                       <th className="px-4 py-3 text-right">Stops</th>
                       <th className="px-4 py-3">Driver</th>
                       <th className="px-4 py-3">Completed</th>
+                      <th className="px-4 py-3">Arqueo</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -696,13 +724,47 @@ export default function LogisticsPage() {
                             <td className="px-4 py-3 text-slate-500">
                               {route.completedAt ? formatDate(route.completedAt) : '—'}
                             </td>
+                            <td className="px-4 py-3">
+                              {route.liquidation ? (
+                                <span className="text-xs font-medium text-green-700">
+                                  Liquidada
+                                  {route.liquidation.discrepancyCents !== 0
+                                    ? ` (Δ ${formatMoney(route.liquidation.discrepancyCents, route.liquidation.currency)})`
+                                    : ''}
+                                </span>
+                              ) : (
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    placeholder="Centavos"
+                                    value={declaredByRoute[route.id] ?? ''}
+                                    onChange={(e) =>
+                                      setDeclaredByRoute((prev) => ({
+                                        ...prev,
+                                        [route.id]: e.target.value,
+                                      }))
+                                    }
+                                    className="h-8 w-24 rounded border border-slate-300 px-2 text-xs"
+                                  />
+                                  <button
+                                    type="button"
+                                    disabled={liquidatingRouteId === route.id}
+                                    onClick={() => void onLiquidateRoute(route)}
+                                    className="rounded bg-brand-600 px-2 py-1 text-xs font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                  >
+                                    {liquidatingRouteId === route.id ? '…' : 'Liquidar'}
+                                  </button>
+                                </div>
+                              )}
+                            </td>
                           </tr>
                           {expanded ? (
                             <tr
                               key={`${route.id}-stops`}
                               className="border-b border-slate-100 bg-slate-50"
                             >
-                              <td colSpan={5} className="px-4 py-3">
+                              <td colSpan={6} className="px-4 py-3">
                                 {loadingStopsRouteId === route.id ? (
                                   <p className="text-sm text-slate-500">Loading stops…</p>
                                 ) : stops.length === 0 ? (

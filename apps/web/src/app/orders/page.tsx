@@ -1,6 +1,6 @@
 'use client';
 
-import type { OrderSummary } from '@binexus/types';
+import type { OrderSummary, PaymentMethod } from '@binexus/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -16,6 +16,9 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [customerId, setCustomerId] = useState('customer-demo-1');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
 
   const loadOrders = useCallback(async (cursor?: string) => {
     const result = await api.listOrders({ limit: 20, cursor });
@@ -51,6 +54,31 @@ export default function OrdersPage() {
       cancelled = true;
     };
   }, [loadOrders, router]);
+
+  async function onCreateOrder(): Promise<void> {
+    setCreating(true);
+    try {
+      await api.createOrder({
+        customerId: customerId.trim(),
+        currency: 'MXN',
+        paymentMethod,
+        lines: [
+          {
+            productId: 'product-demo-1',
+            productName: 'Demo product',
+            quantity: 1,
+            unitPriceCents: 10000,
+          },
+        ],
+      });
+      await loadOrders();
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create order');
+    } finally {
+      setCreating(false);
+    }
+  }
 
   async function onLoadMore(): Promise<void> {
     if (!nextCursor || loadingMore) return;
@@ -106,6 +134,41 @@ export default function OrdersPage() {
         </div>
       </header>
 
+      <section className="mb-6 rounded-lg border border-slate-200 bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold text-slate-900">Create order</h2>
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-col gap-1 text-xs text-slate-600">
+            Customer ID
+            <input
+              value={customerId}
+              onChange={(e) => setCustomerId(e.target.value)}
+              className="h-9 rounded border border-slate-300 px-2 text-sm text-slate-900"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs text-slate-600">
+            Payment method
+            <select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+              className="h-9 rounded border border-slate-300 px-2 text-sm text-slate-900"
+            >
+              <option value="CASH">CASH (COD)</option>
+              <option value="CARD">CARD</option>
+              <option value="TRANSFER">TRANSFER</option>
+              <option value="CREDIT">CREDIT</option>
+            </select>
+          </label>
+          <button
+            type="button"
+            disabled={creating || !customerId.trim()}
+            onClick={() => void onCreateOrder()}
+            className="h-9 rounded bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+          >
+            {creating ? 'Creating…' : 'Create demo order'}
+          </button>
+        </div>
+      </section>
+
       {loading ? (
         <p className="text-sm text-slate-500">Loading orders…</p>
       ) : error ? (
@@ -124,6 +187,7 @@ export default function OrdersPage() {
                 <th className="px-4 py-3">Order</th>
                 <th className="px-4 py-3">Customer</th>
                 <th className="px-4 py-3">State</th>
+                <th className="px-4 py-3">Payment</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Created</th>
               </tr>
@@ -146,6 +210,7 @@ export default function OrdersPage() {
                       {order.state}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-slate-600">{order.paymentMethod}</td>
                   <td className="px-4 py-3 text-slate-700">
                     {formatMoney(order.totalCents, order.currency)}
                   </td>

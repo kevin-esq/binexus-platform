@@ -41,10 +41,9 @@ Implemented (warehouse flow):
 - `MarkOrderDeliveredCommand` — `OUT_FOR_DELIVERY -> DELIVERED`, emits `ORDER_DELIVERED`.
 - `MarkOrderDeliveryAttemptFailedCommand` — `OUT_FOR_DELIVERY -> DELIVERY_ATTEMPT_FAILED` (no new domain event; triggered by `DELIVERY_FAILED`).
 - `RequeueFailedDeliveryOrderCommand` — `DELIVERY_ATTEMPT_FAILED -> READY_FOR_DELIVERY_ROUTE`, emits `ORDER_READY_FOR_DELIVERY_ROUTE`.
+- `SettleOrderCommand` — `DELIVERED -> SETTLED`, emits `ORDER_SETTLED` (COD via route liquidation; prepaid auto on delivery per ADR-0012 D1).
 
 Later:
-
-- `SettleOrderCommand`.
 
 ## Events emitted
 
@@ -59,10 +58,9 @@ Implemented:
 - `ORDER_PICKING_STARTED` — emitted when order moves to picking after reservation.
 - `ORDER_READY_FOR_DELIVERY_ROUTE` — emitted when order moves to `READY_FOR_DELIVERY_ROUTE` after picking.
 - `ORDER_DELIVERED` — emitted when order moves to `DELIVERED` after delivery confirmation.
+- `ORDER_SETTLED` — operational closure (see [`states/order.md`](../states/order.md#settled-semantics-adr-0012)).
 
 Future:
-
-- `ORDER_SETTLED`.
 
 ## Events consumed
 
@@ -77,10 +75,9 @@ Implemented:
 - `DELIVERY_ROUTE_DISPATCHED` — auto `MarkOrderOutForDeliveryCommand` via system user when order is `READY_FOR_DELIVERY_ROUTE` (skips already `OUT_FOR_DELIVERY` or cancelled orders).
 - `DELIVERY_CONFIRMED` — auto `MarkOrderDeliveredCommand` via system user when order is `OUT_FOR_DELIVERY`.
 - `DELIVERY_FAILED` — auto `MarkOrderDeliveryAttemptFailedCommand` via system user when order is `OUT_FOR_DELIVERY`.
+- `DELIVERY_ROUTE_LIQUIDATED` — auto `SettleOrderCommand` for each COD order in `DELIVERED`.
 
 Future:
-
-- `PAYMENT_ALLOCATED` from Billing to mark settled.
 
 ## Allowed dependencies
 
@@ -140,7 +137,7 @@ POST /orders/:id/cancel
 
 `GET /orders/:id` returns the order with lines and transition history.
 
-`POST /orders` creates a tenant-scoped `Order` in `DRAFT`, persists its lines, records the initial transition, and writes `ORDER_CREATED` to the outbox in the same transaction.
+`POST /orders` creates a tenant-scoped `Order` in `DRAFT`, persists its lines, records the initial transition, and writes `ORDER_CREATED` to the outbox in the same transaction. **`paymentMethod` is required** (`CASH` | `CARD` | `TRANSFER` | `CREDIT`).
 
 `POST /orders/:id/approve` transitions `DRAFT -> APPROVED`, records the transition, and writes `ORDER_APPROVED` to the outbox in the same transaction.
 

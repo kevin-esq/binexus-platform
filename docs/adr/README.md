@@ -42,6 +42,7 @@ Proposed  →  Accepted  →  (Deprecated | Superseded by ADR-NNNN)
 | 0009 | [Feature flags: tenant-scoped, DB-backed](0009-feature-flags-tenant-scoped.md)                                 | Accepted | 2026-05-23 |
 | 0010 | [GitHub workflow: Modern Rulesets with CI fallback](0010-github-modern-rulesets-with-ci-fallback.md)           | Accepted | 2026-05-23 |
 | 0011 | [Failed delivery — order pause state and route completion](0011-failed-delivery-order-and-route-completion.md) | Accepted | 2026-07-04 |
+| 0012 | [Route liquidation — COD cash reconciliation](0012-route-liquidation-cod-reconciliation.md)                    | Accepted | 2026-07-04 |
 
 ## When NOT to write an ADR
 

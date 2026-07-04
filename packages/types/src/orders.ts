@@ -2,6 +2,7 @@
 // See docs/states/order.md for the canonical reference.
 
 import type { BranchId, ISODateString, OrderId, UserId } from './common';
+import type { PaymentMethod } from './payments';
 
 export const OrderState = {
   DRAFT: 'DRAFT',
@@ -56,6 +57,7 @@ export interface OrderSummary {
   branchId: BranchId;
   customerId: string;
   state: OrderState;
+  paymentMethod: PaymentMethod;
   totalCents: number;
   currency: string;
   createdAt: ISODateString;
@@ -106,7 +108,7 @@ export interface MarkOrderOutForDeliveryResult {
 
 export interface MarkOrderDeliveredResult {
   id: OrderId;
-  state: typeof OrderState.DELIVERED;
+  state: typeof OrderState.DELIVERED | typeof OrderState.SETTLED;
 }
 
 export interface MarkOrderDeliveryAttemptFailedResult {
@@ -121,4 +123,28 @@ export interface RequeueFailedDeliveryOrderInput {
 export interface RequeueFailedDeliveryOrderResult {
   id: OrderId;
   state: typeof OrderState.READY_FOR_DELIVERY_ROUTE;
+}
+
+export interface CreateOrderLineInput {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPriceCents: number;
+}
+
+export interface CreateOrderInput {
+  customerId: string;
+  branchId?: BranchId;
+  currency: string;
+  paymentMethod: PaymentMethod;
+  lines: CreateOrderLineInput[];
+}
+
+export interface CreateOrderResult {
+  id: OrderId;
+}
+
+export interface SettleOrderResult {
+  id: OrderId;
+  state: typeof OrderState.SETTLED;
 }
