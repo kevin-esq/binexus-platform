@@ -16,6 +16,7 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [requeueing, setRequeueing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadOrder(id: string): Promise<void> {
@@ -72,7 +73,9 @@ export default function OrderDetailPage() {
     if (
       !id ||
       !order ||
-      (order.state !== OrderState.DRAFT && order.state !== OrderState.APPROVED)
+      (order.state !== OrderState.DRAFT &&
+        order.state !== OrderState.APPROVED &&
+        order.state !== OrderState.DELIVERY_ATTEMPT_FAILED)
     ) {
       return;
     }
@@ -83,12 +86,36 @@ export default function OrderDetailPage() {
     setCancelling(true);
     setError(null);
     try {
-      await api.cancelOrder(id, { reason: 'Cancelled from web' });
+      const reason =
+        order.state === OrderState.DELIVERY_ATTEMPT_FAILED
+          ? 'Cancelled after failed delivery'
+          : 'Cancelled from web';
+      await api.cancelOrder(id, { reason });
       await loadOrder(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to cancel order');
     } finally {
       setCancelling(false);
+    }
+  }
+
+  async function onRequeueForDelivery(): Promise<void> {
+    const id = params.id;
+    if (!id || !order || order.state !== OrderState.DELIVERY_ATTEMPT_FAILED) return;
+
+    const notes = window.prompt('Requeue notes (optional)?')?.trim();
+    const confirmed = window.confirm('Requeue this order for a new delivery route?');
+    if (!confirmed) return;
+
+    setRequeueing(true);
+    setError(null);
+    try {
+      await api.requeueFailedDeliveryOrder(id, notes ? { reason: notes } : {});
+      await loadOrder(id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to requeue order');
+    } finally {
+      setRequeueing(false);
     }
   }
 
@@ -128,12 +155,32 @@ export default function OrderDetailPage() {
               {order.state === OrderState.DRAFT || order.state === OrderState.APPROVED ? (
                 <button
                   type="button"
-                  disabled={approving || cancelling}
+                  disabled={approving || cancelling || requeueing}
                   onClick={() => void onCancel()}
                   className="h-10 rounded border border-red-200 px-4 text-sm font-medium text-red-700 hover:bg-red-50 disabled:text-red-300"
                 >
                   {cancelling ? 'Cancelling…' : 'Cancel order'}
                 </button>
+              ) : null}
+              {order.state === OrderState.DELIVERY_ATTEMPT_FAILED ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={cancelling || requeueing}
+                    onClick={() => void onRequeueForDelivery()}
+                    className="h-10 rounded bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700 disabled:bg-brand-300"
+                  >
+                    {requeueing ? 'Requeueing…' : 'Reintentar entrega'}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={cancelling || requeueing}
+                    onClick={() => void onCancel()}
+                    className="h-10 rounded border border-red-200 px-4 text-sm font-medium text-red-700 hover:bg-red-50 disabled:text-red-300"
+                  >
+                    {cancelling ? 'Cancelling…' : 'Cancelar orden'}
+                  </button>
+                </>
               ) : null}
             </div>
           </header>

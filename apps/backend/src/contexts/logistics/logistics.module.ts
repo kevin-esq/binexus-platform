@@ -13,6 +13,7 @@ import { DispatchDeliveryRouteHandler } from './application/commands/dispatch-de
 import { ReportFailedDeliveryHandler } from './application/commands/report-failed-delivery.command';
 import { LogisticsCandidateService } from './application/logistics-candidate.service';
 import { LogisticsReadService } from './application/logistics-read.service';
+import { OrderCancelledLogisticsHandler } from './events/order-cancelled.handler';
 import { OrderReadyForDeliveryRouteLogisticsHandler } from './events/order-ready-for-delivery-route.handler';
 import { LogisticsController } from './presentation/logistics.controller';
 
@@ -29,6 +30,7 @@ import { LogisticsController } from './presentation/logistics.controller';
     CreateDeliveryProofUploadHandler,
     ReportFailedDeliveryHandler,
     OrderReadyForDeliveryRouteLogisticsHandler,
+    OrderCancelledLogisticsHandler,
   ],
 })
 export class LogisticsModule {}

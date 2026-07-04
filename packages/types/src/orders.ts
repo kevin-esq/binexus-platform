@@ -23,7 +23,7 @@ export const ORDER_TRANSITIONS: Readonly<Record<OrderState, readonly OrderState[
   PICKING: ['READY_FOR_DELIVERY_ROUTE'],
   READY_FOR_DELIVERY_ROUTE: ['OUT_FOR_DELIVERY'],
   OUT_FOR_DELIVERY: ['DELIVERED', 'DELIVERY_ATTEMPT_FAILED'],
-  DELIVERY_ATTEMPT_FAILED: [],
+  DELIVERY_ATTEMPT_FAILED: ['READY_FOR_DELIVERY_ROUTE', 'CANCELLED'],
   DELIVERED: ['SETTLED'],
   SETTLED: [],
   CANCELLED: [],
@@ -112,4 +112,13 @@ export interface MarkOrderDeliveredResult {
 export interface MarkOrderDeliveryAttemptFailedResult {
   id: OrderId;
   state: typeof OrderState.DELIVERY_ATTEMPT_FAILED;
+}
+
+export interface RequeueFailedDeliveryOrderInput {
+  reason?: string;
+}
+
+export interface RequeueFailedDeliveryOrderResult {
+  id: OrderId;
+  state: typeof OrderState.READY_FOR_DELIVERY_ROUTE;
 }

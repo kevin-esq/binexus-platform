@@ -36,6 +36,8 @@ import type {
   ReceiveStockTransferResult,
   ReportFailedDeliveryInput,
   ReportFailedDeliveryResult,
+  RequeueFailedDeliveryOrderInput,
+  RequeueFailedDeliveryOrderResult,
 } from '@binexus/types';
 
 import { BinexusApiError } from './errors';
@@ -136,6 +138,17 @@ export class BinexusClient {
       body: input,
       auth: true,
     });
+  }
+
+  async requeueFailedDeliveryOrder(
+    id: OrderId | string,
+    input: RequeueFailedDeliveryOrderInput = {},
+  ): Promise<RequeueFailedDeliveryOrderResult> {
+    return this.request<RequeueFailedDeliveryOrderResult>(
+      'POST',
+      `/orders/${encodeURIComponent(id)}/requeue-for-delivery`,
+      { body: input, auth: true },
+    );
   }
 
   async adjustStock(input: AdjustStockInput): Promise<AdjustStockResult> {

@@ -13,6 +13,7 @@ import { MarkOrderDeliveryAttemptFailedHandler } from './application/commands/ma
 import { MarkOrderOutForDeliveryHandler } from './application/commands/mark-order-out-for-delivery.command';
 import { MarkOrderReadyForDeliveryRouteHandler } from './application/commands/mark-order-ready-for-delivery-route.command';
 import { MoveOrderToPickingHandler } from './application/commands/move-order-to-picking.command';
+import { RequeueFailedDeliveryOrderHandler } from './application/commands/requeue-failed-delivery-order.command';
 import { OrdersReadService } from './application/orders-read.service';
 import { DeliveryConfirmedOrdersHandler } from './events/delivery-confirmed.handler';
 import { DeliveryFailedOrdersHandler } from './events/delivery-failed.handler';
@@ -31,6 +32,7 @@ const commandHandlers = [
   MarkOrderOutForDeliveryHandler,
   MarkOrderDeliveredHandler,
   MarkOrderDeliveryAttemptFailedHandler,
+  RequeueFailedDeliveryOrderHandler,
 ];
 
 @Module({

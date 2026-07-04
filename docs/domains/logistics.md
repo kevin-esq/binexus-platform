@@ -47,7 +47,7 @@ Implemented:
 - `DELIVERY_ROUTE_ASSIGNED`.
 - `DELIVERY_ROUTE_DISPATCHED` - consumed by Orders to mark assigned orders `OUT_FOR_DELIVERY`.
 - `DELIVERY_CONFIRMED` - consumed by Orders to mark order `DELIVERED`; optional `proof` object (recipient, notes, photo/signature object keys, GPS).
-- `DELIVERY_FAILED` - consumed by Orders to mark order `DELIVERY_ATTEMPT_FAILED` (operational pause; resolution in slice #3b).
+- `DELIVERY_FAILED` - consumed by Orders to mark order `DELIVERY_ATTEMPT_FAILED`; resolved manually via Orders #3b (requeue or cancel).
 
 Planned:
 
@@ -57,11 +57,11 @@ Planned:
 
 Implemented:
 
-- `ORDER_READY_FOR_DELIVERY_ROUTE` from Orders - upserts `DeliveryRouteCandidate(READY)`.
+- `ORDER_READY_FOR_DELIVERY_ROUTE` from Orders - upserts or re-queues `DeliveryRouteCandidate(READY)` (including `ASSIGNED -> READY` on requeue).
+- `ORDER_CANCELLED` from Orders - marks `DeliveryRouteCandidate` cancelled when present.
 
 Planned:
 
-- `ORDER_CANCELLED` from Orders - mark candidate cancelled or exception a stop.
 - `PAYMENT_REGISTERED` from Sales/Billing - reconcile delivery route cash.
 
 ## Allowed dependencies
@@ -110,7 +110,6 @@ tenants/<tenantId>/delivery-proofs/<stopId>/<photo|signature>-<uuid>.<ext>
 ## Out of scope (follow-up slices)
 
 - Driver mobile/offline capture.
-- Failed delivery resolution (#3b — re-queue or cancel from `DELIVERY_ATTEMPT_FAILED`).
 - Route liquidation (#4).
 - Presigned GET URLs for proof media in the UI (bucket remains private; use short-lived presigned GET when needed).
 - Virus scanning or long-term retention policies.
