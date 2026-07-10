@@ -8,6 +8,11 @@ const saleLinePayload = z.object({
   lineTotalCents: z.number().int().nonnegative(),
 });
 
+const salePaymentPayload = z.object({
+  method: z.enum(['CASH', 'CARD', 'TRANSFER']),
+  amountCents: z.number().int().positive(),
+});
+
 export const saleCreatedPayload = z.object({
   saleId: z.string(),
   ticketId: z.string(),
@@ -19,6 +24,7 @@ export const saleCreatedPayload = z.object({
   totalCents: z.number().int().nonnegative(),
   currency: z.string().length(3),
   lines: z.array(saleLinePayload).min(1),
+  payments: z.array(salePaymentPayload).min(1),
 });
 
 export type SaleCreatedPayload = z.infer<typeof saleCreatedPayload>;

@@ -40,4 +40,26 @@ describe('computeSessionCashExpected', () => {
       'SESSION_CASH_CURRENCY_MISMATCH',
     );
   });
+
+  it('counts only CASH portions when session has mixed-method tickets', async () => {
+    const tx = {
+      salesSession: {
+        findFirst: vi.fn().mockResolvedValue({ openingFloatCents: 10000, currency: 'MXN' }),
+      },
+      paymentCapture: {
+        findMany: vi.fn().mockResolvedValue([
+          { amountCents: 10000, currency: 'MXN' },
+          { amountCents: 5000, currency: 'MXN' },
+        ]),
+      },
+    };
+
+    const result = await computeSessionCashExpected(tx, 'session-1', 'tenant-1');
+
+    expect(result).toEqual({ expectedCents: 25000, currency: 'MXN' });
+    expect(tx.paymentCapture.findMany).toHaveBeenCalledWith({
+      where: { sessionId: 'session-1', tenantId: 'tenant-1', method: PaymentMethod.CASH },
+      select: { amountCents: true, currency: true },
+    });
+  });
 });

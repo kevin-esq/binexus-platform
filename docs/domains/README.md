@@ -15,7 +15,7 @@ For Phase 1+ we map domains 1:1 with bounded contexts. The first end-to-end work
 | Inventory | `inventory`     | F2    | Active — F2 complete | stock balances, reservations, movements, transfers                                   |
 | Warehouse | `warehouse`     | F3    | Active — F3 complete | picking tasks, packing, staging, warehouse execution (picking base shipped)          |
 | Logistics | `logistics`     | F4    | Active — F4 complete | delivery routes, dispatch, confirmation, proof uploads, failed delivery, liquidation |
-| Sales     | `sales`         | F5    | Active (5.1)         | POS sessions (per terminal), tickets, cash sales, session arqueo                     |
+| Sales     | `sales`         | F5    | Active (5.2)         | POS sessions, split payment, session arqueo (credit → 5.3)                           |
 | Billing   | `billing`       | F7    | Planned              | invoices, receivables, payment allocation                                            |
 | Reporting | `reporting`     | F8+   | Planned              | projections/read models only                                                         |
 
