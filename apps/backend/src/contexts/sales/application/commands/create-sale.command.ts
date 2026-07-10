@@ -8,7 +8,12 @@ import {
 } from '@binexus/types';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CommandHandler } from '@nestjs/cqrs';
-import { type PaymentMethod, SalesSessionStatus, StockMovementType, TicketStatus } from '@prisma/client';
+import {
+  type PaymentMethod,
+  SalesSessionStatus,
+  StockMovementType,
+  TicketStatus,
+} from '@prisma/client';
 
 import { AppCommand, type AppCommandMetadata } from '../../../../common/commands/app-command';
 import { AppCommandHandler } from '../../../../common/commands/app-command-handler';
