@@ -21,6 +21,8 @@ import { orderSettledPayload } from './order-settled';
 import { paymentRegisteredPayload } from './payment-registered';
 import { pickingCompletedPayload } from './picking-completed';
 import { saleCreatedPayload } from './sale-created';
+import { salesSessionClosedPayload } from './sales-session-closed';
+import { salesSessionOpenedPayload } from './sales-session-opened';
 import { userRegisteredPayload } from './user-registered';
 
 export * from './delivery-confirmed';
@@ -41,6 +43,8 @@ export * from './order-settled';
 export * from './order-ready-for-delivery-route';
 export * from './picking-completed';
 export * from './payment-registered';
+export * from './sales-session-closed';
+export * from './sales-session-opened';
 export * from './sale-created';
 export * from './user-registered';
 
@@ -63,6 +67,8 @@ export const EventPayloadSchemas = {
   [DomainEventName.DELIVERY_CONFIRMED]: deliveryConfirmedPayload,
   [DomainEventName.DELIVERY_FAILED]: deliveryFailedPayload,
   [DomainEventName.DELIVERY_ROUTE_LIQUIDATED]: deliveryRouteLiquidatedPayload,
+  [DomainEventName.SALES_SESSION_OPENED]: salesSessionOpenedPayload,
+  [DomainEventName.SALES_SESSION_CLOSED]: salesSessionClosedPayload,
   [DomainEventName.SALE_CREATED]: saleCreatedPayload,
   [DomainEventName.PAYMENT_REGISTERED]: paymentRegisteredPayload,
 } as const;

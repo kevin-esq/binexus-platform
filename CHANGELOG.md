@@ -4,7 +4,9 @@ All notable changes to Binexus Platform are documented here. Format follows [Kee
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- **Sales / POS — slice 5.1 (F5.1):** `SalesModule`, terminal-scoped `SalesSession` (`terminalId` string label), walk-in cash `CreateSale`, session close arqueo, `StockMovementType.SALE`, events `SALES_SESSION_OPENED` / `SALES_SESSION_CLOSED`, extended `SALE_CREATED`, SDK sales methods, web `/pos`. ADR: [`docs/adr/0013-sales-pos-sub-slices-and-session-model.md`](docs/adr/0013-sales-pos-sub-slices-and-session-model.md).
 
 ## [0.1.0] — F4 Logistics complete (2026-07-04)
 

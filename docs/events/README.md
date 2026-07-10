@@ -24,10 +24,12 @@ Every domain event in the platform. Schemas live in [`packages/events/src/schema
 | `DELIVERY_ROUTE_LIQUIDATED`      | `logistics` | `orders` (active)                                            | [`delivery-route-liquidated.ts`](../../packages/events/src/schemas/delivery-route-liquidated.ts)           |
 | `ORDER_DELIVERED`                | `orders`    | (none yet)                                                   | [`order-delivered.ts`](../../packages/events/src/schemas/order-delivered.ts)                               |
 | `ORDER_SETTLED`                  | `orders`    | (none yet)                                                   | [`order-settled.ts`](../../packages/events/src/schemas/order-settled.ts)                                   |
-| `SALE_CREATED`                   | `sales`\*   | `inventory`, `billing`\*                                     | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
-| `PAYMENT_REGISTERED`             | `sales`\*   | `billing`\*                                                  | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |
+| `SALES_SESSION_OPENED`           | `sales`     | (none yet)                                                   | [`sales-session-opened.ts`](../../packages/events/src/schemas/sales-session-opened.ts)                     |
+| `SALES_SESSION_CLOSED`           | `sales`     | (none yet)                                                   | [`sales-session-closed.ts`](../../packages/events/src/schemas/sales-session-closed.ts)                     |
+| `SALE_CREATED`                   | `sales`     | (inventory inline in 5.1)                                    | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
+| `PAYMENT_REGISTERED`             | `sales`     | `billing`\*                                                  | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |
 
-`*` = schema registered, producer not implemented until the marked phase.
+`*` on Billing = consumer not implemented until F7.
 
 ## Envelope
 

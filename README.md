@@ -10,7 +10,7 @@ Operational SaaS platform — **modular monolith**, **event-driven**, **offline-
 - **Backend**: NestJS 11 (Fastify) — bounded contexts, CQRS-lite commands, domain events, outbox pattern
 - **Web**: Next.js 15 (App Router) + Tailwind 3 + React 19
 - **Desktop**: Tauri 2 wrapper around the web app
-- **Mobile**: placeholder — driver app planned after F5 Sales / POS stabilizes
+- **Mobile**: placeholder — driver app planned after F5 Sales / POS stabilizes (F5.1 shipped: web `/pos`)
 - **DB**: PostgreSQL 16 + Prisma
 - **Cache / event transport (planned)**: Redis 7.4
 - **Object storage**: MinIO (S3-compatible)
@@ -83,7 +83,7 @@ Start with [`docs/architecture/overview.md`](docs/architecture/overview.md).
 | F2 · Inventory   | Stock, reservations, adjustments, transfers                         | Complete                                                                                                         |
 | F3 · Warehouse   | Picking base (warehouse-lite)                                       | Complete (picking base)                                                                                          |
 | F4 · Logistics   | Routes, dispatch, confirmation, proof, failed delivery, liquidation | Complete (happy path + MinIO hardening + failed delivery/resolution + COD liquidation + MinIO integration tests) |
-| F5 · Sales / POS | Retail and restaurant POS tickets                                   | Planned — next phase                                                                                             |
+| F5 · Sales / POS | Retail sessions (per terminal), tickets, cash sales (5.1 done)      | Active — **5.1 done**; next: 5.2 split payment                                                                   |
 | F7 · Billing     | Invoices, receivables, payment allocation                           | Planned                                                                                                          |
 | F8 · Reporting   | Dashboards and analytics projections                                | Planned                                                                                                          |
 

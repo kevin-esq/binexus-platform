@@ -5,7 +5,7 @@ export default function HomePage() {
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-start justify-center gap-6 p-8">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-          F0–F4 complete · Next: F5 Sales / POS
+          F5.1 complete · Next: F5.2 split payment
         </p>
         <h1 className="mt-1 text-4xl font-bold text-slate-900">Binexus Platform</h1>
         <p className="mt-3 max-w-prose text-slate-600">
@@ -46,6 +46,12 @@ export default function HomePage() {
         >
           Logistics
         </Link>
+        <Link
+          href="/pos"
+          className="inline-flex h-10 items-center justify-center rounded border border-brand-600 px-4 text-sm font-medium text-brand-700 hover:bg-brand-50"
+        >
+          POS
+        </Link>
         <a
           href="http://localhost:3001/health"
           target="_blank"
@@ -65,7 +71,7 @@ export default function HomePage() {
             <li>F2 · Inventory (complete)</li>
             <li>F3 · Warehouse (complete)</li>
             <li>F4 · Logistics (complete)</li>
-            <li>F5 · Sales / POS (planned)</li>
+            <li>F5 · Sales / POS (5.1 complete)</li>
           </ul>
         </div>
         <div className="rounded border border-slate-200 bg-white p-4">

@@ -6,3 +6,4 @@ export * from './logistics';
 export * from './common';
 export * from './features';
 export * from './payments';
+export * from './sales';

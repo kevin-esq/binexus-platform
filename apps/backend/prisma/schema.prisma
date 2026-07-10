@@ -59,6 +59,16 @@ enum StockMovementType {
   ADJUSTMENT
   TRANSFER_OUT
   TRANSFER_IN
+  SALE
+}
+
+enum SalesSessionStatus {
+  OPEN
+  CLOSED
+}
+
+enum TicketStatus {
+  COMPLETED
 }
 
 model Tenant {
@@ -488,4 +498,82 @@ model DeliveryRouteLiquidationLine {
 
   @@unique([tenantId, deliveryRouteStopId])
   @@index([tenantId, deliveryRouteLiquidationId])
+}
+
+/// Cash-register session scoped to a terminal (register) within a branch.
+model SalesSession {
+  id                   String             @id @default(cuid())
+  tenantId             String
+  branchId             String
+  terminalId           String
+  status               SalesSessionStatus @default(OPEN)
+  openingFloatCents    Int
+  currency             String             @default("MXN")
+  openedByUserId       String
+  openedAt             DateTime           @default(now())
+  closedByUserId       String?
+  closedAt             DateTime?
+  expectedClosingCents Int?
+  declaredClosingCents Int?
+  discrepancyCents   Int?
+  discrepancyReason    String?
+  closeNotes           String?
+  tickets              Ticket[]
+  paymentCaptures      PaymentCapture[]
+
+  @@index([tenantId])
+  @@index([tenantId, branchId, terminalId])
+  @@index([tenantId, status])
+}
+
+/// POS sale document (instant retail in 5.1).
+model Ticket {
+  id              String       @id @default(cuid())
+  tenantId        String
+  sessionId       String
+  branchId        String
+  terminalId      String
+  customerLabel   String
+  status          TicketStatus @default(COMPLETED)
+  totalCents      Int
+  currency        String
+  cashierUserId   String
+  createdAt       DateTime     @default(now())
+  session         SalesSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  lines           TicketLine[]
+  paymentCaptures PaymentCapture[]
+
+  @@index([tenantId])
+  @@index([tenantId, sessionId])
+}
+
+model TicketLine {
+  id             String @id @default(cuid())
+  tenantId       String
+  ticketId       String
+  productId      String
+  productName    String
+  quantity       Int
+  unitPriceCents Int
+  lineTotalCents Int
+  ticket         Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, ticketId])
+}
+
+/// Payment collected at POS (one row per capture; 5.1 = single CASH per ticket).
+model PaymentCapture {
+  id          String        @id @default(cuid())
+  tenantId    String
+  ticketId    String
+  sessionId   String
+  method      PaymentMethod
+  amountCents Int
+  currency    String
+  capturedAt  DateTime      @default(now())
+  ticket      Ticket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  session     SalesSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, sessionId])
+  @@index([tenantId, ticketId])
 }

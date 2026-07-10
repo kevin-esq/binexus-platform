@@ -34,7 +34,9 @@ export const DomainEventName = {
   DELIVERY_FAILED: 'DELIVERY_FAILED',
   DELIVERY_ROUTE_LIQUIDATED: 'DELIVERY_ROUTE_LIQUIDATED',
 
-  // Sales / POS (F5 — schema only)
+  // Sales / POS (F5 — active)
+  SALES_SESSION_OPENED: 'SALES_SESSION_OPENED',
+  SALES_SESSION_CLOSED: 'SALES_SESSION_CLOSED',
   SALE_CREATED: 'SALE_CREATED',
 
   // Billing (F7 — schema only)
