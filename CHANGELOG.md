@@ -6,6 +6,8 @@ All notable changes to Binexus Platform are documented here. Format follows [Kee
 
 ### Added
 
+- **Sales / POS — slice 5.2 (F5.2):** split payment on `CreateSale` — required `payments[]` (`CASH|CARD|TRANSFER`), sum must equal ticket total, N × `PAYMENT_REGISTERED`, session arqueo still counts CASH only, `/pos` multi-line checkout UI.
+
 - **Sales / POS — slice 5.1 (F5.1):** `SalesModule`, terminal-scoped `SalesSession` (`terminalId` string label), walk-in cash `CreateSale`, session close arqueo, `StockMovementType.SALE`, events `SALES_SESSION_OPENED` / `SALES_SESSION_CLOSED`, extended `SALE_CREATED`, SDK sales methods, web `/pos`. ADR: [`docs/adr/0013-sales-pos-sub-slices-and-session-model.md`](docs/adr/0013-sales-pos-sub-slices-and-session-model.md).
 
 ## [0.1.0] — F4 Logistics complete (2026-07-04)

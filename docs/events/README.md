@@ -26,8 +26,8 @@ Every domain event in the platform. Schemas live in [`packages/events/src/schema
 | `ORDER_SETTLED`                  | `orders`    | (none yet)                                                   | [`order-settled.ts`](../../packages/events/src/schemas/order-settled.ts)                                   |
 | `SALES_SESSION_OPENED`           | `sales`     | (none yet)                                                   | [`sales-session-opened.ts`](../../packages/events/src/schemas/sales-session-opened.ts)                     |
 | `SALES_SESSION_CLOSED`           | `sales`     | (none yet)                                                   | [`sales-session-closed.ts`](../../packages/events/src/schemas/sales-session-closed.ts)                     |
-| `SALE_CREATED`                   | `sales`     | (inventory inline in 5.1)                                    | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
-| `PAYMENT_REGISTERED`             | `sales`     | `billing`\*                                                  | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |
+| `SALE_CREATED`                   | `sales`     | (inventory inline); emits `payments[]` in payload            | [`sale-created.ts`](../../packages/events/src/schemas/sale-created.ts)                                     |
+| `PAYMENT_REGISTERED`             | `sales`     | `billing`\* (one event per `PaymentCapture`)                 | [`payment-registered.ts`](../../packages/events/src/schemas/payment-registered.ts)                         |
 
 `*` on Billing = consumer not implemented until F7.
 

@@ -4,6 +4,8 @@ import {
   type CreateSaleResult,
   type GetCurrentSalesSessionResult,
   FeatureKey,
+  type PaymentMethod,
+  POS_WALK_IN_PAYMENT_METHODS,
   type OpenSalesSessionResult,
   type SalesSessionSummary,
   type UserId,
@@ -25,6 +27,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -81,6 +84,16 @@ class CreateSaleLineDto {
   unitPriceCents!: number;
 }
 
+class CreateSalePaymentDto {
+  @IsString()
+  @IsIn(POS_WALK_IN_PAYMENT_METHODS)
+  method!: PaymentMethod;
+
+  @IsInt()
+  @Min(1)
+  amountCents!: number;
+}
+
 class CreateSaleDto {
   @IsArray()
   @ArrayMinSize(1)
@@ -92,6 +105,12 @@ class CreateSaleDto {
   @IsString()
   @Length(3, 3)
   currency?: string;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CreateSalePaymentDto)
+  payments!: CreateSalePaymentDto[];
 }
 
 class CloseSalesSessionDto {

@@ -2,12 +2,13 @@ import { DomainEventName } from '@binexus/events';
 import {
   type CreateSaleInput,
   type CreateSaleResult,
+  type PosWalkInPaymentMethod,
   WALK_IN_CUSTOMER_LABEL,
   type UserId,
 } from '@binexus/types';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CommandHandler } from '@nestjs/cqrs';
-import { PaymentMethod, SalesSessionStatus, StockMovementType, TicketStatus } from '@prisma/client';
+import { type PaymentMethod, SalesSessionStatus, StockMovementType, TicketStatus } from '@prisma/client';
 
 import { AppCommand, type AppCommandMetadata } from '../../../../common/commands/app-command';
 import { AppCommandHandler } from '../../../../common/commands/app-command-handler';
@@ -16,6 +17,7 @@ import { OutboxService } from '../../../../common/events/outbox.service';
 import { PrismaService } from '../../../../common/prisma/prisma.service';
 import { TenantContextService } from '../../../../common/tenant/tenant-context.service';
 import { toTicketSummary } from '../sales-session-summary';
+import { validateSalePayments } from '../validate-sale-payments';
 
 export class CreateSaleCommand extends AppCommand<CreateSaleResult> {
   constructor(
@@ -33,6 +35,9 @@ export class CreateSaleCommand extends AppCommand<CreateSaleResult> {
     }
     if (!this.input.lines?.length) {
       throw new BadRequestException('At least one line is required.');
+    }
+    if (!this.input.payments?.length) {
+      throw new BadRequestException('payments must include at least one capture.');
     }
     for (const line of this.input.lines) {
       if (!line.productId.trim() || !line.productName.trim()) {
@@ -81,6 +86,12 @@ export class CreateSaleHandler extends AppCommandHandler<CreateSaleCommand> {
     }));
 
     const totalCents = lineSnapshots.reduce((sum, line) => sum + line.lineTotalCents, 0);
+    validateSalePayments(command.input.payments, totalCents);
+
+    const paymentSnapshots = command.input.payments.map((payment) => ({
+      method: payment.method as PosWalkInPaymentMethod,
+      amountCents: payment.amountCents,
+    }));
 
     return this.prisma.$transaction(async (tx) => {
       const session = await tx.salesSession.findFirst({
@@ -142,16 +153,20 @@ export class CreateSaleHandler extends AppCommandHandler<CreateSaleCommand> {
         })),
       });
 
-      const payment = await tx.paymentCapture.create({
-        data: {
-          tenantId: ctx.tenantId,
-          ticketId: ticket.id,
-          sessionId: session.id,
-          method: PaymentMethod.CASH,
-          amountCents: totalCents,
-          currency,
-        },
-      });
+      const createdPayments = [];
+      for (const payment of paymentSnapshots) {
+        const capture = await tx.paymentCapture.create({
+          data: {
+            tenantId: ctx.tenantId,
+            ticketId: ticket.id,
+            sessionId: session.id,
+            method: payment.method as PaymentMethod,
+            amountCents: payment.amountCents,
+            currency,
+          },
+        });
+        createdPayments.push(capture);
+      }
 
       for (const line of lineSnapshots) {
         const stock = await tx.stockItem.update({
@@ -184,9 +199,9 @@ export class CreateSaleHandler extends AppCommandHandler<CreateSaleCommand> {
         }
       }
 
-      const ticketWithLines = await tx.ticket.findFirstOrThrow({
+      const ticketWithRelations = await tx.ticket.findFirstOrThrow({
         where: { id: ticket.id, tenantId: ctx.tenantId },
-        include: { lines: true },
+        include: { lines: true, paymentCaptures: true },
       });
 
       const saleEvent = this.eventBus.build(
@@ -202,21 +217,10 @@ export class CreateSaleHandler extends AppCommandHandler<CreateSaleCommand> {
           totalCents,
           currency,
           lines: lineSnapshots,
-        },
-        {
-          correlationId: command.correlationId,
-          causationId: command.causationId ?? command.commandId,
-        },
-      );
-
-      const paymentEvent = this.eventBus.build(
-        DomainEventName.PAYMENT_REGISTERED,
-        {
-          paymentId: payment.id,
-          saleId: ticket.id,
-          amountCents: totalCents,
-          currency,
-          method: PaymentMethod.CASH,
+          payments: paymentSnapshots.map((payment) => ({
+            method: payment.method,
+            amountCents: payment.amountCents,
+          })),
         },
         {
           correlationId: command.correlationId,
@@ -225,9 +229,26 @@ export class CreateSaleHandler extends AppCommandHandler<CreateSaleCommand> {
       );
 
       await this.outbox.record(saleEvent, tx);
-      await this.outbox.record(paymentEvent, tx);
 
-      return { ticket: toTicketSummary(ticketWithLines) };
+      for (const capture of createdPayments) {
+        const paymentEvent = this.eventBus.build(
+          DomainEventName.PAYMENT_REGISTERED,
+          {
+            paymentId: capture.id,
+            saleId: ticket.id,
+            amountCents: capture.amountCents,
+            currency: capture.currency,
+            method: capture.method,
+          },
+          {
+            correlationId: command.correlationId,
+            causationId: command.causationId ?? command.commandId,
+          },
+        );
+        await this.outbox.record(paymentEvent, tx);
+      }
+
+      return { ticket: toTicketSummary(ticketWithRelations) };
     });
   }
 }

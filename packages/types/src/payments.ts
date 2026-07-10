@@ -23,3 +23,16 @@ export const AUTO_SETTLE_ON_DELIVERY_METHODS: readonly PaymentMethod[] = [
   PaymentMethod.CARD,
   PaymentMethod.TRANSFER,
 ];
+
+/** Walk-in POS payment methods allowed in F5.2 split checkout (CREDIT deferred to 5.3). */
+export const POS_WALK_IN_PAYMENT_METHODS = [
+  PaymentMethod.CASH,
+  PaymentMethod.CARD,
+  PaymentMethod.TRANSFER,
+] as const;
+
+export type PosWalkInPaymentMethod = (typeof POS_WALK_IN_PAYMENT_METHODS)[number];
+
+export function isPosWalkInPaymentMethod(value: string): value is PosWalkInPaymentMethod {
+  return (POS_WALK_IN_PAYMENT_METHODS as readonly string[]).includes(value);
+}

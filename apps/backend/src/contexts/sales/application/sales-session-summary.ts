@@ -31,7 +31,9 @@ export function toSalesSessionSummary(session: SalesSession): SalesSessionSummar
   };
 }
 
-export function toTicketSummary(ticket: Ticket & { lines: TicketLine[] }): TicketSummary {
+export function toTicketSummary(
+  ticket: Ticket & { lines: TicketLine[]; paymentCaptures: PaymentCapture[] },
+): TicketSummary {
   return {
     id: ticket.id,
     sessionId: ticket.sessionId,
@@ -49,6 +51,13 @@ export function toTicketSummary(ticket: Ticket & { lines: TicketLine[] }): Ticke
       quantity: line.quantity,
       unitPriceCents: line.unitPriceCents,
       lineTotalCents: line.lineTotalCents,
+    })),
+    paymentCaptures: ticket.paymentCaptures.map((capture) => ({
+      id: capture.id,
+      method: capture.method as TicketSummary['paymentCaptures'][number]['method'],
+      amountCents: capture.amountCents,
+      currency: capture.currency,
+      capturedAt: capture.capturedAt.toISOString(),
     })),
   };
 }

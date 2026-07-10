@@ -1,4 +1,5 @@
 import type { BranchId, ISODateString, UserId } from './common';
+import type { PaymentMethod } from './payments';
 
 export type SalesSessionStatus = 'OPEN' | 'CLOSED';
 
@@ -44,6 +45,20 @@ export interface TicketSummary {
   cashierUserId: UserId;
   createdAt: ISODateString;
   lines: TicketLineSummary[];
+  paymentCaptures: PaymentCaptureSummary[];
+}
+
+export interface PaymentCaptureSummary {
+  id: string;
+  method: PaymentMethod;
+  amountCents: number;
+  currency: string;
+  capturedAt: ISODateString;
+}
+
+export interface CreateSalePaymentInput {
+  method: PaymentMethod;
+  amountCents: number;
 }
 
 export interface OpenSalesSessionInput {
@@ -76,6 +91,7 @@ export interface CreateSaleLineInput {
 export interface CreateSaleInput {
   lines: CreateSaleLineInput[];
   currency?: string;
+  payments: CreateSalePaymentInput[];
 }
 
 export interface CreateSaleResult {
