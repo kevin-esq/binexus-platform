@@ -20,6 +20,7 @@ import { IdentityModule } from './contexts/identity/identity.module';
 import { InventoryModule } from './contexts/inventory/inventory.module';
 import { LogisticsModule } from './contexts/logistics/logistics.module';
 import { OrdersModule } from './contexts/orders/orders.module';
+import { SalesModule } from './contexts/sales/sales.module';
 import { WarehouseModule } from './contexts/warehouse/warehouse.module';
 
 @Module({
@@ -41,6 +42,7 @@ import { WarehouseModule } from './contexts/warehouse/warehouse.module';
     OrdersModule,
     WarehouseModule,
     LogisticsModule,
+    SalesModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

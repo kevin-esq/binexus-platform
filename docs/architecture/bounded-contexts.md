@@ -4,18 +4,18 @@ Binexus is organized as a modular monolith with ten initial bounded contexts. Th
 
 The contexts intentionally map 1:1 with the operational domains documented in [`docs/domains`](../domains/). This keeps ownership clear while the product is still learning the business. We can merge or split later with a new ADR, but Phase 1 starts with explicit boundaries.
 
-| Context     | Phase | Status in repo | Responsibility                                                              |
-| ----------- | ----- | -------------- | --------------------------------------------------------------------------- |
-| `identity`  | F0    | Active         | Tenants, users, branches, auth (JWT), RBAC                                  |
-| `catalog`   | F1+   | Planned        | Products, SKUs, units, price lists, tax categories                          |
-| `customers` | F1+   | Planned        | Customers, billing identity, addresses, credit profile                      |
-| `orders`    | F1    | Active         | Order lifecycle, approvals, state machine                                   |
-| `inventory` | F2    | Active         | Stock per branch, reservations, movements, transfers                        |
-| `warehouse` | F3    | Active         | Picking, packing, staging, warehouse-lite operational execution             |
-| `logistics` | F4    | Active         | Delivery routes, dispatch handoff, delivery confirmation, route liquidation |
-| `sales`     | F5    | Planned        | POS retail and restaurant, tickets, payment registration                    |
-| `billing`   | F7    | Planned        | Invoices, fiscal documents, payment allocation, receivables                 |
-| `reporting` | F8+   | Planned        | Read models, operational dashboards, analytics projections                  |
+| Context     | Phase | Status in repo | Responsibility                                                                      |
+| ----------- | ----- | -------------- | ----------------------------------------------------------------------------------- |
+| `identity`  | F0    | Active         | Tenants, users, branches, auth (JWT), RBAC                                          |
+| `catalog`   | F1+   | Planned        | Products, SKUs, units, price lists, tax categories                                  |
+| `customers` | F1+   | Planned        | Customers, billing identity, addresses, credit profile                              |
+| `orders`    | F1    | Active         | Order lifecycle, approvals, state machine                                           |
+| `inventory` | F2    | Active         | Stock per branch, reservations, movements, transfers                                |
+| `warehouse` | F3    | Active         | Picking, packing, staging, warehouse-lite operational execution                     |
+| `logistics` | F4    | Active         | Delivery routes, dispatch handoff, delivery confirmation, route liquidation         |
+| `sales`     | F5    | Active (5.1)   | POS retail sessions, tickets, payment registration (split/credit/delivery deferred) |
+| `billing`   | F7    | Planned        | Invoices, fiscal documents, payment allocation, receivables                         |
+| `reporting` | F8+   | Planned        | Read models, operational dashboards, analytics projections                          |
 
 **Status in repo** means the bounded context is implemented (`Active`) or still a stub (`Planned`). **Phase complete** (F1–F4) means the scoped vertical slice for that roadmap phase is shipped; contexts stay `Active` because they remain live code paths under maintenance. See the roadmap table in [`README.md`](../../README.md).
 

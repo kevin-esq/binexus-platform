@@ -8,7 +8,7 @@ Inventory owns the truth of stock: what exists, where it exists, what is reserve
 
 - `StockItem` — on-hand and reserved quantities per tenant/branch/product. Available = `onHand - reserved` (computed in application code).
 - `StockReservation` — quantity promised to an order line (`ACTIVE | RELEASED | FAILED`).
-- `StockMovement` — immutable movement ledger (`RESERVE`, `RELEASE`, `ADJUSTMENT`, `TRANSFER_OUT`, `TRANSFER_IN`).
+- `StockMovement` — immutable movement ledger (`RESERVE`, `RELEASE`, `ADJUSTMENT`, `TRANSFER_OUT`, `TRANSFER_IN`, `SALE`).
 - `StockTransfer` — branch-to-branch transfer request (`PENDING | RECEIVED | CANCELLED`).
 - `StockAdjustment` — manual correction with reason via `AdjustStockCommand` (delta + reason).
 
@@ -36,6 +36,7 @@ Implemented:
 Implemented explicit write commands:
 
 - `AdjustStockCommand` — manual `onHand` correction with `StockMovement` type `ADJUSTMENT`. Rule: `nextOnHand >= reserved` (available cannot go negative against active reservations).
+- **POS sale (F5.1):** `CreateSaleCommand` in `sales` decrements `onHand` inline and writes `StockMovement` type `SALE` (negative quantity). No `SALE_CREATED` inventory handler yet.
 - `CreateStockTransferCommand` — creates `StockTransfer(PENDING)` and increments source `reserved` when `available >= quantity`.
 - `ReceiveStockTransferCommand` — decrements source `onHand`/`reserved`, increments destination `onHand`, writes `TRANSFER_OUT` / `TRANSFER_IN` movements, marks `RECEIVED`.
 - `CancelStockTransferCommand` — releases source `reserved` for pending transfers and marks `CANCELLED`.

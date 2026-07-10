@@ -7,14 +7,14 @@ import {
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CommandHandler } from '@nestjs/cqrs';
-import { DeliveryRouteStatus as PrismaRouteStatus, Role } from '@prisma/client';
+import { DeliveryRouteStatus as PrismaRouteStatus, type Role } from '@prisma/client';
 
+import { assertCashDiscrepancyCloseAllowed } from '../../../../common/cash-reconciliation/assert-cash-discrepancy-close-allowed';
 import { AppCommand, type AppCommandMetadata } from '../../../../common/commands/app-command';
 import { AppCommandHandler } from '../../../../common/commands/app-command-handler';
 import { EventBusService } from '../../../../common/events/event-bus.service';
@@ -24,7 +24,6 @@ import { TenantContextService } from '../../../../common/tenant/tenant-context.s
 import { toLiquidateDeliveryRouteResult } from '../delivery-route-liquidation-summary';
 import { computeRouteCodExpected } from '../route-cod-expected';
 
-const SUPERVISOR_ROLES: readonly Role[] = [Role.ADMIN, Role.SUPER_ADMIN];
 
 export class LiquidateDeliveryRouteCommand extends AppCommand<LiquidateDeliveryRouteResult> {
   constructor(
@@ -104,17 +103,9 @@ export class LiquidateDeliveryRouteHandler extends AppCommandHandler<LiquidateDe
       const discrepancyCents = declaredCents - expectedCents;
       const hasDiscrepancy = discrepancyCents !== 0;
 
+      assertCashDiscrepancyCloseAllowed(hasDiscrepancy, ctx.role as Role, discrepancyReason);
+
       if (hasDiscrepancy) {
-        if (!SUPERVISOR_ROLES.includes(ctx.role as Role)) {
-          throw new ForbiddenException(
-            'Closing a liquidation with a cash discrepancy requires ADMIN or SUPER_ADMIN role.',
-          );
-        }
-        if (!discrepancyReason) {
-          throw new BadRequestException(
-            'discrepancyReason is required when declaredCents does not match expectedCents.',
-          );
-        }
         if (!command.input.lines || command.input.lines.length === 0) {
           throw new BadRequestException(
             'lines are required when declaredCents does not match expectedCents.',

@@ -43,6 +43,7 @@ Proposed  →  Accepted  →  (Deprecated | Superseded by ADR-NNNN)
 | 0010 | [GitHub workflow: Modern Rulesets with CI fallback](0010-github-modern-rulesets-with-ci-fallback.md)           | Accepted | 2026-05-23 |
 | 0011 | [Failed delivery — order pause state and route completion](0011-failed-delivery-order-and-route-completion.md) | Accepted | 2026-07-04 |
 | 0012 | [Route liquidation — COD cash reconciliation](0012-route-liquidation-cod-reconciliation.md)                    | Accepted | 2026-07-04 |
+| 0013 | [Sales / POS — sub-slices and session-first retail model](0013-sales-pos-sub-slices-and-session-model.md)      | Accepted | 2026-07-10 |
 
 ## When NOT to write an ADR
 

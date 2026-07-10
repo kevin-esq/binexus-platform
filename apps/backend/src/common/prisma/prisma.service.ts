@@ -26,6 +26,10 @@ const TENANT_SCOPED_MODELS = new Set<string>([
   'DeliveryProof',
   'DeliveryRouteLiquidation',
   'DeliveryRouteLiquidationLine',
+  'SalesSession',
+  'Ticket',
+  'TicketLine',
+  'PaymentCapture',
 ]);
 
 // Operations that should have tenantId enforced.

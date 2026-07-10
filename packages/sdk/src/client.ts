@@ -35,6 +35,15 @@ import type {
   ListStockTransfersQuery,
   ListStockTransfersResult,
   CompletePickingTaskResult,
+  OpenSalesSessionInput,
+  OpenSalesSessionResult,
+  GetCurrentSalesSessionQuery,
+  GetCurrentSalesSessionResult,
+  CreateSaleInput,
+  CreateSaleResult,
+  CloseSalesSessionInput,
+  CloseSalesSessionResult,
+  SalesSessionSummary,
   OrderDetail,
   OrderId,
   ReceiveStockTransferResult,
@@ -333,6 +342,51 @@ export class BinexusClient {
     const qs = params.toString();
     const path = qs ? `/inventory/stock?${qs}` : '/inventory/stock';
     return this.request<ListStockItemsResult>('GET', path, { auth: true });
+  }
+
+  async openSalesSession(input: OpenSalesSessionInput): Promise<OpenSalesSessionResult> {
+    return this.request<OpenSalesSessionResult>('POST', '/sales/sessions/open', {
+      body: input,
+      auth: true,
+    });
+  }
+
+  async getCurrentSalesSession(
+    query: GetCurrentSalesSessionQuery,
+  ): Promise<GetCurrentSalesSessionResult> {
+    const params = new URLSearchParams();
+    params.set('terminalId', query.terminalId);
+    if (query.branchId) params.set('branchId', query.branchId);
+    return this.request<GetCurrentSalesSessionResult>(
+      'GET',
+      `/sales/sessions/current?${params.toString()}`,
+      { auth: true },
+    );
+  }
+
+  async getSalesSession(id: string): Promise<SalesSessionSummary> {
+    return this.request<SalesSessionSummary>('GET', `/sales/sessions/${encodeURIComponent(id)}`, {
+      auth: true,
+    });
+  }
+
+  async createSale(sessionId: string, input: CreateSaleInput): Promise<CreateSaleResult> {
+    return this.request<CreateSaleResult>(
+      'POST',
+      `/sales/sessions/${encodeURIComponent(sessionId)}/sales`,
+      { body: input, auth: true },
+    );
+  }
+
+  async closeSalesSession(
+    sessionId: string,
+    input: CloseSalesSessionInput,
+  ): Promise<CloseSalesSessionResult> {
+    return this.request<CloseSalesSessionResult>(
+      'POST',
+      `/sales/sessions/${encodeURIComponent(sessionId)}/close`,
+      { body: input, auth: true },
+    );
   }
 
   private async request<T>(

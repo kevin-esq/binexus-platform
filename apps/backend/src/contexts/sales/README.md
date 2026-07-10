@@ -1,18 +1,27 @@
 ﻿# Sales bounded context
 
-Status: **placeholder** (Phase 5).
+Status: **active (F5.1)**.
 
-Domain reference: [`docs/domains/sales.md`](../../../../../docs/domains/sales.md).
+Domain reference: [`docs/domains/sales.md`](../../../../../docs/domains/sales.md). ADR: [`docs/adr/0013-sales-pos-sub-slices-and-session-model.md`](../../../../../docs/adr/0013-sales-pos-sub-slices-and-session-model.md).
 
-Sales owns POS sessions, tickets, payment capture, cash drawer movements, and POS-originated returns. It emits sale/payment facts instead of mutating Inventory or Billing directly.
+Implemented:
 
-Planned structure:
+- `SalesModule` in `AppModule`
+- Commands: `OpenSalesSession`, `CreateSale`, `CloseSalesSession`
+- HTTP `/sales/*` gated by `POS_RETAIL`
+- Web UI `/pos`
+- Events: `SALES_SESSION_OPENED`, `SALES_SESSION_CLOSED`, `SALE_CREATED`, `PAYMENT_REGISTERED`
+- Stock decrement inline on sale (`StockMovementType.SALE`)
+
+Deferred (5.2+): split payment, credit, delivery orders, void/returns, Terminal catalog.
 
 ```txt
 sales/
 ├── sales.module.ts
-├── domain/
 ├── application/
-├── infrastructure/
+│   ├── commands/
+│   ├── sales-read.service.ts
+│   └── session-cash-expected.ts
 └── presentation/
+    └── sales.controller.ts
 ```
