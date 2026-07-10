@@ -24,7 +24,6 @@ import { TenantContextService } from '../../../../common/tenant/tenant-context.s
 import { toLiquidateDeliveryRouteResult } from '../delivery-route-liquidation-summary';
 import { computeRouteCodExpected } from '../route-cod-expected';
 
-
 export class LiquidateDeliveryRouteCommand extends AppCommand<LiquidateDeliveryRouteResult> {
   constructor(
     readonly deliveryRouteId: string,
