@@ -1,17 +1,19 @@
 import Link from 'next/link';
 
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5102';
+
 export default function HomePage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-3xl flex-col items-start justify-center gap-6 p-8">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-          F5.2 complete · Next: F5.3 B2B credit at POS
+          Gate 5 · Frontend → .NET
         </p>
         <h1 className="mt-1 text-4xl font-bold text-slate-900">Binexus Platform</h1>
         <p className="mt-3 max-w-prose text-slate-600">
           Operational SaaS — modular monolith, event-driven, offline-first, multi-tenant. The web UI
           runs orders through inventory, picking, delivery routes, proof uploads, failed-delivery
-          resolution, and route liquidation end-to-end.
+          resolution, and route liquidation end-to-end against Binexus.Api.
         </p>
       </div>
 
@@ -53,7 +55,7 @@ export default function HomePage() {
           POS
         </Link>
         <a
-          href="http://localhost:3001/health"
+          href={`${apiBaseUrl}/health`}
           target="_blank"
           rel="noreferrer"
           className="inline-flex h-10 items-center justify-center rounded border border-slate-300 px-4 text-sm font-medium text-slate-700 hover:bg-slate-100"

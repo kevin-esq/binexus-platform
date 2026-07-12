@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../lib/api';
+import { formatApiError } from '../../lib/error-messages';
 import { formatDate } from '../../lib/format';
 import { hasStoredSession } from '../../lib/token-storage';
 
@@ -49,7 +50,7 @@ export default function InventoryPage() {
         if (!cancelled) setError(null);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load inventory');
+          setError(formatApiError(err));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -67,7 +68,7 @@ export default function InventoryPage() {
       await loadAll();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh inventory');
+      setError(formatApiError(err));
     } finally {
       setRefreshing(false);
     }
@@ -104,7 +105,7 @@ export default function InventoryPage() {
       await loadAll();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to adjust stock');
+      setError(formatApiError(err));
     } finally {
       setAdjustingId(null);
     }
@@ -151,7 +152,7 @@ export default function InventoryPage() {
       await loadAll();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create transfer');
+      setError(formatApiError(err));
     } finally {
       setTransferringId(null);
     }
@@ -166,7 +167,7 @@ export default function InventoryPage() {
       await loadAll();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to receive transfer');
+      setError(formatApiError(err));
     } finally {
       setTransferActionId(null);
     }
@@ -181,7 +182,7 @@ export default function InventoryPage() {
       await loadAll();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel transfer');
+      setError(formatApiError(err));
     } finally {
       setTransferActionId(null);
     }
@@ -196,7 +197,7 @@ export default function InventoryPage() {
       setNextCursor(stockResult.nextCursor);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load more stock');
+      setError(formatApiError(err));
     } finally {
       setLoadingMore(false);
     }
