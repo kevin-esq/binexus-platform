@@ -15,23 +15,25 @@ ADRs explain **why** we chose what we chose. Living docs explain **how the syste
 
 1. [`adr/README.md`](adr/README.md): architectural decisions that shape everything below
 2. [`architecture/overview.md`](architecture/overview.md): start here for the runtime picture
-3. [`architecture/branch-runtime.md`](architecture/branch-runtime.md): proposed Branch Runtime topology
-4. [`architecture/desktop-tauri.md`](architecture/desktop-tauri.md): proposed desktop shell boundaries
-5. [`architecture/branch-wizard-ux.md`](architecture/branch-wizard-ux.md): proposed first-run branch setup flow
-6. [`architecture/web-vs-desktop-surfaces.md`](architecture/web-vs-desktop-surfaces.md): proposed surface split
-7. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
-8. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
-9. [`architecture/event-system.md`](architecture/event-system.md)
-10. [`architecture/audit-log.md`](architecture/audit-log.md)
-11. [`architecture/commands.md`](architecture/commands.md)
-12. [`architecture/observability.md`](architecture/observability.md)
-13. [`architecture/feature-flags.md`](architecture/feature-flags.md)
-14. [`architecture/dev-workflow.md`](architecture/dev-workflow.md): branches, commits, PR, CI, rulesets
-15. [`domains/README.md`](domains/README.md): the 10 operational domains
-16. [`states/order.md`](states/order.md): order state machine
-17. [`workflows/order-creation.md`](workflows/order-creation.md): first end-to-end flow
-18. [`events/README.md`](events/README.md): event catalog
-19. [`migration/local-setup.md`](migration/local-setup.md): .NET local boot and clean DB recreate
+3. [`architecture/branch-runtime.md`](architecture/branch-runtime.md): Branch Runtime topology (direction approved)
+4. [`architecture/desktop-tauri.md`](architecture/desktop-tauri.md): Branch Client (Tauri) boundaries
+5. [`architecture/branch-wizard-ux.md`](architecture/branch-wizard-ux.md): activation and pairing UX
+6. [`architecture/web-vs-desktop-surfaces.md`](architecture/web-vs-desktop-surfaces.md): Web Admin vs Branch Client
+7. [`architecture/branch-runtime-roadmap.md`](architecture/branch-runtime-roadmap.md): implementation PRs after docs merge
+8. [`migration/branch-runtime-architecture-checkpoint.md`](migration/branch-runtime-architecture-checkpoint.md): CHECKPOINT FINAL
+9. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
+10. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
+11. [`architecture/event-system.md`](architecture/event-system.md)
+12. [`architecture/audit-log.md`](architecture/audit-log.md)
+13. [`architecture/commands.md`](architecture/commands.md)
+14. [`architecture/observability.md`](architecture/observability.md)
+15. [`architecture/feature-flags.md`](architecture/feature-flags.md)
+16. [`architecture/dev-workflow.md`](architecture/dev-workflow.md): branches, commits, PR, CI, rulesets
+17. [`domains/README.md`](domains/README.md): the 10 operational domains
+18. [`states/order.md`](states/order.md): order state machine
+19. [`workflows/order-creation.md`](workflows/order-creation.md): first end-to-end flow
+20. [`events/README.md`](events/README.md): event catalog
+21. [`migration/local-setup.md`](migration/local-setup.md): .NET local boot and clean DB recreate
 
 ## How to add a new doc
 
