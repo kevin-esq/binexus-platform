@@ -6,36 +6,47 @@
 
 The architecture is designed to expand for five years. Features ship one bounded context at a time, focused and minimal.
 
-## System shape (Phase 0)
+## Stack (current)
+
+| Layer          | Choice                                              |
+| -------------- | --------------------------------------------------- |
+| Backend        | C# / .NET 10 / ASP.NET Core / EF Core / PostgreSQL  |
+| Web            | Next.js (App Router) + `@binexus/sdk` → Api `:5102` |
+| Workers        | `Binexus.Workers` (outbox/inbox)                    |
+| Object storage | MinIO (S3-compatible)                               |
+| Auth           | JWT (access + refresh) + RBAC                       |
+
+NestJS is **not** a supported runtime. Legacy backend: NestJS, removed in [ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md) migration.
+
+## System shape
 
 ```mermaid
 flowchart LR
     subgraph clients[Clients]
-        web[Web app<br/>Next.js 15]
+        web[Web app<br/>Next.js]
         desktop[Desktop<br/>Tauri 2]
         mobile[Mobile<br/>placeholder]
     end
 
-    subgraph backend[Backend monolith - NestJS 11]
-        api[HTTP API<br/>Fastify]
-        identity[Identity context<br/>active in F0]
-        orders[Orders context<br/>F1]
-        catalog[Catalog context<br/>F1+]
-        customers[Customers context<br/>F1+]
-        sales[Sales context<br/>F5]
-        inventory[Inventory context<br/>F2]
-        warehouse[Warehouse context<br/>F3]
-        logistics[Logistics context<br/>F4-6]
-        billing[Billing context<br/>F7]
-        reporting[Reporting context<br/>F8+]
-        bus[Event bus<br/>in-process]
-        outbox[Outbox<br/>Postgres table]
-        prisma[PrismaService<br/>tenant-scoped]
+    subgraph backend[Backend monolith - .NET 10]
+        api[HTTP API<br/>ASP.NET Core :5102]
+        workers[Workers<br/>outbox/inbox :5103]
+        identity[Identity]
+        orders[Orders]
+        catalog[Catalog<br/>planned]
+        customers[Customers<br/>planned]
+        sales[Sales]
+        inventory[Inventory]
+        warehouse[Warehouse]
+        logistics[Logistics]
+        billing[Billing<br/>planned]
+        reporting[Reporting<br/>planned]
+        outbox[Outbox<br/>Postgres]
+        ef[EF Core<br/>tenant-scoped]
     end
 
     subgraph infra[Infrastructure - Docker Compose]
         pg[("Postgres 16")]
-        redis[("Redis 7.4<br/>future event transport")]
         minio[("MinIO<br/>object storage")]
     end
 
@@ -52,31 +63,29 @@ flowchart LR
     api --> logistics
     api --> billing
     api --> reporting
-    identity --> bus
-    catalog --> bus
-    customers --> bus
-    orders --> bus
-    sales --> bus
-    inventory --> bus
-    warehouse --> bus
-    logistics --> bus
-    billing --> bus
-    reporting --> bus
-    bus --> outbox
-    outbox -. dispatcher F1+ .-> redis
-    identity --> prisma
-    catalog --> prisma
-    customers --> prisma
-    orders --> prisma
-    sales --> prisma
-    inventory --> prisma
-    warehouse --> prisma
-    logistics --> prisma
-    billing --> prisma
-    reporting --> prisma
-    prisma --> pg
-    backend --> minio
+    identity --> outbox
+    orders --> outbox
+    sales --> outbox
+    inventory --> outbox
+    warehouse --> outbox
+    logistics --> outbox
+    outbox --> workers
+    workers --> identity
+    workers --> orders
+    workers --> inventory
+    workers --> warehouse
+    workers --> logistics
+    identity --> ef
+    orders --> ef
+    sales --> ef
+    inventory --> ef
+    warehouse --> ef
+    logistics --> ef
+    ef --> pg
+    api --> minio
 ```
+
+Detail: [`dotnet-backend.md`](./dotnet-backend.md). Bounded contexts: [`bounded-contexts.md`](./bounded-contexts.md).
 
 ## Why a modular monolith
 

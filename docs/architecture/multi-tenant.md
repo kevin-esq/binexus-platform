@@ -2,7 +2,7 @@
 
 ## Decision
 
-**Shared database + `tenantId` column + `AsyncLocalStorage` request context + Prisma extension.**
+**Shared database + `tenantId` column + request-scoped tenant context + EF filters / explicit scoping.**
 
 We deliberately rejected "DB per tenant" because:
 
@@ -10,59 +10,18 @@ We deliberately rejected "DB per tenant" because:
 - Backups and observability multiply.
 - It would block low-cost onboarding of small tenants.
 
-We will revisit if a single tenant ever needs hard isolation guarantees (e.g. regulated industries). At that point, the same code can opt that tenant into a dedicated DB via the `DATABASE_URL` resolved per-context.
+We will revisit if a single tenant ever needs hard isolation guarantees (e.g. regulated industries).
 
-## Mechanics
+**Backend:** C# / .NET 10 / ASP.NET Core / EF Core / PostgreSQL. Nest Prisma `forTenant()` + ALS is historical ([ADR-0005](../adr/0005-multi-tenant-shared-database.md) amended by [ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md)). Sync reservation + JWT tenant middleware: [ADR-0014](../adr/0014-inventory-sync-reservation-and-tenant-middleware.md).
 
-1. **`TenantContextMiddleware`** ([source](../../apps/backend/src/common/tenant/tenant-context.middleware.ts)) decodes the JWT and binds `{ tenantId, userId, role, branchId, requestId }` to an `AsyncLocalStorage`.
-2. **`PrismaService.forTenant()`** ([source](../../apps/backend/src/common/prisma/prisma.service.ts)) returns a `$extends`-wrapped client that auto-injects `where: { tenantId }` on read/write and `data: { tenantId }` on create for every tenant-scoped model.
-3. **`TENANT_SCOPED_MODELS`** is the explicit allow-list. Adding a model that holds tenant data requires adding it to that set — this is intentional friction.
+## Mechanics (.NET)
 
-## Tenant-scoped models
-
-- `User`
-- `Branch`
-- `OutboxEvent`
-- `TenantFeature`
-- `Order`
-- `OrderLine`
-- `OrderTransition`
-- `AuditLog`
-
-Foundation models that are NOT tenant-scoped:
-
-- `Tenant` itself
-- `RefreshToken` (scoped via the `User` it belongs to)
+1. **`AuthenticatedTenantMiddleware`** ([source](../../apps/backend/src/Binexus.Platform/Tenancy/AuthenticatedTenantMiddleware.cs)) binds `{ tenantId, userId, role, branchId, … }` onto `ICurrentTenant` from validated JWT claims after authentication.
+2. **`DevelopmentTenantOverrideMiddleware`** is Development/Testing only and never supersedes JWT context ([ADR-0014](../adr/0014-inventory-sync-reservation-and-tenant-middleware.md)).
+3. Handlers read `ICurrentTenant.Current` and scope EF queries by `TenantId`. Cross-module inventory writes stage on the caller's `BinexusDbContext` in one transaction.
 
 ## Rules
 
-- **Never call `this.<model>` directly from business code.** Always go through `prisma.forTenant().<model>`. The non-extended client is reserved for `identity` (login flow), super-admin tooling, and the outbox dispatcher.
-- **Super-admin endpoints** that must operate across tenants are marked with `@SkipTenant()`. They are responsible for explicitly providing `tenantId` filters when needed.
-- **Cross-tenant reads are a code smell.** Surface them as ADRs.
-
-## Example
-
-```ts
-// Inside a command handler:
-@Injectable()
-export class CreateBranchHandler {
-  constructor(private readonly prisma: PrismaService) {}
-
-  async execute(cmd: CreateBranchCommand): Promise<BranchId> {
-    // tenantId is injected automatically from AsyncLocalStorage.
-    const branch = await this.prisma.forTenant().branch.create({
-      data: { name: cmd.name },
-    });
-    return branch.id as BranchId;
-  }
-}
-```
-
-## What to do / what NOT to do
-
-| Do                                                           | Don't                                                            |
-| ------------------------------------------------------------ | ---------------------------------------------------------------- |
-| Use `prisma.forTenant()` in every command/query handler      | Read `tenantId` from a request param and pass it manually        |
-| Add new tenant-scoped models to `TENANT_SCOPED_MODELS`       | Trust client-provided `tenantId`                                 |
-| Use `@SkipTenant()` for super-admin endpoints                | Bypass `forTenant()` "just for this query"                       |
-| Test handlers by running them inside `tenantContext.run({})` | Use `process.env.CURRENT_TENANT` or globals to thread the tenant |
+- Business code must not query tenant-owned rows without a tenant context (except deliberate identity login / seed / migrate paths).
+- Super-admin or system workers that operate across tenants set context explicitly (outbox processor sets tenant from the event envelope).
+- Adding a new tenant-owned table requires an EF configuration that includes `TenantId` and the module's query discipline.

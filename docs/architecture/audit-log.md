@@ -4,9 +4,11 @@
 
 Provide an immutable, tenant-scoped trail of significant domain facts. Orders events are the first active consumers so every commercial state change leaves an idempotent audit row.
 
+**Backend:** C# / .NET 10 / ASP.NET Core / EF Core / PostgreSQL. Nest Prisma `AuditLog` handlers are historical ([ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md)).
+
 ## Model
 
-`AuditLog` in [`apps/backend/prisma/schema.prisma`](../../apps/backend/prisma/schema.prisma):
+`AuditLog` is an EF entity in Platform / Identity persistence (tenant-scoped):
 
 | Field         | Role                                             |
 | ------------- | ------------------------------------------------ |
@@ -24,41 +26,21 @@ Provide an immutable, tenant-scoped trail of significant domain facts. Orders ev
 
 ```mermaid
 sequenceDiagram
-    participant Dispatcher as OutboxDispatcherService
-    participant Transport as InProcessEventTransport
-    participant Handler as OrderAuditHandler
-    participant Audit as AuditLogService
+    participant Worker as Outbox worker
+    participant Inbox as Handler delivery
+    participant Handler as Order audit handler
     participant Table as AuditLog
 
-    Dispatcher->>Transport: publish ORDER_* event
-    Transport->>Handler: @OnEvent ORDER_*
-    Handler->>Audit: recordOrder*
-    Audit->>Table: upsert by eventId
+    Worker->>Inbox: deliver ORDER_* event
+    Inbox->>Handler: handle
+    Handler->>Table: upsert by eventId
 ```
 
 ## Idempotency
 
-`AuditLogService` uses `upsert` on `eventId`. If the dispatcher retries a publish, the audit row is not duplicated.
+Handlers upsert by `eventId` so outbox redelivery does not duplicate rows.
 
-## Code locations
+## Rules
 
-| Piece                        | Path                                                                                                                                     |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `AuditLogService`            | [`apps/backend/src/common/audit/audit-log.service.ts`](../../apps/backend/src/common/audit/audit-log.service.ts)                         |
-| `OrderCreatedAuditHandler`   | [`apps/backend/src/common/audit/order-created-audit.handler.ts`](../../apps/backend/src/common/audit/order-created-audit.handler.ts)     |
-| `OrderApprovedAuditHandler`  | [`apps/backend/src/common/audit/order-approved-audit.handler.ts`](../../apps/backend/src/common/audit/order-approved-audit.handler.ts)   |
-| `OrderCancelledAuditHandler` | [`apps/backend/src/common/audit/order-cancelled-audit.handler.ts`](../../apps/backend/src/common/audit/order-cancelled-audit.handler.ts) |
-| `AuditModule`                | [`apps/backend/src/common/audit/audit.module.ts`](../../apps/backend/src/common/audit/audit.module.ts)                                   |
-
-## Adding audit for a new event
-
-1. Add a method on `AuditLogService` (or a dedicated handler) that maps the payload to `entityType` / `entityId` / `action`.
-2. Register an `@OnEvent('YOUR_EVENT')` handler in `AuditModule`.
-3. Use `upsert` on `eventId` for idempotency.
-4. Update [`docs/events/README.md`](../events/README.md) consumers column.
-
-## Not in scope yet
-
-- Audit log HTTP API or admin UI
-- Retention / archival policies
-- Cross-tenant audit search (super-admin tooling)
+- Audit is a consumer of facts, not a second write path for business state.
+- Payloads stay minimal (ids + state deltas), not full aggregate dumps.
