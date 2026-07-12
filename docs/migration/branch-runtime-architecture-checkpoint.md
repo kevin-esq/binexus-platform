@@ -1,10 +1,11 @@
 # CHECKPOINT BRANCH RUNTIME ARCHITECTURE - FINAL
 
-**Status:** Proposed - awaiting final direction approval  
+**Status:** Direction approved  
 **Date:** 2026-07-12  
-**Scope:** Architecture docs and ADRs only. No implementation. No commit/push required from agents until you approve versioning.
+**Approved by:** Kevin Esquivel  
+**Scope:** Architecture docs and ADRs only. Implementation starts only after this documentation is reviewed and merged, on new branches from `main`.
 
-All ADRs **0016–0032** remain `Proposed`.
+All ADRs **0016–0032** remain `Proposed` until each decision is implemented or ADR policy marks them Accepted.
 
 ---
 
@@ -57,10 +58,10 @@ See [ADR-0016](../adr/0016-three-installation-modes.md).
 
 ## Offline-first preciso
 
-| Caso                       | Resultado                              |
-| -------------------------- | -------------------------------------- |
-| Offline de internet        | Sucursal opera en Branch Server        |
-| Offline del servidor local | Cliente no confirma operaciones nuevas |
+| Caso                            | Resultado                                    |
+| ------------------------------- | -------------------------------------------- |
+| Offline de internet             | Sucursal opera en Branch Server              |
+| Offline del Branch Server (LAN) | Branch Client no confirma operaciones nuevas |
 
 Confirmación = commit en Branch Server + PostgreSQL. Modo terminal degradado con DB propia = futuro ADR.
 
@@ -201,22 +202,9 @@ Separate channels: Tauri, Branch Runtime, PG migration, sync protocol. Min deskt
 
 ---
 
-## Roadmap por PRs (un desarrollador)
+## Roadmap por PRs
 
-| PR                                      | Valor demostrable                                                                                   | Deps     | Pruebas             | Riesgos               | Done when                                  | Out of scope            |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------- | -------- | ------------------- | --------------------- | ------------------------------------------ | ----------------------- |
-| 1 Runtime mode foundation               | `AddBinexusCore` + Cloud/Branch composition stubs; architecture test forbids mode checks in Modules | main     | unit DI tests       | accidental mode leaks | Branch boots empty health; Cloud unchanged | Sync, Tauri, installer  |
-| 2 Branch identity & health              | BranchInstance config surface + `/health` with instance metadata                                    | PR1      | API tests           | wrong listen bind     | Health shows instance id mode              | Pairing, sync           |
-| 3 Desktop Tauri shell + server profiles | App opens, stores Branch URL profile, calls health                                                  | PR2      | smoke UI            | secret mishandling    | Connect to Branch health over LAN/dev      | POS, pairing            |
-| 4 Device pairing                        | Pair client↔Branch with device credential                                                           | PR2–3    | pairing integration | weak approval UX      | Paired device required for API             | Cloud activation polish |
-| 5 POS flow against Branch               | CreateSale against Branch commits locally                                                           | PR4      | sales tests + e2e   | session invariants    | Sale confirmed offline from Cloud          | Sync upstream           |
-| 6 Multi-terminal LAN validation         | Two clients, two terminals, sessions                                                                | PR5      | concurrency         | session collisions    | Two cajas operate                          | Installer               |
-| 7 Installer spike                       | Elevated install Postgres+services on one Windows box                                               | PR2      | manual checklist    | elevation failures    | Services start after reboot                | Pretty wizard polish    |
-| 8 Sync journal upstream foundation      | Journal table + worker skeleton + checkpoint                                                        | PR1–2    | worker tests        | conflating outbox     | Journal rows after local event             | Sales sync complete     |
-| 9 Sync upstream Sales                   | Sale reaches Cloud idempotently                                                                     | PR8, PR5 | integration         | duplicates            | Cloud shows sale after sync                | Downstream catalog      |
-| 10 Downstream configuration             | Flags/users/config pull                                                                             | PR8      | integration         | stale auth            | Branch applies config version              | Full catalog product    |
-
-Later PRs (not in first ten): bootstrap UX, proof objects, backup scheduler, version gates, Web freshness fields, catalog downstream.
+Implementation sequencing lives in [`docs/architecture/branch-runtime-roadmap.md`](../architecture/branch-runtime-roadmap.md). Do not start PR 1 until this checkpoint documentation is merged.
 
 ---
 
@@ -235,19 +223,19 @@ Later PRs (not in first ten): bootstrap UX, proof objects, backup scheduler, ver
 
 ## Approval checklist
 
-- [ ] Three modes naming locked
-- [ ] Offline internet vs LAN locked
-- [ ] Single BranchInstance + Replace locked
-- [ ] Composition roots locked
-- [ ] Sync journal (not entity flags) locked
-- [ ] Activation ≠ pairing locked
-- [ ] LAN security stack locked
-- [ ] Installer boundary locked
-- [ ] Config/secrets matrix locked
-- [ ] Bootstrap resumable locked
-- [ ] Proof/backup/update/web freshness ADRs locked
-- [ ] PR roadmap accepted as sequencing guide
+- [x] Three modes naming locked
+- [x] Offline internet vs LAN locked
+- [x] Single BranchInstance + Replace locked
+- [x] Composition roots locked
+- [x] Sync journal (not entity flags) locked
+- [x] Activation ≠ pairing locked
+- [x] LAN security stack locked
+- [x] Installer boundary locked
+- [x] Config/secrets matrix locked
+- [x] Bootstrap resumable locked
+- [x] Proof/backup/update/web freshness ADRs locked
+- [x] PR roadmap accepted as sequencing guide
 
 ## Explicitly not in this checkpoint
 
-No Branch/Tauri/sync/installer/hardware/Stripe code. No commits/push from this review unless you ask to version docs after approval. No implementation on `docs/branch-runtime-architecture`.
+No Branch Runtime, Tauri, sync, installer, hardware, Stripe, EF, Docker, or CI implementation in the documentation PR. Implementation uses new branches from updated `main` after merge.

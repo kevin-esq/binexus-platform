@@ -2,7 +2,7 @@
 
 Branch Runtime is the local-hub topology: one Branch Server per sucursal, Branch Clients on LAN, async sync with Cloud Runtime.
 
-Related decisions: [ADR-0016](../adr/0016-three-installation-modes.md) through [ADR-0032](../adr/0032-web-admin-synced-freshness.md). Checkpoint: [branch-runtime-architecture-checkpoint.md](../migration/branch-runtime-architecture-checkpoint.md).
+Related decisions: [ADR-0016](../adr/0016-three-installation-modes.md) through [ADR-0032](../adr/0032-web-admin-synced-freshness.md). Checkpoint: [branch-runtime-architecture-checkpoint.md](../migration/branch-runtime-architecture-checkpoint.md). Roadmap: [branch-runtime-roadmap.md](./branch-runtime-roadmap.md).
 
 ## Three installation modes
 

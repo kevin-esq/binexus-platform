@@ -46,7 +46,7 @@ Proposed  →  Accepted  →  (Deprecated | Superseded by ADR-NNNN)
 | 0013 | [Sales / POS — sub-slices and session-first retail model](0013-sales-pos-sub-slices-and-session-model.md)               | Accepted                | 2026-07-10 |
 | 0014 | [Sync inventory reservation and authenticated tenant context](0014-inventory-sync-reservation-and-tenant-middleware.md) | Accepted                | 2026-07-11 |
 | 0015 | [NestJS retirement — .NET 10 as sole backend](0015-nestjs-retirement-dotnet-sole-backend.md)                            | Accepted                | 2026-07-12 |
-| 0016 | [Three installation modes — Cloud, Branch Server, Branch Client](0016-three-installation-modes.md)                      | Proposed                | 2026-07-12 |
+| 0016 | [Three installation modes - Cloud, Branch Server, Branch Client](0016-three-installation-modes.md)                      | Proposed                | 2026-07-12 |
 | 0017 | [One authoritative BranchInstance per sucursal](0017-single-branch-instance.md)                                         | Proposed                | 2026-07-12 |
 | 0018 | [Device, Terminal, and User identity](0018-device-terminal-user-identity.md)                                            | Proposed                | 2026-07-12 |
 | 0019 | [Branch Server activation with Cloud](0019-branch-server-activation.md)                                                 | Proposed                | 2026-07-12 |
@@ -54,7 +54,7 @@ Proposed  →  Accepted  →  (Deprecated | Superseded by ADR-NNNN)
 | 0021 | [LAN discovery candidates and fallbacks](0021-lan-discovery.md)                                                         | Proposed                | 2026-07-12 |
 | 0022 | [Branch Installer and wizard contract](0022-branch-installer.md)                                                        | Proposed                | 2026-07-12 |
 | 0023 | [LAN API security for Branch Server](0023-lan-api-security.md)                                                          | Proposed                | 2026-07-12 |
-| 0024 | [Offline-first — internet vs local server](0024-offline-first-internet-vs-lan.md)                                       | Proposed                | 2026-07-12 |
+| 0024 | [Offline-first - internet vs Branch Server LAN](0024-offline-first-internet-vs-lan.md)                                  | Proposed                | 2026-07-12 |
 | 0025 | [Sync journal, ownership, and conflicts](0025-sync-journal-ownership-conflicts.md)                                      | Proposed                | 2026-07-12 |
 | 0026 | [Resumable Branch bootstrap](0026-resumable-bootstrap.md)                                                               | Proposed                | 2026-07-12 |
 | 0027 | [Configuration and secrets placement](0027-configuration-and-secrets.md)                                                | Proposed                | 2026-07-12 |
