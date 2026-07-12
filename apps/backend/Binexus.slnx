@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Binexus.Api/Binexus.Api.csproj" />
+    <Project Path="src/Binexus.Platform/Binexus.Platform.csproj" />
+    <Project Path="src/Binexus.Platform.Features.Contracts/Binexus.Platform.Features.Contracts.csproj" />
+    <Project Path="src/Binexus.SharedKernel/Binexus.SharedKernel.csproj" />
+    <Project Path="src/Binexus.Workers/Binexus.Workers.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/">
+    <Project Path="src/Modules/Binexus.Modules.Identity/Binexus.Modules.Identity.csproj" />
+    <Project Path="src/Modules/Binexus.Modules.Inventory.Contracts/Binexus.Modules.Inventory.Contracts.csproj" />
+    <Project Path="src/Modules/Binexus.Modules.Inventory/Binexus.Modules.Inventory.csproj" />
+    <Project Path="src/Modules/Binexus.Modules.Logistics/Binexus.Modules.Logistics.csproj" />
+    <Project Path="src/Modules/Binexus.Modules.Orders.Contracts/Binexus.Modules.Orders.Contracts.csproj" />
+    <Project Path="src/Modules/Binexus.Modules.Orders/Binexus.Modules.Orders.csproj" />
+    <Project Path="src/Modules/Binexus.Modules.Sales/Binexus.Modules.Sales.csproj" />
+    <Project Path="src/Modules/Binexus.Modules.Warehouse/Binexus.Modules.Warehouse.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Binexus.ArchitectureTests/Binexus.ArchitectureTests.csproj" />
+    <Project Path="tests/Binexus.IntegrationTests/Binexus.IntegrationTests.csproj" />
+    <Project Path="tests/Binexus.UnitTests/Binexus.UnitTests.csproj" />
+  </Folder>
+</Solution>

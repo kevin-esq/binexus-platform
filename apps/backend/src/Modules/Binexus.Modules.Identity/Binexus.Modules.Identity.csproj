@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Binexus.Modules.Identity</RootNamespace>
+    <AssemblyName>Binexus.Modules.Identity</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Isopoh.Cryptography.Argon2" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Binexus.Platform.Features.Contracts\Binexus.Platform.Features.Contracts.csproj" />
+    <ProjectReference Include="..\..\Binexus.SharedKernel\Binexus.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Binexus.Platform\Binexus.Platform.csproj" />
+  </ItemGroup>
+
+</Project>

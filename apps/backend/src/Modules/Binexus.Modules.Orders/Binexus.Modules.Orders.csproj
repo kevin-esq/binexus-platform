@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Binexus.Modules.Orders</RootNamespace>
+    <AssemblyName>Binexus.Modules.Orders</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Binexus.Modules.Orders.Contracts\Binexus.Modules.Orders.Contracts.csproj" />
+    <ProjectReference Include="..\Binexus.Modules.Inventory.Contracts\Binexus.Modules.Inventory.Contracts.csproj" />
+    <ProjectReference Include="..\..\Binexus.SharedKernel\Binexus.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Binexus.Platform\Binexus.Platform.csproj" />
+  </ItemGroup>
+</Project>

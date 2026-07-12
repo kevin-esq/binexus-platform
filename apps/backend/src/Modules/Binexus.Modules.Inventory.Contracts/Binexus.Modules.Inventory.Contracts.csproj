@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Binexus.Modules.Inventory.Contracts</RootNamespace>
+    <AssemblyName>Binexus.Modules.Inventory.Contracts</AssemblyName>
+    <!-- Public ports only: no Platform, EF, or Infrastructure dependencies. -->
+  </PropertyGroup>
+</Project>
