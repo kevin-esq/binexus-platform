@@ -20,16 +20,13 @@ env:
   TURBO_TELEMETRY_DISABLED: '1'
 
 jobs:
-  install:
-    name: Install dependencies
+  # Required: sdk + web
+  frontend:
+    name: Frontend (sdk + web)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    outputs:
-      store-path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -42,152 +39,214 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Get pnpm store directory
-        id: pnpm-store
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
-
-      - name: Cache pnpm store
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
-        run: pnpm --filter @binexus/backend exec prisma generate
-
-  typecheck:
-    name: Typecheck
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @binexus/backend exec prisma generate
-      - name: Turbo typecheck
+      - name: Typecheck
         run: pnpm exec turbo run typecheck
 
-  lint:
-    name: Lint
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @binexus/backend exec prisma generate
-      - name: Turbo lint
+      - name: Lint
         run: pnpm exec turbo run lint
+
       - name: Prettier check
         run: pnpm format:check
 
-  build:
-    name: Build
-    needs: [typecheck, lint]
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @binexus/backend exec prisma generate
-      - name: Turbo build
+      - name: Test (sdk + packages)
+        run: pnpm exec turbo run test
+
+      - name: Build
         run: pnpm exec turbo run build
 
-  test:
-    name: Test
-    needs: install
+  # Required: .NET modular monolith
+  backend:
+    name: Backend (.NET)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: binexus
-          POSTGRES_PASSWORD: binexus
-          POSTGRES_DB: binexus
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd="pg_isready -U binexus"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
-      redis:
-        image: redis:7.4-alpine
-        ports: ['6379:6379']
-        options: >-
-          --health-cmd="redis-cli ping"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
+    timeout-minutes: 25
     env:
-      DATABASE_URL: postgresql://binexus:binexus@localhost:5432/binexus?schema=public
-      REDIS_URL: redis://localhost:6379
-      JWT_ACCESS_SECRET: ci-access-secret
-      JWT_REFRESH_SECRET: ci-refresh-secret
-      JWT_ACCESS_TTL: 15m
-      JWT_REFRESH_TTL: 7d
+      Jwt__SigningKey: ci-only-binexus-signing-key-with-more-than-32-bytes
     steps:
       - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
         with:
           run_install: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @binexus/backend exec prisma generate
-      - name: Run unit tests
-        run: pnpm exec turbo run test
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: NuGet vulnerable audit
+        working-directory: apps/backend
+        run: |
+          dotnet restore
+          dotnet package list --file Binexus.slnx --vulnerable --include-transitive
+          json="$(dotnet package list --file Binexus.slnx --vulnerable --include-transitive --format json)"
+          echo "$json"
+          high_or_critical="$(echo "$json" | jq -r '
+            [.. | objects | select(has("vulnerabilities")) | .vulnerabilities[]?
+             | select(.severity == "High" or .severity == "Critical")
+            ] | length')"
+          exceptions="$(jq -r 'length' ../../docs/migration/nuget-audit-exceptions.json)"
+          if [ "$exceptions" != "0" ]; then
+            jq -e 'all(.[]; (.reviewBy // .ReviewBy // "") != "" and (.removalCondition // .RemovalCondition // "") != "")' ../../docs/migration/nuget-audit-exceptions.json
+          fi
+          if [ "$high_or_critical" != "0" ]; then
+            echo "::error::Found $high_or_critical unapproved High/Critical vulnerabilities"
+            exit 1
+          fi
+
+      - name: Format verify
+        working-directory: apps/backend
+        run: dotnet format Binexus.slnx --verify-no-changes --severity warn
+
+      - name: Build
+        working-directory: apps/backend
+        run: dotnet build --configuration Release --no-restore
+
+      - name: EF pending model changes
+        working-directory: apps/backend
+        run: |
+          dotnet tool restore
+          dotnet ef migrations has-pending-model-changes \
+            --project src/Binexus.Platform/Binexus.Platform.csproj \
+            --startup-project src/Binexus.Api/Binexus.Api.csproj
+
+      - name: Generate idempotent SQL
+        working-directory: apps/backend
+        run: |
+          mkdir -p db ../../artifacts/migrations
+          dotnet ef migrations script --idempotent \
+            --project src/Binexus.Platform/Binexus.Platform.csproj \
+            --startup-project src/Binexus.Api/Binexus.Api.csproj \
+            -o db/binexus-idempotent.sql
+          cp db/binexus-idempotent.sql ../../artifacts/migrations/binexus-idempotent.sql
+
+      - name: Upload idempotent SQL
+        uses: actions/upload-artifact@v4
+        with:
+          name: binexus-idempotent-sql
+          path: |
+            apps/backend/db/binexus-idempotent.sql
+            artifacts/migrations/binexus-idempotent.sql
+
+      - name: Test
+        working-directory: apps/backend
+        run: dotnet test --configuration Release --no-build
+
+      - name: Verify OpenAPI artifact
+        run: test -f artifacts/openapi/binexus-v1.json
+
+      - name: Generate TypeScript SDK
+        shell: pwsh
+        run: ./apps/backend/scripts/generate-sdk.ps1
+
+      - name: Verify generated SDK is committed
+        run: git diff --exit-code packages/sdk/src/generated/schema.d.ts
+
+  # Required: compose stack + SMOKE_REQUIRE=1 (MinIO) + Playwright when feasible
+  compose-smoke:
+    name: Compose smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      Jwt__SigningKey: ci-only-binexus-signing-key-with-more-than-32-bytes
+      IdentitySeed__AdminPassword: ChangeMe123!
+      Logistics__Storage__Provider: MinIO
+      Logistics__Storage__Endpoint: http://minio:9000
+      Logistics__Storage__InternalEndpoint: http://minio:9000
+      Logistics__Storage__PublicEndpoint: http://localhost:9000
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_ENVIRONMENT: Development
+      RUN_MIGRATIONS: '0'
+      COMPOSE_PROJECT_NAME: binexus-ci-smoke
+      # Use standard ports on clean CI runners so Playwright can share the stack.
+      API_SMOKE_PORT: '5102'
+      WORKERS_SMOKE_PORT: '5103'
+      MINIO_SMOKE_PORT: '9000'
+      MINIO_CONSOLE_SMOKE_PORT: '9001'
+      POSTGRES_SMOKE_PORT: '5432'
+      SMOKE_API_URL: http://localhost:5102
+      SMOKE_WORKERS_URL: http://localhost:5103
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      NEXT_PUBLIC_API_URL: http://localhost:5102
+      PLAYWRIGHT_API_URL: http://localhost:5102
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Compose config (validate)
+        run: |
+          docker compose -f infrastructure/compose/docker-compose.yml config --services
+          docker compose -f infrastructure/compose/docker-compose.yml config >/dev/null
+
+      - name: Compose smoke (SMOKE_REQUIRE=1, MinIO)
+        run: bash apps/backend/scripts/gate6-compose-smoke.sh
+        env:
+          KEEP_RUNNING: '1'
+
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Playwright gate5 smoke (Next webServer → .NET API)
+        working-directory: apps/web
+        run: pnpm exec playwright test e2e/gate5-smoke.spec.ts
+        env:
+          CI: 'true'
+          NEXT_PUBLIC_API_URL: http://localhost:5102
+          PLAYWRIGHT_API_URL: http://localhost:5102
+
+      - name: Upload smoke / compose logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate6-smoke-logs
+          path: |
+            artifacts/gate6-smoke/
+            apps/web/test-results/
+            apps/web/playwright-report/
+          if-no-files-found: ignore
+
+      - name: Compose down
+        if: always()
+        run: docker compose -f infrastructure/compose/docker-compose.yml -p binexus-ci-smoke --profile web --profile seed down --remove-orphans -v || true
 
   ci-summary:
     name: CI Summary
     if: always()
-    needs: [typecheck, lint, build, test]
+    needs: [frontend, backend, compose-smoke]
     runs-on: ubuntu-latest
     steps:
       - name: Aggregate results
         run: |
-          status_typecheck="${{ needs.typecheck.result }}"
-          status_lint="${{ needs.lint.result }}"
-          status_build="${{ needs.build.result }}"
-          status_test="${{ needs.test.result }}"
-          echo "typecheck=$status_typecheck"
-          echo "lint=$status_lint"
-          echo "build=$status_build"
-          echo "test=$status_test"
-          if [[ "$status_typecheck" != "success" || \
-                "$status_lint" != "success" || \
-                "$status_build" != "success" || \
-                "$status_test" != "success" ]]; then
-            echo "::error::One or more CI checks failed"
+          status_frontend="${{ needs.frontend.result }}"
+          status_backend="${{ needs.backend.result }}"
+          status_smoke="${{ needs.compose-smoke.result }}"
+          echo "frontend=$status_frontend"
+          echo "backend=$status_backend"
+          echo "compose-smoke=$status_smoke"
+          if [[ "$status_frontend" != "success" || \
+                "$status_backend" != "success" || \
+                "$status_smoke" != "success" ]]; then
+            echo "::error::One or more required CI checks failed"
             exit 1
           fi
-          echo "All checks passed"
+          echo "All required checks passed"

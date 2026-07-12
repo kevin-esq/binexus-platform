@@ -13,14 +13,6 @@ updates:
       prefix: chore
       include: scope
     groups:
-      nest:
-        patterns:
-          - '@nestjs/*'
-          - 'nestjs-*'
-      prisma:
-        patterns:
-          - '@prisma/*'
-          - 'prisma'
       next:
         patterns:
           - 'next'

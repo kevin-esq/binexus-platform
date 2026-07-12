@@ -22,11 +22,10 @@ body:
       label: Area
       multiple: true
       options:
-        - apps/backend
+        - apps/backend/ (.NET)
         - apps/web
         - apps/desktop
         - packages/types
-        - packages/events
         - packages/sdk
         - packages/ui
         - infrastructure / docker
