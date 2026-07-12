@@ -1,1 +1,3 @@
-pnpm exec lint-staged
+# Root config only — apps/backend is .NET (no package.json); avoid lint-staged
+# probing deleted Nest package.json paths still present in the git index.
+pnpm exec lint-staged --config package.json
