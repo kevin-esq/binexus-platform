@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 
 import { api } from '../../lib/api';
 import { formatApiError } from '../../lib/error-messages';
@@ -35,27 +35,33 @@ export default function LoginPage() {
         <p className="mt-1 text-sm text-slate-500">Binexus admin console</p>
 
         <form className="mt-6 space-y-4" onSubmit={onSubmit}>
-          <Field label="Tenant slug">
+          <Field id="tenant-slug" label="Tenant slug">
             <input
+              id="tenant-slug"
               required
+              autoComplete="organization"
               value={tenantSlug}
               onChange={(e) => setTenantSlug(e.target.value)}
               className="h-10 w-full rounded border border-slate-300 px-3 text-sm"
             />
           </Field>
-          <Field label="Email">
+          <Field id="email" label="Email">
             <input
+              id="email"
               required
               type="email"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 w-full rounded border border-slate-300 px-3 text-sm"
             />
           </Field>
-          <Field label="Password">
+          <Field id="password" label="Password">
             <input
+              id="password"
               required
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-10 w-full rounded border border-slate-300 px-3 text-sm"
@@ -81,11 +87,13 @@ export default function LoginPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) {
   return (
-    <label className="block">
-      <span className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</span>
+    <div className="block">
+      <label htmlFor={id} className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        {label}
+      </label>
       <div className="mt-1">{children}</div>
-    </label>
+    </div>
   );
 }

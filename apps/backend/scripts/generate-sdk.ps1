@@ -12,7 +12,9 @@ Push-Location $Root
 try {
     pnpm --filter @binexus/sdk exec openapi-typescript $OpenApi -o $SdkFile
     $generated = Get-Content $SdkFile -Raw
-    if (-not $generated.StartsWith("/**`n * GENERATED FILE — DO NOT EDIT")) {
+    # Normalize newlines so header detection works on Windows and Linux CI.
+    $normalized = $generated -replace "`r`n", "`n"
+    if (-not ($normalized.StartsWith("/**`n * GENERATED FILE — DO NOT EDIT"))) {
         $header = @"
 /**
  * GENERATED FILE — DO NOT EDIT
@@ -21,8 +23,11 @@ try {
  */
 
 "@
-        Set-Content -Path $SdkFile -Value ($header + $generated) -NoNewline
+        [System.IO.File]::WriteAllText($SdkFile, $header + $normalized)
     }
+
+    # Match lint-staged / committed formatting so CI `git diff` stays green.
+    pnpm exec prettier --write $SdkFile | Out-Host
     Write-Host "Generated $SdkFile"
 }
 finally {

@@ -32,6 +32,9 @@ test.describe('Gate 5 smoke UI', () => {
     });
 
     await page.goto('/login');
+    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible({
+      timeout: 60_000,
+    });
     await page.getByLabel(/tenant slug/i).fill('acme');
     await page.getByLabel(/^email$/i).fill('admin@acme.test');
     await page.getByLabel(/^password$/i).fill('ChangeMe123!');

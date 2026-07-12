@@ -15,6 +15,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# Match gate6-compose-smoke.sh: KEEP_RUNNING=1 leaves the stack up for Playwright.
+if ($env:KEEP_RUNNING -eq '1') { $KeepRunning = $true }
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..\..\..")
 $ComposeFile = Join-Path $Root "infrastructure\compose\docker-compose.yml"
 $LogDir = Join-Path $Root "artifacts\gate6-smoke"

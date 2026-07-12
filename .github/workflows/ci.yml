@@ -192,6 +192,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Build web workspace dependencies
+        run: pnpm exec turbo run build --filter=@binexus/web^...
+
       - name: Compose config (validate)
         run: |
           docker compose -f infrastructure/compose/docker-compose.yml config --services
