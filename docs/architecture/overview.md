@@ -87,38 +87,6 @@ flowchart LR
 
 Detail: [`dotnet-backend.md`](./dotnet-backend.md). Bounded contexts: [`bounded-contexts.md`](./bounded-contexts.md).
 
-## Target (Branch Runtime — Proposed)
-
-Branch Runtime is the proposed future topology for local branch operations. See [`branch-runtime.md`](./branch-runtime.md) for the full design and [`../migration/branch-runtime-architecture-checkpoint.md`](../migration/branch-runtime-architecture-checkpoint.md) for the direction checkpoint.
-
-```mermaid
-flowchart LR
-    subgraph cloud[Cloud]
-        webAdmin[Web Admin]
-        cloudApi[Cloud Backend]
-    end
-
-    subgraph branch[Branch / Sucursal]
-        principal[Servidor Principal<br/>Branch API + Workers]
-        branchPg[(Local PostgreSQL)]
-        principal --> branchPg
-    end
-
-    subgraph terminals[Tauri terminals]
-        caja1[Caja 1]
-        caja2[Caja 2]
-        oficina[Oficina]
-    end
-
-    webAdmin --> cloudApi
-    principal <-->|Async sync| cloudApi
-    caja1 -->|LAN HTTP| principal
-    caja2 -->|LAN HTTP| principal
-    oficina -->|LAN HTTP| principal
-```
-
-Cloud does not sit on the in-person sale path. Tauri terminals call the Branch API on the LAN, and the Principal owns the branch database.
-
 ## Why a modular monolith
 
 - Single founder, evolving domain — microservices' cost dwarfs their benefit.

@@ -46,23 +46,6 @@ Proposed  →  Accepted  →  (Deprecated | Superseded by ADR-NNNN)
 | 0013 | [Sales / POS — sub-slices and session-first retail model](0013-sales-pos-sub-slices-and-session-model.md)               | Accepted                | 2026-07-10 |
 | 0014 | [Sync inventory reservation and authenticated tenant context](0014-inventory-sync-reservation-and-tenant-middleware.md) | Accepted                | 2026-07-11 |
 | 0015 | [NestJS retirement — .NET 10 as sole backend](0015-nestjs-retirement-dotnet-sole-backend.md)                            | Accepted                | 2026-07-12 |
-| 0016 | [Runtime modes for Cloud and Branch](0016-runtime-modes-cloud-vs-branch.md)                                             | Proposed                | 2026-07-12 |
-| 0017 | [Branch runtime responsibilities](0017-branch-runtime.md)                                                               | Proposed                | 2026-07-12 |
-| 0018 | [Branch Server per sucursal](0018-branch-server.md)                                                                     | Proposed                | 2026-07-12 |
-| 0019 | [Device identity for Branch and Tauri hosts](0019-device-identity.md)                                                   | Proposed                | 2026-07-12 |
-| 0020 | [Terminal identity as a logical POS role](0020-terminal-identity.md)                                                    | Proposed                | 2026-07-12 |
-| 0021 | [LAN discovery for Branch Server](0021-lan-discovery.md)                                                                | Proposed                | 2026-07-12 |
-| 0022 | [Branch device pairing and handshake](0022-pairing-and-handshake.md)                                                    | Proposed                | 2026-07-12 |
-| 0023 | [Branch installation topology](0023-branch-installation.md)                                                             | Proposed                | 2026-07-12 |
-| 0024 | [Branch local HTTP API](0024-local-http-api.md)                                                                         | Proposed                | 2026-07-12 |
-| 0025 | [Branch local authentication](0025-local-authentication.md)                                                             | Proposed                | 2026-07-12 |
-| 0026 | [Offline-first strategy for Branch Runtime](0026-offline-first-strategy.md)                                             | Proposed                | 2026-07-12 |
-| 0027 | [Branch and Cloud synchronization architecture](0027-synchronization-architecture.md)                                   | Proposed                | 2026-07-12 |
-| 0028 | [Branch Runtime conflict resolution](0028-conflict-resolution.md)                                                       | Proposed                | 2026-07-12 |
-| 0029 | [Branch Runtime bootstrap snapshot](0029-bootstrap.md)                                                                  | Proposed                | 2026-07-12 |
-| 0030 | [Branch Runtime configuration storage](0030-configuration-storage.md)                                                   | Proposed                | 2026-07-12 |
-| 0031 | [Branch Runtime secrets storage](0031-secrets-storage.md)                                                               | Proposed                | 2026-07-12 |
-| 0032 | [Branch Runtime Windows Service deployment](0032-windows-service-deployment.md)                                         | Proposed                | 2026-07-12 |
 
 ## When NOT to write an ADR
 
