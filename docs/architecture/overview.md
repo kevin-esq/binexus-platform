@@ -87,6 +87,38 @@ flowchart LR
 
 Detail: [`dotnet-backend.md`](./dotnet-backend.md). Bounded contexts: [`bounded-contexts.md`](./bounded-contexts.md).
 
+## Target (Branch Runtime — Proposed)
+
+Three installation modes: **Cloud Runtime**, **Branch Server**, **Branch Client**. See [`branch-runtime.md`](./branch-runtime.md) and [`../migration/branch-runtime-architecture-checkpoint.md`](../migration/branch-runtime-architecture-checkpoint.md).
+
+```mermaid
+flowchart LR
+    subgraph cloud[Cloud Runtime]
+        webAdmin[Web Admin]
+        cloudApi[Cloud API / Workers]
+    end
+
+    subgraph branch[Branch Server]
+        principal[Branch API + Workers + Sync]
+        branchPg[(PostgreSQL local)]
+        principal --> branchPg
+    end
+
+    subgraph terminals[Branch Clients]
+        caja1[Tauri Caja 1]
+        caja2[Tauri Caja 2]
+        oficina[Tauri Oficina]
+    end
+
+    webAdmin --> cloudApi
+    principal <-->|Sync journal| cloudApi
+    caja1 -->|TLS + device + user| principal
+    caja2 -->|TLS + device + user| principal
+    oficina -->|TLS + device + user| principal
+```
+
+Cloud is off the in-person sale path. Branch Client never writes PostgreSQL directly.
+
 ## Why a modular monolith
 
 - Single founder, evolving domain — microservices' cost dwarfs their benefit.

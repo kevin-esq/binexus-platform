@@ -13,21 +13,25 @@ ADRs explain **why** we chose what we chose. Living docs explain **how the syste
 
 ## Reading order
 
-1. [`adr/README.md`](adr/README.md) — the architectural decisions that shape everything below
-2. [`architecture/overview.md`](architecture/overview.md) — start here for the runtime picture
-3. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
-4. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
-5. [`architecture/event-system.md`](architecture/event-system.md)
-6. [`architecture/audit-log.md`](architecture/audit-log.md)
-7. [`architecture/commands.md`](architecture/commands.md)
-8. [`architecture/observability.md`](architecture/observability.md)
-9. [`architecture/feature-flags.md`](architecture/feature-flags.md)
-10. [`architecture/dev-workflow.md`](architecture/dev-workflow.md) — branches, commits, PR, CI, rulesets
-11. [`domains/README.md`](domains/README.md) — the 10 operational domains
-12. [`states/order.md`](states/order.md) — order state machine
-13. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
-14. [`events/README.md`](events/README.md) — event catalog
-15. [`migration/local-setup.md`](migration/local-setup.md) — .NET local boot + clean DB recreate
+1. [`adr/README.md`](adr/README.md): architectural decisions that shape everything below
+2. [`architecture/overview.md`](architecture/overview.md): start here for the runtime picture
+3. [`architecture/branch-runtime.md`](architecture/branch-runtime.md): proposed Branch Runtime topology
+4. [`architecture/desktop-tauri.md`](architecture/desktop-tauri.md): proposed desktop shell boundaries
+5. [`architecture/branch-wizard-ux.md`](architecture/branch-wizard-ux.md): proposed first-run branch setup flow
+6. [`architecture/web-vs-desktop-surfaces.md`](architecture/web-vs-desktop-surfaces.md): proposed surface split
+7. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
+8. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
+9. [`architecture/event-system.md`](architecture/event-system.md)
+10. [`architecture/audit-log.md`](architecture/audit-log.md)
+11. [`architecture/commands.md`](architecture/commands.md)
+12. [`architecture/observability.md`](architecture/observability.md)
+13. [`architecture/feature-flags.md`](architecture/feature-flags.md)
+14. [`architecture/dev-workflow.md`](architecture/dev-workflow.md): branches, commits, PR, CI, rulesets
+15. [`domains/README.md`](domains/README.md): the 10 operational domains
+16. [`states/order.md`](states/order.md): order state machine
+17. [`workflows/order-creation.md`](workflows/order-creation.md): first end-to-end flow
+18. [`events/README.md`](events/README.md): event catalog
+19. [`migration/local-setup.md`](migration/local-setup.md): .NET local boot and clean DB recreate
 
 ## How to add a new doc
 
