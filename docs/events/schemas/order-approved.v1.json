@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://binexus.dev/events/schemas/order-approved.v1.json",
+  "title": "ORDER_APPROVED v1 payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["tenantId", "orderId", "branchId", "eventId", "lines"],
+  "properties": {
+    "tenantId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "orderId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "branchId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Matches the outbox message id."
+    },
+    "actorId": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    },
+    "lines": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["orderLineId", "productId", "quantity"],
+        "properties": {
+          "orderLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}
