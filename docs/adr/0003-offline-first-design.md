@@ -7,7 +7,7 @@
 | Deciders | Kevin Esquivel                                |
 | Tags     | architecture, offline, sync, contracts, latam |
 
-Note: [ADR-0024](0024-offline-first-internet-vs-lan.md) proposes the Branch Runtime deepening of this accepted decision (internet outage vs Branch Server outage).
+Note: Proposed [ADR-0024](0024-offline-first-internet-vs-lan.md) deepens this decision for Branch Runtime (internet outage vs Branch Server LAN outage). When ADR-0024 is Accepted, treat this ADR as amended by ADR-0024.
 
 ## Context and problem statement
 

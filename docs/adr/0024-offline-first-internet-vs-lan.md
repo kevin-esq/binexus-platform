@@ -1,4 +1,4 @@
-# ADR-0024: Offline-first - internet outage vs local server outage
+# ADR-0024: Offline-first - internet vs Branch Server LAN
 
 | Field    | Value          |
 | -------- | -------------- |
@@ -48,10 +48,10 @@ Degraded terminal mode with local authoritative commits requires a future ADR.
 
 ### Labels
 
-| Phrase                     | Meaning                                  |
-| -------------------------- | ---------------------------------------- |
-| Offline de internet        | Cloud unreachable; Branch Server up      |
-| Offline del servidor local | Branch Client cannot reach Branch Server |
+| Phrase                          | Meaning                                  |
+| ------------------------------- | ---------------------------------------- |
+| Offline de internet             | Cloud unreachable; Branch Server up      |
+| Offline del Branch Server (LAN) | Branch Client cannot reach Branch Server |
 
 ## Consequences
 
