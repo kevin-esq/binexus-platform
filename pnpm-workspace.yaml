@@ -7,12 +7,7 @@ autoInstallPeers: true
 strictPeerDependencies: false
 
 allowBuilds:
-  '@nestjs/core': true
-  '@prisma/client': true
-  '@prisma/engines': true
   '@swc/core': true
-  argon2: true
   esbuild: true
-  prisma: true
   sharp: true
   unrs-resolver: true
