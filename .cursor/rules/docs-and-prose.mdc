@@ -1,0 +1,21 @@
+---
+description: Auto-load docs/Notion prose skills when editing documentation
+globs:
+  - 'docs/**'
+  - '**/ADR*.md'
+  - 'docs/adr/**'
+  - 'docs/migration/**'
+  - 'docs/architecture/**'
+  - 'docs/domains/**'
+alwaysApply: false
+---
+
+# Docs & checkpoints
+
+When editing documentation here, **Read and follow**:
+
+1. [`.cursor/skills/stop-slop/SKILL.md`](../skills/stop-slop/SKILL.md)
+2. [`.cursor/skills/doc-coauthoring/SKILL.md`](../skills/doc-coauthoring/SKILL.md) for long-form / multi-contributor docs
+3. [`.cursor/skills/notion-docs-sync/SKILL.md`](../skills/notion-docs-sync/SKILL.md) when the change should stay in sync with Notion
+
+Keep architecture claims aligned with ADRs under `docs/adr/`.

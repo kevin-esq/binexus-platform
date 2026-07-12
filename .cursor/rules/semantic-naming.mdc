@@ -1,0 +1,19 @@
+---
+description: Auto-load semantic-naming when editing shared contracts, events, types, schema
+globs:
+  - 'packages/types/**'
+  - 'packages/events/**'
+  - 'packages/sdk/**'
+  - '**/schema.prisma'
+  - 'docs/domains/**'
+  - 'apps/backend/src/Modules/**/Domain/**'
+  - 'apps/backend/src/Modules/**/Application/**'
+  - 'apps/backend/src/Modules/**/Features/**'
+alwaysApply: false
+---
+
+# Semantic naming (contracts)
+
+Before adding or renaming a cross-boundary concept, **Read and follow** [`.cursor/skills/semantic-naming/SKILL.md`](../skills/semantic-naming/SKILL.md).
+
+Applies to: Prisma/EF models, enums, commands, domain events, `@binexus/types`, SDK methods, HTTP routes, DTOs, C# Application contracts.
