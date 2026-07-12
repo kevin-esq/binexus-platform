@@ -27,11 +27,14 @@ ADRs explain **why** we chose what we chose. Living docs explain **how the syste
 12. [`states/order.md`](states/order.md) — order state machine
 13. [`workflows/order-creation.md`](workflows/order-creation.md) — first end-to-end flow
 14. [`events/README.md`](events/README.md) — event catalog
+15. [`migration/local-setup.md`](migration/local-setup.md) — .NET local boot + clean DB recreate
 
 ## How to add a new doc
 
 - **New architectural decision**: add an ADR — see [`adr/README.md`](adr/README.md).
 - **New bounded context or domain**: extend `domains/README.md` and add a per-domain page.
 - **New state machine**: add to `states/<entity>.md` with a Mermaid diagram + transition table.
-- **New event**: add to `events/README.md` + a Zod schema in `packages/events`.
+- **New event**: add to `events/README.md` + a contract under `apps/backend/contracts/events` ([ADR-0015](adr/0015-nestjs-retirement-dotnet-sole-backend.md)).
 - **Updating "how it works today"** because of a recent change: update the living docs in `architecture/`. Do NOT edit ADRs to reflect a new reality — write a new ADR that supersedes the old one.
+
+**Backend (active):** C# / .NET 10 / ASP.NET Core / EF Core / PostgreSQL. NestJS is not supported. Legacy: NestJS, removed in ADR-0015.

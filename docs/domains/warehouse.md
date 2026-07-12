@@ -1,4 +1,4 @@
-﻿# Warehouse domain
+# Warehouse domain
 
 Status: **active** (Phase 3). Bounded context: `warehouse`.
 
@@ -22,7 +22,7 @@ Warehouse owns operational execution inside a branch/warehouse: picking, packing
 
 Implemented:
 
-- `CompletePickingTaskCommand` — marks a pending task complete, sets `pickedQuantity = quantity` on all lines, emits `PICKING_COMPLETED`.
+- `CompletePickingTaskCommand` — marks a pending task complete, sets `pickedQuantity = quantity` on all lines, calls Orders to mark the order ready for delivery route in the same transaction, and emits informational `PICKING_COMPLETED`.
 
 Planned:
 
@@ -32,23 +32,23 @@ Planned:
 - `ReportPickingExceptionCommand`.
 - `StageOrderCommand`.
 
-Picking task creation is event-driven via `ORDER_PICKING_STARTED` (no explicit create command in this slice).
+Picking task creation is event-driven via `ORDER_APPROVED` (no explicit create command in this slice).
 
 ## Events emitted
 
-| Event               | When                                       |
-| ------------------- | ------------------------------------------ |
-| `PICKING_COMPLETED` | All lines picked; task marked `COMPLETED`. |
+| Event               | When                                                                                                           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `PICKING_COMPLETED` | All lines picked; task marked `COMPLETED`. Orders is already updated synchronously through `Orders.Contracts`. |
 
 Planned: `PICKING_TASK_CREATED`, `PICKING_STARTED`, `PICKING_EXCEPTION_REPORTED`, `ORDER_STAGED`.
 
 ## Events consumed
 
-| Event                   | Handler                               | Behavior                                              |
-| ----------------------- | ------------------------------------- | ----------------------------------------------------- |
-| `ORDER_PICKING_STARTED` | `OrderPickingStartedWarehouseHandler` | Create idempotent `PickingTask` + `PickingLine` rows. |
+| Event            | Handler                           | Behavior                                                                                                                                                                                       |
+| ---------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ORDER_APPROVED` | `OrderApprovedWarehouseProcessor` | Strictly validates the v1 payload, moves Orders to `PICKING`, then creates idempotent `PickingTask` + `PickingLine` rows. Missing or no-longer-applicable orders finish as `ProcessedIgnored`. |
 
-Planned: `ORDER_CANCELLED`, `DELIVERY_ROUTE_ASSIGNED`.
+Reserved: `ORDER_CANCELLED` task cancellation. Planned later: `DELIVERY_ROUTE_ASSIGNED`.
 
 ## HTTP surface
 
@@ -64,13 +64,9 @@ POST /warehouse/picking-tasks/:id/complete
 ## Implementation layout
 
 ```
-apps/backend/src/contexts/warehouse/
-  application/warehouse-picking.service.ts
-  application/warehouse-read.service.ts
-  application/commands/complete-picking-task.command.ts
-  events/order-picking-started.handler.ts
-  presentation/warehouse.controller.ts
-  warehouse.module.ts
+apps/backend/src/Modules/Binexus.Modules.Warehouse/
+  Application/
+  Infrastructure/
 ```
 
 ## Allowed dependencies

@@ -73,16 +73,16 @@ pnpm exec turbo run typecheck lint build
 
 ## CI on GitHub
 
+Required jobs (post [ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md)): **frontend** (sdk + web), **backend** (.NET format/build/test + OpenAPI/SDK), **compose-smoke** (.NET + MinIO + Playwright). No Nest, Prisma, or Redis CI paths.
+
 ```mermaid
 flowchart LR
-    PR[Pull Request to main] --> Inst[install]
-    Inst --> TC[Typecheck]
-    Inst --> LT[Lint]
-    TC --> BD[Build]
-    LT --> BD
-    Inst --> TS[Test pg + redis]
-    BD --> SUM[CI Summary]
-    TS --> SUM
+    PR[Pull Request to main] --> FE[frontend turbo]
+    PR --> BE[dotnet Release]
+    PR --> SM[compose-smoke]
+    FE --> SUM[CI Summary]
+    BE --> SUM
+    SM --> SUM
     PR --> VB[Validate branch name]
     PR --> VC[Validate commit messages]
     PR --> PT[Conventional Commits PR title]
@@ -120,9 +120,10 @@ gh auth login
 
 # After cloning
 pnpm install
+cp .env.example .env
 pnpm docker:up
-pnpm db:migrate
-pnpm db:seed
+pnpm db:seed:dev   # or db:seed:dev:win on Windows
+# Clean DB recreate (no Prisma→EF data migration): see docs/migration/local-setup.md
 
 # Owner only: push the policy
 pwsh -File scripts/apply-rulesets.ps1 -Action apply

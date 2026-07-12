@@ -1,11 +1,13 @@
 # ADR-0001: Monorepo with pnpm + Turborepo
 
-| Field    | Value                        |
-| -------- | ---------------------------- |
-| Status   | Accepted                     |
-| Date     | 2026-05-23                   |
-| Deciders | Kevin Esquivel               |
-| Tags     | tooling, monorepo, build, dx |
+| Field    | Value                          |
+| -------- | ------------------------------ |
+| Status   | Accepted — Amended by ADR-0015 |
+| Date     | 2026-05-23                     |
+| Deciders | Kevin Esquivel                 |
+| Tags     | tooling, monorepo, build, dx   |
+
+> **Amended by ADR-0015:** NestJS is no longer a workspace app; the monorepo still uses pnpm + Turborepo for web/packages alongside the .NET solution under `backend/`.
 
 ## Context and problem statement
 

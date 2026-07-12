@@ -1,6 +1,8 @@
 # Bounded contexts
 
-Binexus is organized as a modular monolith with ten initial bounded contexts. They live under [`apps/backend/src/contexts/`](../../apps/backend/src/contexts/).
+Binexus is organized as a modular monolith with ten initial bounded contexts. They live under [`apps/backend/src/Modules/`](../../apps/backend/src/Modules/) (one assembly per module). See [`dotnet-backend.md`](./dotnet-backend.md).
+
+**Backend:** C# / .NET 10 / ASP.NET Core / EF Core / PostgreSQL. NestJS is not a supported option. Legacy backend: NestJS, removed in [ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md) migration.
 
 The contexts intentionally map 1:1 with the operational domains documented in [`docs/domains`](../domains/). This keeps ownership clear while the product is still learning the business. We can merge or split later with a new ADR, but Phase 1 starts with explicit boundaries.
 
@@ -17,32 +19,30 @@ The contexts intentionally map 1:1 with the operational domains documented in [`
 | `billing`   | F7    | Planned        | Invoices, fiscal documents, payment allocation, receivables                 |
 | `reporting` | F8+   | Planned        | Read models, operational dashboards, analytics projections                  |
 
-**Status in repo** means the bounded context is implemented (`Active`) or still a stub (`Planned`). **Phase complete** (F1–F4) means the scoped vertical slice for that roadmap phase is shipped; contexts stay `Active` because they remain live code paths under maintenance. See the roadmap table in [`README.md`](../../README.md).
+**Status in repo** means the bounded context is implemented (`Active`) or still a stub (`Planned`). **Phase complete** (F1–F5) means the scoped vertical slice for that roadmap phase is shipped; contexts stay `Active` because they remain live code paths under maintenance. See the roadmap table in [`README.md`](../../README.md).
 
 ## Rules of engagement
 
-1. **No direct service calls across contexts.** If `Sales` needs `Inventory` to reserve stock, it publishes a domain event. The other context's handler reacts.
-2. **Each context owns its tables.** Cross-context joins in Prisma are forbidden. Use events to project read models if you need them.
-3. **Shared types live in `@binexus/types`.** Anything imported across contexts is intentional and reviewed.
-4. **Commands stay inside their context.** A command handler in `orders` cannot dispatch a command from `inventory`. Use events.
-5. **`identity` is the only context other contexts may query directly** (for user/branch lookups during authorization). This is a deliberate exception.
+1. **No direct domain calls across modules.** Cross-context work uses integration events (outbox/inbox) or explicit application contracts (e.g. `IInventoryReservationApi`). See [ADR-0014](../adr/0014-inventory-sync-reservation-and-tenant-middleware.md).
+2. **Each module owns its tables.** Cross-module EF joins of foreign aggregates are forbidden. Use events to project read models if you need them.
+3. **Shared TypeScript types live in `@binexus/types`.** HTTP clients use `@binexus/sdk` (OpenAPI-generated). Event contracts live under `apps/backend/contracts/events` ([ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md)).
+4. **Commands stay inside their module.** An Orders handler does not dispatch an Inventory command; it calls a published contract or publishes an event.
+5. **`identity` is the only module other modules may query directly** for user/branch lookups during authorization. This is a deliberate exception.
 6. **`catalog` and `customers` are reference contexts.** Other contexts may store immutable snapshots from them, but not mutate their rows.
 7. **`reporting` never owns source-of-truth writes.** It consumes events and builds projections.
 
-## Per-context structure (when implemented)
+## Per-module structure (when implemented)
 
 ```
-<context>/
-├── <context>.module.ts
-├── domain/                  Entities, value objects, state machines (pure TS)
-├── application/             Commands, queries, handlers
-├── infrastructure/          Prisma repositories, external integrations
-└── presentation/            HTTP controllers (or other transport)
+Binexus.Modules.<Context>/
+├── Domain/                  Aggregates, value objects, invariants
+├── Application/             Commands, queries, contracts
+├── Features/                Vertical slices (optional)
+├── Infrastructure/          EF repositories, services
+└── (registration)           Module DI + endpoint mapping via Api
 ```
 
-Five bounded contexts are registered in `AppModule` and implemented beyond README placeholders: `identity`, `orders`, `inventory`, `warehouse`, and `logistics`. The remaining contexts (`catalog`, `customers`, `sales`, `billing`, `reporting`) still have folder stubs only.
-
-Implemented contexts follow the structure below (some omit empty `domain/` or `infrastructure/` folders until needed):
+Active modules: `Identity`, `Orders`, `Inventory`, `Warehouse`, `Logistics`, `Sales`. Planned: `Catalog`, `Customers`, `Billing`, `Reporting`.
 
 ## Future extraction
 

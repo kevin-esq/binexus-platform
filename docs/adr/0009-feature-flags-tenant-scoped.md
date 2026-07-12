@@ -120,3 +120,12 @@ It is failing if:
 - [Unleash docs](https://docs.getunleash.io/) — the most likely future replacement of the internals.
 - Related: ADR-0005 (multi-tenant — flags are scoped by `tenantId`), ADR-0007 (command bus — guards run before handlers).
 - Related docs: [`docs/architecture/feature-flags.md`](../architecture/feature-flags.md)
+
+## Amendment (2026-07-12) — contracts ownership
+
+**Decision:** Commercial feature contracts (`FeatureKey`, `FeatureKeyValues`, `ITenantFeatureService`) live in **`Binexus.Platform.Features.Contracts`**, not in Identity.Contracts / SharedKernel.
+
+- Modules (Sales, Logistics, …) reference `Platform.Features.Contracts` only.
+- Identity **persists** `tenant_features` rows and implements `ITenantFeatureService` in Identity.Infrastructure; Identity does **not** own the commercial API surface.
+- `Binexus.Modules.Identity.Contracts` was removed (it only held entitlements).
+- Operational kill switches (e.g. Logistics `Features:LiquidationKillSwitch`) remain separate from commercial entitlements.

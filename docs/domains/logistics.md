@@ -41,10 +41,10 @@ Implemented:
 
 - `DELIVERY_ROUTE_CREATED`.
 - `DELIVERY_ROUTE_ASSIGNED`.
-- `DELIVERY_ROUTE_DISPATCHED` - consumed by Orders to mark assigned orders `OUT_FOR_DELIVERY`.
-- `DELIVERY_CONFIRMED` - consumed by Orders to mark order `DELIVERED`; optional `proof` object (recipient, notes, photo/signature object keys, GPS).
-- `DELIVERY_FAILED` - consumed by Orders to mark order `DELIVERY_ATTEMPT_FAILED`; resolved manually via Orders #3b (requeue or cancel).
-- `DELIVERY_ROUTE_LIQUIDATED` - consumed by Orders to `SettleOrderCommand` for COD orders on the route.
+- `DELIVERY_ROUTE_DISPATCHED` - informational audit/future projection fact. Logistics calls Orders synchronously through `Orders.Contracts` before commit.
+- `DELIVERY_CONFIRMED` - informational audit/future projection fact with optional proof metadata. Logistics calls Orders synchronously through `Orders.Contracts` before commit.
+- `DELIVERY_FAILED` - informational audit/future projection fact. Logistics calls Orders synchronously through `Orders.Contracts` before commit.
+- `DELIVERY_ROUTE_LIQUIDATED` - informational audit/future projection fact. Logistics settles COD orders synchronously through `Orders.Contracts` before commit.
 
 Planned:
 
@@ -69,7 +69,7 @@ Planned:
 ## Boundary rules
 
 1. Logistics proves delivery; Billing decides financial settlement.
-2. Delivery confirmation is an event with proof metadata, not a direct order update.
+2. Delivery confirmation emits a proof fact and updates Orders synchronously through `Orders.Contracts`.
 3. Delivery route liquidation is operational cash reconciliation, not accounting final truth.
 4. Offline mobile/driver flows must be idempotent by command ID.
 

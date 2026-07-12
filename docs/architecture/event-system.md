@@ -2,72 +2,54 @@
 
 ## Goals
 
-- **Decouple bounded contexts.** Cross-context communication is exclusively via events.
-- **Survive crashes.** Events emitted as part of a command must not be lost if the process dies between the DB commit and the publish call.
-- **Replayable.** Every event has a stable `id`, `correlationId`, `version`, and Zod schema.
-- **Migratable transport.** Today: in-process emitter. Tomorrow: Redis Streams or Kafka, without changing producer code.
+- **Decouple bounded contexts.** Cross-context communication is via integration events (and a few explicit application contracts).
+- **Survive crashes.** Events staged in the outbox in the same EF transaction as the write are not lost on process death.
+- **Replayable.** Every event has a stable `id`, `correlationId`, `version`, and a versioned payload contract.
+- **No external broker required today.** Workers poll outbox → deliver to inbox / handlers in-process.
+
+**Backend:** C# / .NET 10 / ASP.NET Core / EF Core / PostgreSQL. NestJS event bus / Redis Streams stub removed in [ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md).
 
 ## Pieces
 
-| Piece                                                           | Where                                                                                                                              |
-| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Event name registry                                             | [`packages/events/src/registry.ts`](../../packages/events/src/registry.ts)                                                         |
-| Envelope contract                                               | [`packages/events/src/envelope.ts`](../../packages/events/src/envelope.ts)                                                         |
-| Per-event Zod payload schemas                                   | [`packages/events/src/schemas/`](../../packages/events/src/schemas/)                                                               |
-| `EventBusService` (build + publish, runtime payload validation) | [`apps/backend/src/common/events/event-bus.service.ts`](../../apps/backend/src/common/events/event-bus.service.ts)                 |
-| `OutboxService` (persist within the command's transaction)      | [`apps/backend/src/common/events/outbox.service.ts`](../../apps/backend/src/common/events/outbox.service.ts)                       |
-| `OutboxDispatcherService` (`dispatchPending()`)                 | [`apps/backend/src/common/events/outbox-dispatcher.service.ts`](../../apps/backend/src/common/events/outbox-dispatcher.service.ts) |
-| `EVENT_TRANSPORT` provider                                      | [`apps/backend/src/common/events/transports/`](../../apps/backend/src/common/events/transports/)                                   |
+| Piece                         | Where                                                                                                                                                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Event contracts (runtime SoT) | Module producers/consumers under [`apps/backend/src/Modules/`](../../apps/backend/src/Modules/) + [`Messaging/`](../../apps/backend/src/Binexus.Platform/Messaging/) (`OutboxMessage.EventName`, payload JSON) |
+| Human catalog                 | [`docs/events/README.md`](../events/README.md)                                                                                                                                                                 |
+| Outbox processor              | [`apps/backend/src/Binexus.Platform/Messaging/`](../../apps/backend/src/Binexus.Platform/Messaging/)                                                                                                           |
+| Workers host                  | [`apps/backend/src/Binexus.Workers/`](../../apps/backend/src/Binexus.Workers/)                                                                                                                                 |
+| JSON snapshots (selected)     | [`docs/events/schemas/`](../events/schemas/)                                                                                                                                                                   |
 
-## Flow (the canonical recipe)
+There is no centralized `apps/backend/contracts/events` folder today (future proposal only — see catalog). `@binexus/events` (Zod) was removed.
+
+## Flow (canonical recipe)
 
 ```mermaid
 sequenceDiagram
-    participant Handler as CommandHandler
-    participant Tx as Prisma transaction
-    participant Outbox as OutboxEvent table
-    participant Dispatcher as OutboxDispatcherService
-    participant Transport as Event transport
-    participant Subscribers as Other context handlers
+    participant Handler as Module handler
+    participant Tx as EF transaction
+    participant Outbox as Outbox table
+    participant Worker as Binexus.Workers
+    participant Inbox as Inbox / handler delivery
+    participant Subscribers as Other module handlers
 
-    Handler->>Tx: BEGIN
+    Handler->>Tx: Begin / SaveChanges
     Handler->>Tx: persist domain change
     Handler->>Outbox: insert event row
-    Handler->>Tx: COMMIT
-    Dispatcher->>Outbox: poll publishedAt IS NULL
-    Dispatcher->>Transport: publish envelope
-    Transport->>Subscribers: deliver
-    Dispatcher->>Outbox: set publishedAt
+    Handler->>Tx: Commit
+    Worker->>Outbox: claim unpublished rows
+    Worker->>Inbox: deliver envelope
+    Inbox->>Subscribers: handle (idempotent)
 ```
-
-## Outbox dispatcher
-
-`OutboxDispatcherService.dispatchPending()` is the Phase 1 entry point for publishing rows where `publishedAt IS NULL`:
-
-- Reads a batch (default 50) ordered by `occurredAt`.
-- Re-hydrates the envelope and validates the payload with `EventPayloadSchemas`.
-- Publishes through `EVENT_TRANSPORT`.
-- Sets `publishedAt` only after a successful publish.
-- On failure, increments `attempts` and stores `lastError`, then continues with the rest of the batch.
-
-There is **no cron or interval** in this phase — call `dispatchPending()` explicitly from tests or a future worker process.
-
-## Transports
-
-- `InProcessEventTransport` (current default): emits on `@nestjs/event-emitter`. Subscribers in the same process react synchronously.
-- `RedisStreamsEventTransport` (stub today): swap the `EVENT_TRANSPORT` provider in `EventsModule` when ready. The dispatcher contract stays the same.
 
 ## Adding a new event
 
-1. Add a key in `packages/events/src/registry.ts`.
-2. Add a Zod schema file in `packages/events/src/schemas/<event>.ts`.
-3. Wire it into `packages/events/src/schemas/index.ts → EventPayloadSchemas`.
-4. Document it in [`docs/events/README.md`](../events/README.md).
-5. Producer side: call `eventBus.publish('YOUR_EVENT', payload)` from inside the command's transaction (use `OutboxService.record(...)` with the same tx).
-6. Consumer side: in another context, `@OnEvent('YOUR_EVENT')` on a handler method.
+1. Add / version the contract under `apps/backend/contracts/events`.
+2. Document it in [`docs/events/README.md`](../events/README.md).
+3. Producer: stage the outbox row in the same EF transaction as the state change.
+4. Consumer: register an inbox handler; treat redelivery as idempotent by envelope `id`.
 
 ## Rules
 
-- **Events are facts, not commands.** Past tense, no imperatives. `ORDER_CREATED`, not `CREATE_ORDER`.
+- **Events are facts, not commands.** Past tense. `ORDER_CREATED`, not `CREATE_ORDER`.
 - **Tiny payloads.** Carry IDs and minimal context. Consumers re-read details if needed.
-- **Versioned.** Bumping `version` is a breaking change; document a migration in the same PR.
+- **Versioned.** Bumping `version` is a breaking change; document the migration in the same PR.

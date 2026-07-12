@@ -57,7 +57,7 @@ Dashed arrows mean **read-only reference/snapshot usage**, not direct mutation. 
 
 ## Cross-domain rules
 
-1. **Events cross boundaries; repositories do not.** A context cannot import another context's Prisma repository or service.
+1. **Events cross boundaries; repositories do not.** A module cannot import another module's EF repositories or mutate its tables directly.
 2. **Reference data is snapshotted.** Orders store product/customer display data needed for historical correctness. They do not depend on live Catalog/Customers reads for old orders.
 3. **Identity is the only direct lookup exception.** Contexts may rely on the authenticated request context and authorization metadata, but cannot mutate identity data.
 4. **Reporting owns no operational truth.** It consumes events and builds projections.

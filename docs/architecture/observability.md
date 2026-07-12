@@ -2,20 +2,14 @@
 
 ## Decision
 
-**Structured logging with Pino** via `nestjs-pino`, wired with per-request context (`requestId`, `tenantId`, `userId`, `role`). Logs are JSON in production, pretty in development.
+**Structured logging via ASP.NET Core** (JSON in production, readable in development), with per-request context (`requestId`, `tenantId`, `userId`, `role`). Nest `nestjs-pino` is historical — superseded by [ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md) (see also superseded [ADR-0008](../adr/0008-structured-logging-with-pino.md)).
 
-Why early: offline-first + multi-tenant + events means debugging will be hard without structured logs from day one.
+**Backend:** C# / .NET 10 / ASP.NET Core / EF Core / PostgreSQL.
 
 ## Setup
 
-- [`apps/backend/src/common/logger/logger.module.ts`](../../apps/backend/src/common/logger/logger.module.ts) — Pino transport, redaction, customProps.
-- [`apps/backend/src/common/tenant/tenant-context.middleware.ts`](../../apps/backend/src/common/tenant/tenant-context.middleware.ts) — attaches `requestId`, `tenantId`, `userId`, `role` to the request so Pino picks them up.
-
-## What's redacted
-
-- `req.headers.authorization`
-- `req.headers.cookie`
-- any field named `password`
+- Api / Workers host logging configuration under `apps/backend/src/Binexus.Api` and `apps/backend/src/Binexus.Workers`.
+- Tenant middleware attaches identity claims so logs can include tenant/user scope.
 
 ## Conventions
 
@@ -29,18 +23,18 @@ Why early: offline-first + multi-tenant + events means debugging will be hard wi
 
 ## What to log in business code
 
-- **Command execution**: `{ command: 'CreateOrder', durationMs, ok: true }`.
-- **Event dispatch**: `{ event: 'ORDER_CREATED', eventId, correlationId }`.
-- **External calls**: `{ target: 'minio', op: 'putObject', status }`.
+- **Command execution**: command name, duration, success/failure code.
+- **Event dispatch**: event name, event id, correlation id.
+- **External calls**: MinIO / S3 op + status (never full presigned query strings in CI logs).
 
 ## What NOT to log
 
-- Plaintext passwords / tokens (redacted automatically but never compose them either).
+- Plaintext passwords / tokens.
 - Entire request bodies for non-debug levels.
 - PII beyond `userId` / `email` (no full names, addresses, payment data in plain logs).
 
 ## Future
 
-- Phase 1+: ship traces via OpenTelemetry → Tempo/Jaeger.
-- Phase 2+: metrics via OpenTelemetry → Prometheus.
-- Phase 5+: log aggregation in Loki or similar; alerts on `error` rate per tenant.
+- Traces via OpenTelemetry → Tempo/Jaeger.
+- Metrics via OpenTelemetry → Prometheus.
+- Log aggregation (Loki or similar); alerts on `error` rate per tenant.
