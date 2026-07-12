@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { api } from '../../../lib/api';
+import { formatApiError } from '../../../lib/error-messages';
 import { formatDate, formatMoney, shortId } from '../../../lib/format';
 import { hasStoredSession } from '../../../lib/token-storage';
 
@@ -40,7 +41,7 @@ export default function OrderDetailPage() {
         await loadOrder(id);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load order');
+          setError(formatApiError(err));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -62,7 +63,7 @@ export default function OrderDetailPage() {
       await api.approveOrder(id);
       await loadOrder(id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to approve order');
+      setError(formatApiError(err));
     } finally {
       setApproving(false);
     }
@@ -93,7 +94,7 @@ export default function OrderDetailPage() {
       await api.cancelOrder(id, { reason });
       await loadOrder(id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to cancel order');
+      setError(formatApiError(err));
     } finally {
       setCancelling(false);
     }
@@ -113,7 +114,7 @@ export default function OrderDetailPage() {
       await api.requeueFailedDeliveryOrder(id, notes ? { reason: notes } : {});
       await loadOrder(id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to requeue order');
+      setError(formatApiError(err));
     } finally {
       setRequeueing(false);
     }

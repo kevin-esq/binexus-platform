@@ -8,6 +8,10 @@ export const browserTokenProvider: TokenProvider = {
     if (typeof window === 'undefined') return null;
     return window.localStorage.getItem(ACCESS_KEY);
   },
+  getRefreshToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return window.localStorage.getItem(REFRESH_KEY);
+  },
   setTokens(accessToken: string, refreshToken: string): void {
     window.localStorage.setItem(ACCESS_KEY, accessToken);
     window.localStorage.setItem(REFRESH_KEY, refreshToken);

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../lib/api';
+import { formatApiError } from '../../lib/error-messages';
 import { formatDate, formatMoney, shortId } from '../../lib/format';
 import { hasStoredSession } from '../../lib/token-storage';
 
@@ -43,7 +44,7 @@ export default function OrdersPage() {
         if (!cancelled) setError(null);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load orders');
+          setError(formatApiError(err));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -74,7 +75,7 @@ export default function OrdersPage() {
       await loadOrders();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create order');
+      setError(formatApiError(err));
     } finally {
       setCreating(false);
     }
@@ -87,7 +88,7 @@ export default function OrdersPage() {
       await loadOrders(nextCursor);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load more orders');
+      setError(formatApiError(err));
     } finally {
       setLoadingMore(false);
     }

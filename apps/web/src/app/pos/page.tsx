@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { api } from '../../lib/api';
+import { formatApiError } from '../../lib/error-messages';
 import { formatMoney } from '../../lib/format';
 import { hasStoredSession } from '../../lib/token-storage';
 
@@ -97,7 +98,7 @@ export default function PosPage() {
         if (!cancelled) setError(null);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load POS state');
+          setError(formatApiError(err));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -139,7 +140,7 @@ export default function PosPage() {
       setError(null);
     } catch (err) {
       setTerminalInput(terminalId);
-      setError(err instanceof Error ? err.message : 'Failed to load terminal');
+      setError(formatApiError(err));
     } finally {
       setBusy(false);
     }
@@ -172,7 +173,7 @@ export default function PosPage() {
       setMessage(`Session opened on ${result.session.terminalId}`);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to open session');
+      setError(formatApiError(err));
     } finally {
       setBusy(false);
     }
@@ -255,7 +256,7 @@ export default function PosPage() {
       setMessage('Sale completed.');
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete sale');
+      setError(formatApiError(err));
     } finally {
       setBusy(false);
     }
@@ -291,7 +292,7 @@ export default function PosPage() {
       );
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to close session');
+      setError(formatApiError(err));
     } finally {
       setBusy(false);
     }

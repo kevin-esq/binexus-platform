@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
 import { api } from '../../lib/api';
+import { formatApiError } from '../../lib/error-messages';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function LoginPage() {
       await api.login({ tenantSlug, email, password });
       router.push('/orders');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(formatApiError(err));
     } finally {
       setSubmitting(false);
     }
