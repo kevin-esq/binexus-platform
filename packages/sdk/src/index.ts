@@ -16,3 +16,4 @@ export type {
   OrderSummary,
 } from '@binexus/types';
 export { BinexusApiError } from './errors';
+export { parseApiErrorPayload } from './problem-details';
