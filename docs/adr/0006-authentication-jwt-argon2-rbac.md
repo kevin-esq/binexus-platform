@@ -2,10 +2,12 @@
 
 | Field    | Value                          |
 | -------- | ------------------------------ |
-| Status   | Accepted                       |
+| Status   | Accepted — Amended by ADR-0015 |
 | Date     | 2026-05-23                     |
 | Deciders | Kevin Esquivel                 |
 | Tags     | security, auth, identity, rbac |
+
+> **Amended by ADR-0015:** JWT + refresh rotation + RBAC remain; Identity module is .NET (Argon2id / ASP.NET Core), not Nest.
 
 ## Context and problem statement
 

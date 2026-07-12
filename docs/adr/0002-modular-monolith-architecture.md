@@ -2,10 +2,12 @@
 
 | Field    | Value                                               |
 | -------- | --------------------------------------------------- |
-| Status   | Accepted                                            |
+| Status   | Accepted — Amended by ADR-0015                      |
 | Date     | 2026-05-23                                          |
 | Deciders | Kevin Esquivel                                      |
 | Tags     | architecture, runtime, deployment, bounded-contexts |
+
+> **Amended by ADR-0015:** Modular monolith shape unchanged; runtime is .NET 10 (`backend/`), not NestJS.
 
 ## Context and problem statement
 
