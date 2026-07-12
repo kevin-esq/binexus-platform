@@ -1,0 +1,54 @@
+---
+description: Auto-route to the correct Binexus skills by task and path; mandatory Read before acting
+alwaysApply: true
+---
+
+# Skill auto-router (mandatory)
+
+Before substantive work, match the task below and **Read** the listed `.cursor/skills/*/SKILL.md` files, then follow them. Do not skip because you “already know” the skill.
+
+## By file / path (also enforced by glob rules)
+
+| Working in… | Read skills |
+|-------------|-------------|
+| `apps/backend/**/*.cs`, `*.csproj` | `dotnet-modular-monolith`, `dotnet-clean-code`, `semantic-naming` (new names) |
+| `apps/web` operator (`orders`, `logistics`, `inventory`, `warehouse`, `pos`, `login`) | `react-best-practices`, `composition-patterns` |
+| Public / marketing UI (`(public)`, landing, pricing, signup, onboarding) | `taste`, `ui-ux-pro`, `marketing-copy`; `cro` / `growth-seo` if conversion or SEO |
+| `packages/types`, `packages/events`, `packages/sdk`, Prisma schema, new commands/events/DTOs | `semantic-naming` |
+| `docs/**`, ADRs, domain pages, Notion sync of docs | `stop-slop`, `doc-coauthoring`, `notion-docs-sync` |
+| Playwright / E2E specs | `webapp-testing` |
+| `apps/mobile` or RN | `react-native`; store listing → `aso` |
+| MCP server / tools | `mcp-server-patterns`, `mcp-builder` |
+
+## By intent (user words / situation)
+
+| Signal | Read skills |
+|--------|-------------|
+| Bug, broken, failing, regression, “diagnose” | `diagnose` (+ `tdd` if fixing with tests) |
+| “TDD”, red-green-refactor, test-first | `tdd` |
+| Vague / underspecified request | `prompt-improver` before coding |
+| Architecture deepen / seams / extract | `improve-codebase-architecture` |
+| “grill me”, challenge plan, high-stakes decision | `grill-me` (+ `grill-with-docs` if domain docs matter) |
+| PRD / issues / triage | `to-prd` / `to-issues` / `triage` |
+| Onboard / learn codebase / prime context | `learn-codebase` (+ `graphify` queries) |
+| Cross-file “how does X connect” | `graphify` (rule already always-on) |
+| Long session / losing context / handoff | `context-hygiene`, `handoff` |
+| Design / redesign / polish / critique UI | `impeccable` (+ `taste` if public) |
+| Tracking, KPIs, dashboards | `analytics` |
+| SMS / push / WhatsApp / notifications | `messaging` |
+| Export PDF/XLSX/invoice/manifest | `documents` |
+| Pricing / packaging / Stripe tiers | `pricing` |
+| Commit/PR prose, changelog, human text | `stop-slop` |
+| Spec-kit / large unclear slice | `spec-kit` or `ecc` as appropriate |
+| Commit hooks / Husky setup | `setup-pre-commit` |
+
+## Explicit-only (never auto)
+
+Only when the user invokes them: `caveman`, `zoom-out`, `write-a-skill`, `web-artifacts`, `prototype`, `understand-anything`, `claude-mem` (unless search cost is clearly high).
+
+## Conflict resolution
+
+1. Path rules win for code under that path.
+2. If both public and operator UI: use the surface being edited.
+3. Backend C# always beats generic TS/Nest advice still lingering in old docs.
+4. Prefer reading the skill over inventing parallel conventions.

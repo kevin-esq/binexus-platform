@@ -1,6 +1,6 @@
 ---
 name: react-best-practices
-description: Performance and code-quality guardrails for the Binexus web app (`apps/web` — Next.js 15 App Router + React 19 + Tailwind). Use when writing or reviewing React Server Components, Client Components, data fetching, route handlers, or anything under `apps/web/src/app/**`. Triggered by React/Next.js performance, bundle size, hydration, RSC vs Client, or fetch waterfalls.
+description: Performance and code-quality guardrails for the Binexus operator web app (`apps/web` — Next.js App Router + React + Tailwind). Use when writing or reviewing code under `apps/web/src/app/orders|logistics|inventory|warehouse|pos|login/**`, `apps/web/src/components/**`, or `apps/web/src/lib/**`; also for RSC vs Client, fetch waterfalls, bundle size, or hydration issues. Auto-routed by `.cursor/rules/web-operator.mdc`. Not for public landing aesthetics (use `taste`).
 ---
 
 # react-best-practices (Binexus)
@@ -11,7 +11,7 @@ Performance + correctness rules for [`apps/web`](../../../apps/web). Adapted fro
 
 - Next.js 15 App Router (`apps/web/src/app/**`).
 - React 19, Server Components by default, Client Components opt-in via `'use client'`.
-- Data flows through `@binexus/sdk` against the NestJS backend at `:3001`.
+- Data flows through `@binexus/sdk` against the .NET API at `:5102`.
 - Tailwind for styling. No CSS-in-JS.
 - The web app is dispatcher/admin-grade, not consumer marketing. Optimize for latency and operator UX, not for SEO.
 
@@ -54,7 +54,7 @@ Apply in order. Stop at the first one that solves the issue.
 ### 6. Forms and inputs
 
 - Native HTML inputs + Tailwind classes. No form libraries until justified.
-- Server actions are allowed for write paths if they call into the NestJS backend. Authenticate them the same way as API routes.
+- Server actions are allowed for write paths if they call into the .NET API. Authenticate them the same way as API routes.
 
 ### 7. Errors and loading
 
@@ -63,7 +63,7 @@ Apply in order. Stop at the first one that solves the issue.
 
 ## Binexus-specific gotchas
 
-- **Don't query Prisma from the web app.** All DB access goes through `@binexus/sdk` and the NestJS backend. The web app does NOT import `@prisma/client`.
+- **Don't query the DB from the web app.** All DB access goes through `@binexus/sdk` and the .NET API. The web app does NOT import EF/Prisma clients.
 - **Don't bypass `TenantContextService`.** Every API call flows through the SDK which carries the JWT. Adding a "fetch helper" that hits the backend without auth headers breaks multi-tenancy.
 - **Don't pretend events.** The web app is read-only against the event bus. It reacts to refreshes / SWR / route revalidation, never to in-process events.
 - **Don't add OG / SEO metadata** to internal pages — this is an operator UI, indexing is not a requirement.
@@ -74,7 +74,7 @@ Apply in order. Stop at the first one that solves the issue.
 - [ ] Independent fetches are `Promise.all`'d?
 - [ ] No barrel-imported icon libraries that pull in megabytes?
 - [ ] No module-level mutable state in `apps/web/src/app/**`?
-- [ ] No direct Prisma / DB imports?
+- [ ] No direct DB / Prisma imports?
 - [ ] `pnpm exec turbo run typecheck lint build --filter=@binexus/web` is green?
 
 ## Reference

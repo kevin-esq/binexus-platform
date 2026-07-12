@@ -1,6 +1,6 @@
 ---
 name: composition-patterns
-description: React component composition guidance for `apps/web` — avoid boolean-prop proliferation, use compound components, lift state via providers. Use when adding props to an existing component, building a reusable widget, designing a table / form / detail-view, or refactoring `apps/web/src/app/**` components. Pairs with `react-best-practices`.
+description: React component composition guidance for the Binexus operator panel (`apps/web`) — avoid boolean-prop proliferation, use compound components, lift state via providers. Use when adding props to an existing component, building a reusable widget, designing a table/form/detail-view, or refactoring operator routes/components. Auto-routed by `.cursor/rules/web-operator.mdc`. Pairs with `react-best-practices`.
 ---
 
 # composition-patterns (Binexus)

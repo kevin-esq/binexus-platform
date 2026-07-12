@@ -1,0 +1,15 @@
+---
+description: Auto-load Playwright E2E skill when editing browser tests
+globs:
+  - '**/*playwright*'
+  - '**/e2e/**'
+  - '**/*.spec.ts'
+  - 'apps/web/**/*.test.ts'
+alwaysApply: false
+---
+
+# E2E / browser tests
+
+When adding or debugging browser tests, **Read and follow** [`.cursor/skills/webapp-testing/SKILL.md`](../skills/webapp-testing/SKILL.md).
+
+Prefer `@playwright/test` in TypeScript. Hit `apps/web` and the .NET API as documented in that skill — not ad-hoc curl-only checks for UI regressions.
