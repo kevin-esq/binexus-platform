@@ -7,6 +7,8 @@
 | Deciders | Kevin Esquivel                                |
 | Tags     | architecture, offline, sync, contracts, latam |
 
+Note: [ADR-0026](0026-offline-first-strategy.md) proposes the Branch Runtime operational deepening of this accepted decision.
+
 ## Context and problem statement
 
 Binexus targets real LATAM operations: corner stores, regional distributors, restaurants, delivery routes. In these environments:
