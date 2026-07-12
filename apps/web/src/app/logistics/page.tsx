@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../lib/api';
+import { formatApiError } from '../../lib/error-messages';
 import { formatDate, formatMoney, shortId } from '../../lib/format';
 import { uploadDeliveryProofFile } from '../../lib/proof-upload';
 import { hasStoredSession } from '../../lib/token-storage';
@@ -68,7 +69,7 @@ export default function LogisticsPage() {
         if (!cancelled) setError(null);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load logistics data');
+          setError(formatApiError(err));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -90,7 +91,7 @@ export default function LogisticsPage() {
       }
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh');
+      setError(formatApiError(err));
     } finally {
       setRefreshing(false);
     }
@@ -105,7 +106,7 @@ export default function LogisticsPage() {
       await loadData();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create delivery route');
+      setError(formatApiError(err));
     }
   }
 
@@ -125,7 +126,7 @@ export default function LogisticsPage() {
       await loadData();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to assign orders');
+      setError(formatApiError(err));
     } finally {
       setAssigningRouteId(null);
     }
@@ -148,7 +149,7 @@ export default function LogisticsPage() {
       await loadData();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to dispatch route');
+      setError(formatApiError(err));
     } finally {
       setDispatchingRouteId(null);
     }
@@ -168,7 +169,7 @@ export default function LogisticsPage() {
       await loadData();
       setError(null);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to liquidate route';
+      const message = formatApiError(err);
       if (message.includes('discrepancy') || message.includes('lines')) {
         setError(`${message} — use matching stop breakdown via API for discrepancies.`);
       } else {
@@ -194,7 +195,7 @@ export default function LogisticsPage() {
       setRouteStops((prev) => ({ ...prev, [routeId]: result.items }));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load route stops');
+      setError(formatApiError(err));
     } finally {
       setLoadingStopsRouteId(null);
     }
@@ -312,7 +313,7 @@ export default function LogisticsPage() {
       await loadData();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to confirm delivery');
+      setError(formatApiError(err));
     } finally {
       setConfirmingStopId(null);
       setUploadingProofForStopId(null);
@@ -334,7 +335,7 @@ export default function LogisticsPage() {
       await loadData();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to report delivery failure');
+      setError(formatApiError(err));
     } finally {
       setFailingStopId(null);
     }

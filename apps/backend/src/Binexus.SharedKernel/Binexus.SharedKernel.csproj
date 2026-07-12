@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Binexus.SharedKernel</RootNamespace>
+    <AssemblyName>Binexus.SharedKernel</AssemblyName>
+  </PropertyGroup>
+
+</Project>

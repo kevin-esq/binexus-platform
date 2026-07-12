@@ -1,11 +1,11 @@
 ---
 name: learn-codebase
-description: Prime context on the Binexus modular monolith in the right order — docs first, then bounded contexts, then code. Use at the start of a new session, when onboarding to a new bounded context, when the user says "learn the codebase / read the codebase / prime / get up to speed / aprende el código / ponte al día", or before tackling a slice in a context you have not touched this session. Token-efficient: reads architecture docs as anchors instead of streaming every source file.
+description: Prime context on the Binexus modular monolith in the right order — docs first, then bounded contexts, then code (.NET `apps/backend/src/Modules/*`; Nest removed in ADR-0015). Use at the start of a new session, when onboarding to a new bounded context, when the user says "learn the codebase / read the codebase / prime / get up to speed / aprende el código / ponte al día", or before tackling a slice in a context you have not touched this session. Prefer graphify queries over streaming every source file.
 ---
 
 # learn-codebase (Binexus)
 
-Build a working mental model of the Binexus platform before doing slice work. The default flow ("read every file") is wrong for this repo — it has growing `packages/`, two apps, generated Prisma client, lockfiles, and tests. Use the docs as anchors and pull code on demand.
+Build a working mental model of the Binexus platform before doing slice work. The default flow ("read every file") is wrong for this repo — it has growing `packages/`, `apps/web`, the .NET `apps/backend/`, lockfiles, and tests. Use the docs as anchors and pull code on demand.
 
 Adapted from `claude-mem-main/plugin/skills/learn-codebase` (whose default is "read every source file in full"). For a brand-new repo without docs that default would be right; Binexus has rich docs, so we pivot the strategy. Original: [`skills/claude-mem-main/plugin/skills/learn-codebase/SKILL.md`](../../../skills/claude-mem-main/plugin/skills/learn-codebase/SKILL.md).
 
@@ -30,42 +30,39 @@ Adapted from `claude-mem-main/plugin/skills/learn-codebase` (whose default is "r
 
 For each context with a `docs/domains/<name>.md`, read it. Status as of latest sync:
 
-- `identity`, `orders`, `inventory`, `warehouse`, `logistics` — active.
-- `catalog`, `customers`, `sales`, `billing`, `reporting` — placeholders.
+- `identity`, `orders`, `inventory`, `warehouse`, `logistics`, `sales` — active.
+- `catalog`, `customers`, `billing`, `reporting` — placeholders.
 
 Active contexts each follow the layout:
 
 ```
-apps/backend/src/contexts/<context>/
-  application/commands/<verb>-<noun>.command.ts
-  application/<noun>-read.service.ts
-  events/<event-name>.handler.ts
-  presentation/<context>.controller.ts
-  <context>.module.ts
+apps/backend/src/Modules/Binexus.Modules.<Context>/
+  Application/
+  Features/   (optional vertical slices)
+  Infrastructure/
+  Domain/     (when needed)
 ```
 
-Inside each active context, prime in this order: `<context>.module.ts` → `presentation/*.controller.ts` → `application/commands/*.command.ts` → `events/*.handler.ts` → services. Stop as soon as you have what the current slice needs.
+Inside each active module, prime in this order: module registration → HTTP endpoints in Api → Application commands/handlers → Infrastructure services. Stop as soon as you have what the current slice needs.
 
 ### 3. Cross-cutting foundations (read once per session, then trust)
 
-- [`apps/backend/src/common/prisma/prisma.service.ts`](../../../apps/backend/src/common/prisma/prisma.service.ts) — `TENANT_SCOPED_MODELS`, `forTenant()`.
-- [`apps/backend/src/common/tenant/tenant-context.service.ts`](../../../apps/backend/src/common/tenant/tenant-context.service.ts) — `ALS` semantics, `run()` for system users.
-- [`apps/backend/src/common/events/event-bus.service.ts`](../../../apps/backend/src/common/events/event-bus.service.ts) and [`outbox.service.ts`](../../../apps/backend/src/common/events/outbox.service.ts) — emit pattern.
-- [`apps/backend/src/common/commands/app-command.ts`](../../../apps/backend/src/common/commands/app-command.ts) — base command + metadata.
-- [`packages/types/src/orders.ts`](../../../packages/types/src/orders.ts) — `canTransition()` is the source of truth for the order state machine.
+- [`apps/backend/src/Binexus.Platform/Tenancy/`](../../../apps/backend/src/Binexus.Platform/Tenancy/) — `AuthenticatedTenantMiddleware`, `ICurrentTenant`.
+- [`apps/backend/src/Binexus.Platform/Messaging/`](../../../apps/backend/src/Binexus.Platform/Messaging/) — outbox/inbox delivery.
+- [`docs/architecture/dotnet-backend.md`](../../../docs/architecture/dotnet-backend.md) — module map.
+- [`packages/types/src/orders.ts`](../../../packages/types/src/orders.ts) — `canTransition()` for the order state machine (if still present).
 
 ### 4. Shared packages (skim on demand)
 
-- [`packages/events`](../../../packages/events) — registry + Zod schemas. Read the index files, not every schema.
+- Event contracts: [`apps/backend/contracts/events`](../../../apps/backend/contracts/events) (not `@binexus/events` — removed).
 - [`packages/types`](../../../packages/types) — branded ID types, summary shapes per context.
-- [`packages/sdk`](../../../packages/sdk) — HTTP client used by `apps/web`.
+- [`packages/sdk`](../../../packages/sdk) — HTTP client used by `apps/web` (Api `:5102`).
 - [`packages/ui`](../../../packages/ui) — shared web primitives (small).
 - [`packages/config`](../../../packages/config) — env + logging config (mostly stable).
 
 ### 5. Schema and migrations
 
-- [`apps/backend/prisma/schema.prisma`](../../../apps/backend/prisma/schema.prisma) — read the enum + model blocks for the contexts you will touch. Use `Read` with `offset`/`limit`. Don't stream the whole file unless you really need to.
-- Migrations under [`apps/backend/prisma/migrations/`](../../../apps/backend/prisma/migrations/) are append-only history — only read the latest one for the context you touch.
+- EF Core models + migrations under [`apps/backend/src/Binexus.Platform/`](../../../apps/backend/src/Binexus.Platform/) — read the configs for the modules you touch. Don't stream every migration unless needed.
 
 ### 6. Web app (only if the slice touches UI)
 
@@ -81,15 +78,14 @@ The `notion-docs-sync` skill defines the matching Notion pages. Before working i
 
 These will pollute context without value:
 
-- `pnpm-lock.yaml`, `node_modules/**`, `dist/**`, `.turbo/**`, `.next/**`.
-- Generated Prisma client (`node_modules/.prisma/**`).
+- Generated clients / lockfiles noise.
 - Test fixture data and snapshot JSON.
-- Every individual migration file — only the most recent in the context you touch.
+- Every individual EF migration file — only the most recent for the module you touch.
 - The full `skills/` tree (these are vendored references; the originals are huge).
 
 ## When you DO need to read every file
 
-Reserve the original "read every source file" pattern for tiny, unfamiliar sub-projects (`packages/config`, a brand-new app). For `apps/backend` and `apps/web`, never. Use [`.cursor/skills/context-hygiene/SKILL.md`](../context-hygiene/SKILL.md) anchors instead.
+Reserve the original "read every source file" pattern for tiny, unfamiliar sub-projects (`packages/config`, a brand-new app). For `apps/backend/` and `apps/web`, never. Use [`.cursor/skills/context-hygiene/SKILL.md`](../context-hygiene/SKILL.md) anchors instead.
 
 ## Reference
 

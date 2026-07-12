@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Test-driven development with red-green-refactor loop. Use when user wants to build features or fix bugs using TDD, mentions "red-green-refactor", wants integration tests, or asks for test-first development.
+description: Test-driven development with red-green-refactor loop for Binexus (Vitest/xUnit/integration). Use when the user asks for TDD, red-green-refactor, or test-first; when adding a new backend command/handler or web feature that needs tests; or when fixing a bug that should get a regression test before the fix.
 ---
 
 # Test-Driven Development

@@ -1,6 +1,6 @@
 ---
 name: semantic-naming
-description: Choose explicit, business-meaningful, framework-safe names for Prisma models, enums, commands, events, shared types, SDK methods, HTTP routes, and DTOs. Use when introducing or renaming any new concept in the Binexus modular monolith - especially anything that will cross context boundaries via @binexus/types, @binexus/events, the SDK, or the web UI. Use proactively before generating migrations, command classes, event names, or shared type files.
+description: Choose explicit, business-meaningful, framework-safe names for Prisma/EF models, enums, commands, events, shared types, SDK methods, HTTP routes, DTOs, and C# Domain/Application contracts. Use when introducing or renaming any cross-boundary concept in packages/types, packages/events, packages/sdk, schema.prisma, apps/backend Modules Domain/Application/Features, migrations, or the web UI. Use proactively before generating migrations, command classes, event names, or shared type files.
 ---
 
 # Semantic Naming

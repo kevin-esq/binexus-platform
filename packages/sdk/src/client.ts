@@ -54,9 +54,11 @@ import type {
 } from '@binexus/types';
 
 import { BinexusApiError } from './errors';
+import { parseApiErrorPayload } from './problem-details';
 
 export interface TokenProvider {
   getAccessToken(): string | null | Promise<string | null>;
+  getRefreshToken?(): string | null | Promise<string | null>;
   setTokens?(accessToken: string, refreshToken: string): void | Promise<void>;
   clear?(): void | Promise<void>;
 }
@@ -99,6 +101,8 @@ export class BinexusClient {
   private readonly baseUrl: string;
   private readonly tokenProvider: TokenProvider | undefined;
   private readonly fetchImpl: typeof fetch;
+  /** Shared in-flight refresh so concurrent 401s trigger a single refresh. */
+  private refreshInFlight: Promise<LoginResult> | null = null;
 
   constructor(options: BinexusClientOptions) {
     this.baseUrl = stripTrailingSlashes(options.baseUrl);
@@ -115,8 +119,28 @@ export class BinexusClient {
     return result;
   }
 
+  async refresh(refreshToken?: string): Promise<LoginResult> {
+    const storedRefreshToken = refreshToken ?? (await this.tokenProvider?.getRefreshToken?.());
+    if (!storedRefreshToken) {
+      throw new Error('A refresh token is required.');
+    }
+
+    const result = await this.request<LoginResult>('POST', '/auth/refresh', {
+      body: { refreshToken: storedRefreshToken },
+      auth: false,
+    });
+    await this.tokenProvider?.setTokens?.(result.accessToken, result.refreshToken);
+    return result;
+  }
+
   async logout(): Promise<void> {
-    await this.request<void>('POST', '/auth/logout', { auth: true }).catch(() => undefined);
+    const refreshToken = await this.tokenProvider?.getRefreshToken?.();
+    if (refreshToken) {
+      await this.request<void>('POST', '/auth/logout', {
+        body: { refreshToken },
+        auth: true,
+      }).catch(() => undefined);
+    }
     await this.tokenProvider?.clear?.();
   }
 
@@ -389,16 +413,62 @@ export class BinexusClient {
     );
   }
 
+  /**
+   * Low-level HTTP. Generates `Idempotency-Key` once per logical call and reuses it on the
+   * single 401→refresh retry. Pass a stable `idempotencyKey` for user-level network retries
+   * beyond that (double-submit / reconnect).
+   */
   private async request<T>(
     method: string,
     path: string,
-    opts: { body?: unknown; auth?: boolean } = {},
+    opts: {
+      body?: unknown;
+      auth?: boolean;
+      /** Explicit key, or `false` to omit. Default: auto `crypto.randomUUID()` on mutating methods. */
+      idempotencyKey?: string | false;
+    } = {},
+  ): Promise<T> {
+    const methodUpper = method.toUpperCase();
+    const isMutating = methodUpper !== 'GET' && methodUpper !== 'HEAD';
+    const resolvedIdempotencyKey =
+      isMutating && opts.idempotencyKey !== false
+        ? typeof opts.idempotencyKey === 'string'
+          ? opts.idempotencyKey
+          : globalThis.crypto.randomUUID()
+        : undefined;
+
+    try {
+      return await this.sendJson<T>(method, path, opts, resolvedIdempotencyKey);
+    } catch (err) {
+      if (
+        !(err instanceof BinexusApiError) ||
+        err.status !== 401 ||
+        opts.auth !== true ||
+        err.code === 'FEATURE_DISABLED'
+      ) {
+        throw err;
+      }
+
+      await this.refreshSingleFlight();
+      return await this.sendJson<T>(method, path, opts, resolvedIdempotencyKey);
+    }
+  }
+
+  private async sendJson<T>(
+    method: string,
+    path: string,
+    opts: { body?: unknown; auth?: boolean },
+    idempotencyKey: string | undefined,
   ): Promise<T> {
     const headers: Record<string, string> = {};
 
     if (opts.auth && this.tokenProvider) {
       const token = await this.tokenProvider.getAccessToken();
       if (token) headers.authorization = `Bearer ${token}`;
+    }
+
+    if (idempotencyKey !== undefined) {
+      headers['Idempotency-Key'] = idempotencyKey;
     }
 
     const init: RequestInit = { method, headers };
@@ -411,15 +481,37 @@ export class BinexusClient {
 
     if (!response.ok) {
       const errPayload = await response.json().catch(() => ({}) as Record<string, unknown>);
-      const message =
-        (typeof errPayload.message === 'string' ? errPayload.message : undefined) ??
-        `Request failed: ${response.status}`;
-      const code = typeof errPayload.code === 'string' ? errPayload.code : undefined;
+      const { message, code } = parseApiErrorPayload(errPayload, response.status);
       throw new BinexusApiError(message, response.status, code, errPayload);
     }
 
     if (response.status === 204) return undefined as T;
     return (await response.json()) as T;
+  }
+
+  private async refreshSingleFlight(): Promise<LoginResult> {
+    if (this.refreshInFlight) {
+      return this.refreshInFlight;
+    }
+
+    this.refreshInFlight = (async () => {
+      try {
+        const storedRefreshToken = await this.tokenProvider?.getRefreshToken?.();
+        if (!storedRefreshToken) {
+          await this.tokenProvider?.clear?.();
+          throw new BinexusApiError('Session expired.', 401, 'UNAUTHORIZED');
+        }
+
+        return await this.refresh(storedRefreshToken);
+      } catch (err) {
+        await this.tokenProvider?.clear?.();
+        throw err;
+      } finally {
+        this.refreshInFlight = null;
+      }
+    })();
+
+    return this.refreshInFlight;
   }
 }
 

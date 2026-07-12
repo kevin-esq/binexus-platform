@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://binexus.dev/events/schemas/stock-sold.v1.json",
+  "title": "STOCK_SOLD v1 payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["saleId", "branchId", "lineCount"],
+  "properties": {
+    "saleId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "POS sale id that triggered the physical stock decrement."
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Optional denormalized tenant; envelope tenantId is authoritative."
+    },
+    "branchId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "lineCount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of sale lines decremented in this batch."
+    }
+  }
+}

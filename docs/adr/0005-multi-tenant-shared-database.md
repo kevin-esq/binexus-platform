@@ -2,10 +2,12 @@
 
 | Field    | Value                                             |
 | -------- | ------------------------------------------------- |
-| Status   | Accepted                                          |
+| Status   | Accepted — Amended by ADR-0015                    |
 | Date     | 2026-05-23                                        |
 | Deciders | Kevin Esquivel                                    |
 | Tags     | architecture, multi-tenant, security, persistence |
+
+> **Amended by ADR-0015:** Shared DB + `tenantId` remains; Prisma/ALS implementation replaced by EF Core + `AuthenticatedTenantMiddleware` / `ICurrentTenant` (see also ADR-0014).
 
 ## Context and problem statement
 

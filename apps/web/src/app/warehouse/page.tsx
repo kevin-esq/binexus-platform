@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../../lib/api';
+import { formatApiError } from '../../lib/error-messages';
 import { formatDate, shortId } from '../../lib/format';
 import { hasStoredSession } from '../../lib/token-storage';
 
@@ -35,7 +36,7 @@ export default function WarehousePage() {
         if (!cancelled) setError(null);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to load picking tasks');
+          setError(formatApiError(err));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -53,7 +54,7 @@ export default function WarehousePage() {
       await loadTasks();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh picking tasks');
+      setError(formatApiError(err));
     } finally {
       setRefreshing(false);
     }
@@ -68,7 +69,7 @@ export default function WarehousePage() {
       await loadTasks();
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete picking task');
+      setError(formatApiError(err));
     } finally {
       setCompletingId(null);
     }

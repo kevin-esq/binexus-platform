@@ -21,20 +21,39 @@ jobs:
   analyze:
     name: Analyze ${{ matrix.language }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        language: [javascript-typescript]
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          - language: csharp
+            build-mode: manual
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: apps/backend/global.json
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           queries: security-and-quality
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+
+      - name: Build .NET (CodeQL)
+        if: matrix.language == 'csharp'
+        env:
+          Jwt__SigningKey: ci-only-binexus-signing-key-with-more-than-32-bytes
+        run: |
+          dotnet restore apps/backend/Binexus.slnx
+          dotnet build apps/backend/Binexus.slnx -c Release --no-restore
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:

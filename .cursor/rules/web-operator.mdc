@@ -1,0 +1,22 @@
+---
+description: Auto-load React operator-panel skills when editing apps/web panel routes
+globs:
+  - 'apps/web/src/app/orders/**'
+  - 'apps/web/src/app/logistics/**'
+  - 'apps/web/src/app/inventory/**'
+  - 'apps/web/src/app/warehouse/**'
+  - 'apps/web/src/app/pos/**'
+  - 'apps/web/src/app/login/**'
+  - 'apps/web/src/components/**'
+  - 'apps/web/src/lib/**'
+alwaysApply: false
+---
+
+# Operator panel (apps/web)
+
+Before writing or reviewing code here, **Read and follow**:
+
+1. [`.cursor/skills/react-best-practices/SKILL.md`](../skills/react-best-practices/SKILL.md)
+2. [`.cursor/skills/composition-patterns/SKILL.md`](../skills/composition-patterns/SKILL.md)
+
+Do **not** apply `taste` / `ui-ux-pro` marketing aesthetics to the operator panel unless the user explicitly asks.

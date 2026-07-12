@@ -1,6 +1,6 @@
 # Naming conventions
 
-Binexus is a multi-context modular monolith. Names cross context boundaries through `@binexus/types`, `@binexus/events`, the SDK, and the web UI, so they have to read clearly on their own. This document captures the rules we apply when introducing models, events, commands, or shared types.
+Binexus is a multi-context modular monolith (.NET 10 + web packages). Names cross context boundaries through `@binexus/types`, `@binexus/sdk`, `apps/backend/contracts/events`, and the web UI, so they have to read clearly on their own. This document captures the rules we apply when introducing models, events, commands, or shared types. (`@binexus/events` was removed in [ADR-0015](../adr/0015-nestjs-retirement-dotnet-sole-backend.md).)
 
 ## Principles
 
@@ -14,7 +14,7 @@ Binexus is a multi-context modular monolith. Names cross context boundaries thro
 
 | Artifact            | Convention                                    | Example                                          |
 | ------------------- | --------------------------------------------- | ------------------------------------------------ |
-| Prisma model        | `PascalCase`, explicit business noun          | `StockTransfer`, `PickingTask`, `DeliveryRoute`  |
+| EF / domain model   | `PascalCase`, explicit business noun          | `StockTransfer`, `PickingTask`, `DeliveryRoute`  |
 | Enum                | `PascalCase` name, `SCREAMING_SNAKE` values   | `enum StockTransferStatus { PENDING, ... }`      |
 | Command class       | `<Verb><Noun>Command`                         | `CreateStockTransferCommand`                     |
 | Command handler     | `<Verb><Noun>Handler`                         | `CreateStockTransferHandler`                     |

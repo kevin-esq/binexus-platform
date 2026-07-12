@@ -1,0 +1,11 @@
+---
+description: Auto-load React Native / mobile skills when editing mobile app code
+globs:
+  - 'apps/mobile/**'
+  - '**/*react-native*'
+alwaysApply: false
+---
+
+# Mobile (React Native)
+
+**Read and follow** [`.cursor/skills/react-native/SKILL.md`](../skills/react-native/SKILL.md). For App Store / Play listing work, also [`aso`](../skills/aso/SKILL.md). For driver push notifications, also [`messaging`](../skills/messaging/SKILL.md).

@@ -2,7 +2,7 @@
 
 | Field    | Value                                      |
 | -------- | ------------------------------------------ |
-| Status   | Accepted                                   |
+| Status   | Superseded by ADR-0015                     |
 | Date     | 2026-05-23                                 |
 | Deciders | Kevin Esquivel                             |
 | Tags     | observability, logging, debuggability, ops |

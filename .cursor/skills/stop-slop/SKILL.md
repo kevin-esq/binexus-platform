@@ -1,6 +1,6 @@
 ---
 name: stop-slop
-description: Strip AI tells from prose before delivering. Use when writing commit messages, PR bodies, Binexus docs (`docs/`), Notion content (`Binexus Platform`, `Roadmap`, `Catálogo de eventos`, per-context pages), changelog entries, or any user-facing text. Apply both in English and Spanish (the workspace mixes both). Skip for code, JSON, and SQL.
+description: Strip AI tells from prose before delivering. Use when writing commit messages, PR bodies, Binexus docs (`docs/`), Notion content, changelog entries, marketing copy review, or any user-facing text (EN/ES). Auto-routed for `docs/**` via `.cursor/rules/docs-and-prose.mdc`. Apply proactively before finalizing PRs/commits. Skip for code, JSON, and SQL.
 ---
 
 # stop-slop (Binexus)

@@ -18,7 +18,6 @@ export const basePreset = [
       '**/coverage/**',
       '**/node_modules/**',
       '**/*.config.{js,cjs,mjs}',
-      '**/prisma/migrations/**',
     ],
   },
   js.configs.recommended,

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Binexus.Platform.Features.Contracts</RootNamespace>
+    <AssemblyName>Binexus.Platform.Features.Contracts</AssemblyName>
+    <!-- Commercial feature contracts only: no Platform, EF, or module dependencies. -->
+  </PropertyGroup>
+</Project>

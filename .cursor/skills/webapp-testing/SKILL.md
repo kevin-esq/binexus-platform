@@ -1,11 +1,11 @@
 ---
 name: webapp-testing
-description: Run end-to-end browser tests against the Binexus web app (`apps/web` on :3000) and backend (NestJS on :3001) with Playwright. Use when adding the first E2E for a flow, debugging a UI regression that unit tests can't catch, capturing screenshots / console logs for an ops bug, or verifying multi-tenant flows in the browser. Playwright is the chosen E2E tool but is not wired yet — this skill is the bootstrap and the day-to-day usage guide.
+description: Run end-to-end browser tests against the Binexus web app (`apps/web` on :3000) and .NET API (`apps/backend` / Binexus.Api) with Playwright (`@playwright/test` in TypeScript). Use when editing `e2e/**`, `*playwright*`, or `*.spec.ts`; when adding the first E2E for a flow; debugging a UI regression unit tests can't catch; capturing screenshots/console logs; or verifying multi-tenant flows in the browser.
 ---
 
 # webapp-testing (Binexus)
 
-Browser-driven testing of `apps/web` against the running NestJS backend. Adapted from Anthropic's `webapp-testing` (Python/Playwright). Binexus is a TypeScript monorepo, so use `@playwright/test` in TS, not Python. Reference: [`skills/skills-mainb/skills/webapp-testing/SKILL.md`](../../../skills/skills-mainb/skills/webapp-testing/SKILL.md).
+Browser-driven testing of `apps/web` against the running .NET API (`Binexus.Api` on `:5102`). Adapted from Anthropic's `webapp-testing` (Python/Playwright). Binexus is a TypeScript monorepo, so use `@playwright/test` in TS, not Python. Reference: [`skills/skills-mainb/skills/webapp-testing/SKILL.md`](../../../skills/skills-mainb/skills/webapp-testing/SKILL.md).
 
 Aligns with [`.cursor/rules/typescript-testing.md`](../../rules/typescript-testing.md): **Playwright is the chosen E2E framework**; tests live in `apps/web/e2e/`.
 
@@ -39,7 +39,7 @@ Stick to Chromium until cross-browser coverage is justified.
 Key choices:
 
 - `testDir: './e2e'`.
-- `webServer` array: one entry for `pnpm --filter @binexus/backend start:dev` on :3001, one for `pnpm --filter @binexus/web dev` on :3000.
+- `webServer` / stack: .NET Api on `:5102` (compose or `pnpm dev:backend`) plus `pnpm --filter @binexus/web dev` on `:3000`. Do not start Nest.
 - `use.baseURL: 'http://localhost:3000'`.
 - `use.trace: 'on-first-retry'`, `use.screenshot: 'only-on-failure'`, `use.video: 'retain-on-failure'`.
 - `forbidOnly: !!process.env.CI`, `retries: process.env.CI ? 2 : 0`.
@@ -58,7 +58,7 @@ Add an `e2e` job in [`.github/workflows/validate.yml`](../../../.github/workflow
 
 ### 5. Seed a deterministic tenant
 
-E2E needs known data. Use [`apps/backend/prisma/seed.ts`](../../../apps/backend/prisma/seed.ts) and an `e2e` Vitest tag, OR add `apps/web/e2e/fixtures/tenant.ts` that calls the seed via `pnpm --filter @binexus/backend prisma:seed -- --tenant=e2e`. Tests must NEVER assume prod-like state.
+E2E needs known data. Use `pnpm db:seed:dev` / `db:seed:testing` (.NET seeders), OR add `apps/web/e2e/fixtures/tenant.ts` that calls the API after seed. Tests must NEVER assume prod-like state.
 
 ## Day-to-day usage
 
@@ -131,5 +131,5 @@ Always login through `/login` against a known tenant seed. Never write to `local
 
 - [`.cursor/rules/typescript-testing.md`](../../rules/typescript-testing.md) — Playwright is the chosen E2E tool, tests live in `apps/web/e2e/`.
 - [`.cursor/skills/tdd/SKILL.md`](../tdd/SKILL.md) — TDD workflow; E2E sits at the outer ring of the test pyramid.
-- [`apps/backend/prisma/seed.ts`](../../../apps/backend/prisma/seed.ts) — tenant + user seeds.
+- [`docs/migration/local-setup.md`](../../../docs/migration/local-setup.md) — .NET seed / clean DB recreate.
 - Original skill (Python flavor): [`skills/skills-mainb/skills/webapp-testing/SKILL.md`](../../../skills/skills-mainb/skills/webapp-testing/SKILL.md).

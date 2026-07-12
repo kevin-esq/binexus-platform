@@ -137,32 +137,29 @@ Bypassing hooks (`--no-verify`) is **forbidden** for normal work. Use only when 
 
 ### Adding a domain event
 
-1. Add key to `packages/events/src/registry.ts`.
-2. Create Zod schema in `packages/events/src/schemas/<event>.ts`.
-3. Register it in `packages/events/src/schemas/index.ts → EventPayloadSchemas`.
-4. Document it in `docs/events/README.md`.
-5. Producer: call `eventBus.build(...)` + `outbox.record(...)` in the same transaction as the state change.
-6. Consumer: `@OnEvent('NAME')` in the relevant context.
+1. Add the contract under `apps/backend/contracts/events/` (versioned schemas).
+2. Document it in `docs/events/README.md`.
+3. Producer: write outbox in the same transaction as the state change.
+4. Consumer: inbox/handler in the owning module (or Workers).
 
-### Adding a tenant-scoped Prisma model
+### Adding a tenant-scoped EF entity
 
-1. Add the model to `apps/backend/prisma/schema.prisma` with a `tenantId` column.
-2. Add the model name to `TENANT_SCOPED_MODELS` in `apps/backend/src/common/prisma/prisma.service.ts`.
-3. Generate the migration: `pnpm --filter @binexus/backend exec prisma migrate dev --name <change>`.
-4. Update the seed if it changes onboarding.
+1. Add the entity in the owning module under `apps/backend/src/Modules/...`.
+2. Configure EF mapping + global query filter / tenant middleware (see `docs/architecture/multi-tenant.md`).
+3. Add an EF migration via `dotnet ef migrations add ...` on `apps/backend/src/Binexus.Platform` with startup `Binexus.Api`.
+4. Update Development seed if onboarding changes.
 
 ### Adding a command (use case)
 
-1. Create the command class extending `AppCommand<TResult>` in the context's `application/commands/`.
-2. Create the handler with `@CommandHandler(...)` in `application/handlers/`.
-3. Register the handler in the context's module.
-4. Expose via controller using `commandBus.execute(new Command(...))`.
+1. Add a vertical-slice feature/handler in the owning module (`Features/<UseCase>/`).
+2. Expose via minimal API / endpoint mapping in that module.
+3. Keep cross-module calls behind Contracts assemblies — no direct domain imports.
 
 ### Adding a feature flag
 
-1. Add the key to `FeatureKey` in `packages/types/src/features.ts`.
-2. Update the seed so existing tenants get the row (disabled).
-3. Gate the endpoint with `@RequireFeature('KEY')` + `FeatureFlagGuard`.
+1. Add the key to `FeatureKey` / feature contracts (`Binexus.Platform.Features.Contracts`).
+2. Seed or migrate tenant feature rows as needed.
+3. Gate the endpoint with the tenant feature check used by the module.
 4. Document in `docs/architecture/feature-flags.md`.
 
 ---

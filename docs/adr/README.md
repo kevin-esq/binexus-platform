@@ -29,21 +29,23 @@ Proposed  →  Accepted  →  (Deprecated | Superseded by ADR-NNNN)
 
 ## Index
 
-| #    | Title                                                                                                          | Status   | Date       |
-| ---- | -------------------------------------------------------------------------------------------------------------- | -------- | ---------- |
-| 0001 | [Monorepo with pnpm + Turborepo](0001-monorepo-with-pnpm-and-turborepo.md)                                     | Accepted | 2026-05-23 |
-| 0002 | [Modular monolith over microservices](0002-modular-monolith-architecture.md)                                   | Accepted | 2026-05-23 |
-| 0003 | [Offline-first by design](0003-offline-first-design.md)                                                        | Accepted | 2026-05-23 |
-| 0004 | [Event-driven with Outbox pattern](0004-event-driven-with-outbox-pattern.md)                                   | Accepted | 2026-05-23 |
-| 0005 | [Multi-tenant: shared database + `tenantId`](0005-multi-tenant-shared-database.md)                             | Accepted | 2026-05-23 |
-| 0006 | [Authentication: JWT + Argon2 + refresh rotation + RBAC](0006-authentication-jwt-argon2-rbac.md)               | Accepted | 2026-05-23 |
-| 0007 | [Command bus: CQRS-lite on `@nestjs/cqrs`](0007-command-bus-cqrs-lite.md)                                      | Accepted | 2026-05-23 |
-| 0008 | [Structured logging with Pino](0008-structured-logging-with-pino.md)                                           | Accepted | 2026-05-23 |
-| 0009 | [Feature flags: tenant-scoped, DB-backed](0009-feature-flags-tenant-scoped.md)                                 | Accepted | 2026-05-23 |
-| 0010 | [GitHub workflow: Modern Rulesets with CI fallback](0010-github-modern-rulesets-with-ci-fallback.md)           | Accepted | 2026-05-23 |
-| 0011 | [Failed delivery — order pause state and route completion](0011-failed-delivery-order-and-route-completion.md) | Accepted | 2026-07-04 |
-| 0012 | [Route liquidation — COD cash reconciliation](0012-route-liquidation-cod-reconciliation.md)                    | Accepted | 2026-07-04 |
-| 0013 | [Sales / POS — sub-slices and session-first retail model](0013-sales-pos-sub-slices-and-session-model.md)      | Accepted | 2026-07-10 |
+| #    | Title                                                                                                                   | Status                  | Date       |
+| ---- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------- | ---------- |
+| 0001 | [Monorepo with pnpm + Turborepo](0001-monorepo-with-pnpm-and-turborepo.md)                                              | Accepted (amended 0015) | 2026-05-23 |
+| 0002 | [Modular monolith over microservices](0002-modular-monolith-architecture.md)                                            | Accepted (amended 0015) | 2026-05-23 |
+| 0003 | [Offline-first by design](0003-offline-first-design.md)                                                                 | Accepted                | 2026-05-23 |
+| 0004 | [Event-driven with Outbox pattern](0004-event-driven-with-outbox-pattern.md)                                            | Accepted                | 2026-05-23 |
+| 0005 | [Multi-tenant: shared database + `tenantId`](0005-multi-tenant-shared-database.md)                                      | Accepted (amended 0015) | 2026-05-23 |
+| 0006 | [Authentication: JWT + Argon2 + refresh rotation + RBAC](0006-authentication-jwt-argon2-rbac.md)                        | Accepted (amended 0015) | 2026-05-23 |
+| 0007 | [Command bus: CQRS-lite on `@nestjs/cqrs`](0007-command-bus-cqrs-lite.md)                                               | Superseded by ADR-0015  | 2026-05-23 |
+| 0008 | [Structured logging with Pino](0008-structured-logging-with-pino.md)                                                    | Superseded by ADR-0015  | 2026-05-23 |
+| 0009 | [Feature flags: tenant-scoped, DB-backed](0009-feature-flags-tenant-scoped.md)                                          | Accepted                | 2026-05-23 |
+| 0010 | [GitHub workflow: Modern Rulesets with CI fallback](0010-github-modern-rulesets-with-ci-fallback.md)                    | Accepted                | 2026-05-23 |
+| 0011 | [Failed delivery — order pause state and route completion](0011-failed-delivery-order-and-route-completion.md)          | Accepted                | 2026-07-04 |
+| 0012 | [Route liquidation — COD cash reconciliation](0012-route-liquidation-cod-reconciliation.md)                             | Accepted                | 2026-07-04 |
+| 0013 | [Sales / POS — sub-slices and session-first retail model](0013-sales-pos-sub-slices-and-session-model.md)               | Accepted                | 2026-07-10 |
+| 0014 | [Sync inventory reservation and authenticated tenant context](0014-inventory-sync-reservation-and-tenant-middleware.md) | Accepted                | 2026-07-11 |
+| 0015 | [NestJS retirement — .NET 10 as sole backend](0015-nestjs-retirement-dotnet-sole-backend.md)                            | Accepted                | 2026-07-12 |
 
 ## When NOT to write an ADR
 

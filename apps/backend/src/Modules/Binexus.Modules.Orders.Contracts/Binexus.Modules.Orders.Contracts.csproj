@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Binexus.Modules.Orders.Contracts</RootNamespace>
+    <AssemblyName>Binexus.Modules.Orders.Contracts</AssemblyName>
+    <!-- Public ports only: no Platform, EF, or Infrastructure dependencies. -->
+  </PropertyGroup>
+</Project>

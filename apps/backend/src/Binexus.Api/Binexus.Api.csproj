@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <RootNamespace>Binexus.Api</RootNamespace>
+    <AssemblyName>Binexus.Api</AssemblyName>
+    <OpenApiGenerateDocuments>true</OpenApiGenerateDocuments>
+    <OpenApiGenerateDocumentsOnBuild>true</OpenApiGenerateDocumentsOnBuild>
+    <OpenApiDocumentsDirectory>$(MSBuildThisFileDirectory)..\..\..\..\artifacts\openapi</OpenApiDocumentsDirectory>
+    <OpenApiGenerateDocumentsOptions>--file-name binexus-v1</OpenApiGenerateDocumentsOptions>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Binexus.Platform\Binexus.Platform.csproj" />
+    <ProjectReference Include="..\Binexus.SharedKernel\Binexus.SharedKernel.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Identity\Binexus.Modules.Identity.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Inventory\Binexus.Modules.Inventory.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Logistics\Binexus.Modules.Logistics.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Orders\Binexus.Modules.Orders.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Sales\Binexus.Modules.Sales.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Warehouse\Binexus.Modules.Warehouse.csproj" />
+  </ItemGroup>
+
+</Project>
+

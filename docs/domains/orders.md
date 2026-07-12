@@ -36,7 +36,7 @@ Implemented:
 Implemented (warehouse flow):
 
 - `MoveOrderToPickingCommand` — `APPROVED -> PICKING`, emits `ORDER_PICKING_STARTED`.
-- `MarkOrderReadyForDeliveryRouteCommand` — `PICKING -> READY_FOR_DELIVERY_ROUTE`.
+- `MarkOrderReadyForDeliveryRouteCommand` — `PICKING -> READY_FOR_DELIVERY_ROUTE`; Warehouse calls it through `Orders.Contracts` while completing picking.
 - `MarkOrderOutForDeliveryCommand` — `READY_FOR_DELIVERY_ROUTE -> OUT_FOR_DELIVERY` (no new domain event in dispatch slice).
 - `MarkOrderDeliveredCommand` — `OUT_FOR_DELIVERY -> DELIVERED`, emits `ORDER_DELIVERED`.
 - `MarkOrderDeliveryAttemptFailedCommand` — `OUT_FOR_DELIVERY -> DELIVERY_ATTEMPT_FAILED` (no new domain event; triggered by `DELIVERY_FAILED`).
@@ -71,11 +71,11 @@ Implemented:
 Implemented:
 
 - `INVENTORY_RESERVED` — auto `MoveOrderToPickingCommand` via system user when order is `APPROVED`.
-- `PICKING_COMPLETED` — auto `MarkOrderReadyForDeliveryRouteCommand` when order is `PICKING`.
-- `DELIVERY_ROUTE_DISPATCHED` — auto `MarkOrderOutForDeliveryCommand` via system user when order is `READY_FOR_DELIVERY_ROUTE` (skips already `OUT_FOR_DELIVERY` or cancelled orders).
-- `DELIVERY_CONFIRMED` — auto `MarkOrderDeliveredCommand` via system user when order is `OUT_FOR_DELIVERY`.
-- `DELIVERY_FAILED` — auto `MarkOrderDeliveryAttemptFailedCommand` via system user when order is `OUT_FOR_DELIVERY`.
-- `DELIVERY_ROUTE_LIQUIDATED` — auto `SettleOrderCommand` for each COD order in `DELIVERED`.
+- `PICKING_COMPLETED` — informational in .NET. Orders has no processor for this event; Warehouse calls `MarkReadyForDeliveryRouteAsync` before committing complete.
+- `DELIVERY_ROUTE_DISPATCHED` — informational in .NET. Orders has no processor; Logistics calls `MarkOutForDeliveryAsync` through `Orders.Contracts` before committing dispatch.
+- `DELIVERY_CONFIRMED` — informational in .NET. Orders has no processor; Logistics calls `MarkDeliveredAsync` through `Orders.Contracts` before committing confirmation.
+- `DELIVERY_FAILED` — informational in .NET. Orders has no processor; Logistics calls `MarkDeliveryAttemptFailedAsync` through `Orders.Contracts` before committing failed delivery.
+- `DELIVERY_ROUTE_LIQUIDATED` — informational in .NET. Orders has no processor; Logistics calls `SettleCodOrdersAsync` through `Orders.Contracts` before committing route liquidation.
 
 Future:
 
@@ -108,19 +108,19 @@ Inventory reserves stock (or emits INVENTORY_RESERVATION_FAILED)
 ↓
 Orders auto-cancels on reservation failure (APPROVED → CANCELLED)
 ↓
-Warehouse generates picking (automatic after `INVENTORY_RESERVED`)
+Warehouse generates picking from `ORDER_APPROVED`
 ↓
-PICKING_COMPLETED → READY_FOR_DELIVERY_ROUTE
+Complete picking calls Orders synchronously: PICKING → READY_FOR_DELIVERY_ROUTE
 ↓
 ORDER_READY_FOR_DELIVERY_ROUTE → Logistics candidate projection
 ↓
 Dispatch delivery route (Logistics)
 ↓
-DELIVERY_ROUTE_DISPATCHED → OUT_FOR_DELIVERY
+Logistics dispatch calls Orders.Contracts → OUT_FOR_DELIVERY
 ↓
 Confirm delivery stop (Logistics)
 ↓
-DELIVERY_CONFIRMED → DELIVERED (+ ORDER_DELIVERED)
+Logistics confirmation calls Orders.Contracts → DELIVERED (+ ORDER_DELIVERED)
 ```
 
 ## HTTP surface

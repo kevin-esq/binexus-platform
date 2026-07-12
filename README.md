@@ -1,90 +1,106 @@
 # Binexus Platform
 
-Operational SaaS platform — **modular monolith**, **event-driven**, **offline-first**, **multi-tenant**, **multi-industry**.
+Operational SaaS platform — **modular monolith**, **event-driven**, **offline-first**, **multi-tenant**.
 
 > Mantra: **Foundation wide. Execution narrow.**
 
 ## Architecture at a glance
 
-- **Monorepo**: pnpm + Turborepo
-- **Backend**: NestJS 11 (Fastify) — bounded contexts, CQRS-lite commands, domain events, outbox pattern
-- **Web**: Next.js 15 (App Router) + Tailwind 3 + React 19
-- **Desktop**: Tauri 2 wrapper around the web app
-- **Mobile**: placeholder — driver app planned after F5 Sales / POS stabilizes (F5.1 shipped: web `/pos`)
-- **DB**: PostgreSQL 16 + Prisma
-- **Cache / event transport (planned)**: Redis 7.4
-- **Object storage**: MinIO (S3-compatible)
-- **Auth**: JWT (access + refresh) + Argon2 + RBAC (5 roles)
-- **Multi-tenant**: shared DB + `tenantId` + AsyncLocalStorage + Prisma extension
-- **Observability**: Pino structured logging with request context
-- **Feature flags**: `TenantFeature` table + service
+- **Monorepo**: pnpm + Turborepo (web + shared packages) + .NET solution
+- **Backend**: C# / .NET 10 / ASP.NET Core / EF Core / PostgreSQL (`apps/backend/` — Api, Workers, Platform, Modules)
+- **Web**: Next.js (App Router) + Tailwind + React — operator panel at `:3000` → Api `:5102`
+- **DB**: PostgreSQL 16 + EF Core migrations (no Prisma)
+- **Object storage**: MinIO (S3-compatible) for delivery proofs
+- **Auth**: JWT (access + refresh) + RBAC
+- **Legacy**: NestJS backend removed in Gate 7 (ADR-0015). Historical notes remain under `docs/migration/` and superseded ADRs.
 
 ## Repository layout
 
 ```
 binexus-platform/
 ├── apps/
-│   ├── web/         # Next.js 15 admin/dashboard
-│   ├── backend/     # NestJS 11 API (bounded contexts)
-│   ├── desktop/     # Tauri 2 wrapper
-│   └── mobile/      # Placeholder (no active development)
-├── packages/
-│   ├── config/      # Shared tsconfig / eslint / prettier / tailwind
-│   ├── types/       # Shared domain types & enums
-│   ├── events/      # Domain event registry + Zod schemas
-│   ├── ui/          # Minimal design system (5 components)
-│   └── sdk/         # Typed API client
+│   ├── web/         # Next.js operator panel
+│   ├── desktop/     # Tauri wrapper
+│   └── mobile/      # Placeholder
+├── apps/backend/    # .NET Api / Workers / Modules
+├── packages/        # types, sdk, ui, config
 ├── infrastructure/
-│   └── compose/     # docker-compose.yml (postgres / redis / minio)
-└── docs/            # Architecture, domains, states, workflows
+│   ├── compose/     # postgres / minio / migrate / api / workers (+ optional web/seed)
+│   └── docker/      # Dockerfiles
+└── docs/
 ```
 
-## Quick start
+## Quick start (.NET)
 
 ```bash
 # 1. Install deps
 pnpm install
 
-# 2. Spin up infra
+# 2. Env — Jwt__SigningKey in .env.example is DEVELOPMENT ONLY (never Staging/Production)
+cp .env.example .env
+
+# 3. Compose: postgres, minio, migrate (once), api, workers
 pnpm docker:up
 
-# 3. Migrate & seed DB
-pnpm db:migrate
-pnpm db:seed
-
-# 4. Run everything in dev
-pnpm dev
+# 4. Web on the host
+pnpm dev:web
 ```
 
-- Backend: <http://localhost:3001>
-- Web: <http://localhost:3000>
-- Postgres: `localhost:5432` (user: `binexus` / pass: `binexus` / db: `binexus`)
-- Redis: `localhost:6379`
-- MinIO console: <http://localhost:9001> (user: `binexus` / pass: `binexus123`) — bucket is **private**; see [`docs/runbooks/object-storage.md`](docs/runbooks/object-storage.md)
+| Surface             | URL                                |
+| ------------------- | ---------------------------------- |
+| Api liveness        | http://localhost:5102/health       |
+| Api readiness       | http://localhost:5102/health/ready |
+| Workers health      | http://localhost:5103/health       |
+| Web                 | http://localhost:3000              |
+| MinIO API / console | http://localhost:9000 / :9001      |
+
+Demo login (after Dev seed): tenant `acme`, `admin@acme.test`, password from `IdentitySeed__AdminPassword`.
+
+### Clean local database (required after Nest → .NET)
+
+There is **no** data migration from cuid/Prisma to UUIDv7/EF. Recreate the database:
+
+```bash
+docker compose -f infrastructure/compose/docker-compose.yml --profile web --profile seed down -v --remove-orphans
+pnpm docker:up
+pnpm db:seed:dev   # or db:seed:dev:win on Windows
+```
+
+Rollback for this migration is **Git**, not re-running Nest against the new schema.
+
+### Useful scripts
+
+```bash
+pnpm docker:up / docker:down / docker:smoke   # Linux smoke; docker:smoke:win for PowerShell
+pnpm db:migrate                               # EF Core
+pnpm db:seed:dev
+pnpm dev / dev:web / dev:backend / dev:workers
+pnpm test / test:backend / test:integration
+```
+
+Compose smoke uses isolated ports by default (`API_SMOKE_PORT=5112`, …) and **never** kills host processes. Override ports via env if needed.
 
 ## Conventions
 
-- TypeScript strict mode everywhere — no exceptions.
-- Every database write must go through `PrismaService` (auto-injects `tenantId`).
-- Cross-context communication uses **events**, never direct service calls.
-- Every use case is modeled as a `Command` + `Handler`.
+- TypeScript strict mode for web/packages.
+- Cross-context communication uses **events** (schemas under `apps/backend/contracts/events`), never direct module→module domain calls.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## Documentation
 
-Start with [`docs/architecture/overview.md`](docs/architecture/overview.md).
+Start with [`docs/architecture/overview.md`](docs/architecture/overview.md).  
+Migration: [`docs/migration/`](docs/migration/) (Gate 5–7 checkpoints). ADRs: [`docs/adr/`](docs/adr/).
 
 ## Roadmap
 
-| Phase            | Scope                                                               | Status                                                                                                           |
-| ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| F0 · Foundation  | Monorepo, auth, multi-tenant, outbox, CI, docs                      | Complete                                                                                                         |
-| F1 · Orders      | Order lifecycle, approvals, warehouse handoff                       | Complete (lifecycle through delivery handoff)                                                                    |
-| F2 · Inventory   | Stock, reservations, adjustments, transfers                         | Complete                                                                                                         |
-| F3 · Warehouse   | Picking base (warehouse-lite)                                       | Complete (picking base)                                                                                          |
-| F4 · Logistics   | Routes, dispatch, confirmation, proof, failed delivery, liquidation | Complete (happy path + MinIO hardening + failed delivery/resolution + COD liquidation + MinIO integration tests) |
-| F5 · Sales / POS | Retail sessions (per terminal), tickets, cash sales (5.1 done)      | Active — **5.1 done**; next: 5.2 split payment                                                                   |
-| F7 · Billing     | Invoices, receivables, payment allocation                           | Planned                                                                                                          |
-| F8 · Reporting   | Dashboards and analytics projections                                | Planned                                                                                                          |
+| Phase            | Scope                                          | Status   |
+| ---------------- | ---------------------------------------------- | -------- |
+| F0 · Foundation  | Monorepo, auth, multi-tenant, outbox, CI, docs | Complete |
+| F1–F4            | Orders, Inventory, Warehouse, Logistics        | Complete |
+| F5 · Sales / POS | Retail sessions, tickets, cash sales           | Complete |
+| Gate 5–6         | Frontend switch + Docker / Compose / CI        | Complete |
+| Gate 7           | NestJS removed; .NET sole backend              | Complete |
+| F7 · Billing     | Invoices, receivables                          | Planned  |
+| F8 · Reporting   | Dashboards                                     | Planned  |
 
-See [`CHANGELOG.md`](CHANGELOG.md) for merged PR history. Domain detail lives in [`docs/domains/`](docs/domains/).
+See [`CHANGELOG.md`](CHANGELOG.md) for merged PR history.

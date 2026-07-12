@@ -1,0 +1,20 @@
+---
+description: Auto-load public landing/marketing skills when editing prospect-facing UI
+globs:
+  - 'apps/web/src/app/(public)/**'
+  - 'apps/web/src/app/**/pricing/**'
+  - 'apps/web/src/app/**/signup/**'
+  - 'apps/web/src/app/**/onboarding/**'
+  - 'apps/web/src/app/page.tsx'
+alwaysApply: false
+---
+
+# Public / marketing surface
+
+Before writing or reviewing UI/copy here, **Read and follow**:
+
+1. [`.cursor/skills/taste/SKILL.md`](../skills/taste/SKILL.md)
+2. [`.cursor/skills/ui-ux-pro/SKILL.md`](../skills/ui-ux-pro/SKILL.md)
+3. [`.cursor/skills/marketing-copy/SKILL.md`](../skills/marketing-copy/SKILL.md)
+4. If SEO/metadata → [`growth-seo`](../skills/growth-seo/SKILL.md); if conversion experiments → [`cro`](../skills/cro/SKILL.md); if View Transitions → [`react-view-transitions`](../skills/react-view-transitions/SKILL.md)
+5. Strip AI prose with [`stop-slop`](../skills/stop-slop/SKILL.md)
