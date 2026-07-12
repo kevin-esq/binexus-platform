@@ -13,14 +13,6 @@ updates:
       prefix: chore
       include: scope
     groups:
-      nest:
-        patterns:
-          - '@nestjs/*'
-          - 'nestjs-*'
-      prisma:
-        patterns:
-          - '@prisma/*'
-          - 'prisma'
       next:
         patterns:
           - 'next'
@@ -62,6 +54,18 @@ updates:
     labels: ['dependencies', 'ci']
     commit-message:
       prefix: ci
+      include: scope
+
+  - package-ecosystem: nuget
+    directory: /apps/backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 8
+    labels: ['dependencies', 'backend']
+    commit-message:
+      prefix: chore
       include: scope
 
   - package-ecosystem: docker

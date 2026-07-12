@@ -6,10 +6,9 @@
 
 # Architecture and bounded-context boundaries are sensitive — explicit owner.
 /docs/                              @kevin-esq
-/packages/events/                   @kevin-esq
 /packages/types/                    @kevin-esq
-/apps/backend/src/common/           @kevin-esq
-/apps/backend/prisma/               @kevin-esq
+/packages/sdk/                      @kevin-esq
+/apps/backend/                      @kevin-esq
 
 # CI / infrastructure / security-relevant files
 /.github/                           @kevin-esq

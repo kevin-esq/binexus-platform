@@ -1,0 +1,41 @@
+# Binexus.Workers — multi-stage .NET 10 (SDK build → aspnet runtime, non-root)
+# Exposes lightweight Kestrel /health for compose probes. Build from repo root:
+#   docker build -f infrastructure/docker/Dockerfile.workers -t binexus-workers .
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+COPY apps/backend/Directory.Build.props apps/backend/
+COPY apps/backend/Binexus.slnx apps/backend/
+COPY apps/backend/src apps/backend/src
+
+WORKDIR /src/apps/backend
+RUN dotnet restore src/Binexus.Workers/Binexus.Workers.csproj
+ENV Jwt__SigningKey=docker-build-signing-key-with-more-than-thirty-two-bytes
+RUN dotnet publish src/Binexus.Workers/Binexus.Workers.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-restore \
+    -p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends curl \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /app/publish .
+RUN chown -R $APP_UID:$APP_UID /app
+
+ENV ASPNETCORE_URLS=http://+:8081 \
+    DOTNET_EnableDiagnostics=0 \
+    RUN_MIGRATIONS=0
+
+EXPOSE 8081
+USER $APP_UID
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=10 \
+  CMD curl -fsS http://127.0.0.1:8081/health || exit 1
+
+ENTRYPOINT ["dotnet", "Binexus.Workers.dll"]
