@@ -1,9 +1,9 @@
 using System.Text.Json;
-using Binexus.Platform.Features.Contracts;
 using Binexus.Modules.Logistics.Application;
 using Binexus.Modules.Logistics.Domain;
 using Binexus.Modules.Orders.Contracts;
 using Binexus.Platform.Dispatching;
+using Binexus.Platform.Features.Contracts;
 using Binexus.Platform.Ids;
 using Binexus.Platform.Messaging;
 using Binexus.Platform.Persistence;

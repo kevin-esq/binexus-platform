@@ -22,19 +22,19 @@ public sealed class IdentitySeedEnvironmentTests
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment(Environments.Production);
-            builder.UseSetting("Database:ConnectionString",
-                "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
-            builder.UseSetting(
-                "Jwt:SigningKey",
-                "production-test-signing-key-with-more-than-thirty-two-bytes");
-            builder.UseSetting("Logistics:Storage:Provider", "MinIO");
-            builder.UseSetting("Logistics:Storage:Endpoint", "http://127.0.0.1:9000");
-            builder.UseSetting("Logistics:Storage:Bucket", "binexus-test");
-            builder.UseSetting("Logistics:Storage:AccessKey", "test-access-key");
-            builder.UseSetting("Logistics:Storage:SecretKey", "test-secret-key");
-            builder.UseSetting(
-                "IdentitySeed:AdminPassword",
-                IdentitySeedDefaults.KnownInsecureDemoPassword);
+                builder.UseSetting("Database:ConnectionString",
+                    "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
+                builder.UseSetting(
+                    "Jwt:SigningKey",
+                    "production-test-signing-key-with-more-than-thirty-two-bytes");
+                builder.UseSetting("Logistics:Storage:Provider", "MinIO");
+                builder.UseSetting("Logistics:Storage:Endpoint", "http://127.0.0.1:9000");
+                builder.UseSetting("Logistics:Storage:Bucket", "binexus-test");
+                builder.UseSetting("Logistics:Storage:AccessKey", "test-access-key");
+                builder.UseSetting("Logistics:Storage:SecretKey", "test-secret-key");
+                builder.UseSetting(
+                    "IdentitySeed:AdminPassword",
+                    IdentitySeedDefaults.KnownInsecureDemoPassword);
             })
             .CreateClient();
 
