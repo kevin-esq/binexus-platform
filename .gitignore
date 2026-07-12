@@ -17,6 +17,13 @@ out/
 *.tsbuildinfo
 .cache/
 
+# .NET
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
 # Tauri
 apps/desktop/src-tauri/target/
 apps/desktop/src-tauri/Cargo.lock
@@ -50,9 +57,10 @@ Thumbs.db
 coverage/
 *.lcov
 .nyc_output/
-
-# Prisma
-apps/backend/prisma/migrations/dev.db*
+**/test-results/
+**/playwright-report/
+**/TestResults/
+*.trx
 
 # Misc
 .eslintcache
@@ -63,11 +71,17 @@ apps/backend/prisma/migrations/dev.db*
 # not part of the project). Drop them under skills/ locally; do not commit.
 /skills/
 
-# Graphify knowledge graph output. Per-machine; rebuild via `graphify .`
-/graphify-out/
+# Graphify knowledge graph output (generated; rebuild via `graphify update .`)
+**/graphify-out/
 /.graphify/
-# Artifacts built via the web-artifacts skill (one-off demos and sandboxes).
-/artifacts/
+
+# Local / ephemeral build artifacts (keep committed OpenAPI under artifacts/openapi/)
+/artifacts/publish/
+/artifacts/gate5-smoke/
+/artifacts/gate6-smoke/
+/artifacts/migrations/
+# One-off demos from the web-artifacts skill
+/artifacts/web-artifacts/
 
 # Cursor IDE
 # Track project-wide rules and skills under .cursor/{rules,skills}/.
