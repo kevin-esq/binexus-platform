@@ -109,10 +109,15 @@ jobs:
 
       - name: Build
         working-directory: apps/backend
+        env:
+          # Explicit for OpenAPI-on-build / GetDocument host — not an image default.
+          Binexus__RuntimeMode: Cloud
         run: dotnet build Binexus.slnx --configuration Release --no-restore
 
       - name: EF pending model changes
         working-directory: apps/backend
+        env:
+          Binexus__RuntimeMode: Cloud
         run: |
           dotnet tool restore
           dotnet ef migrations has-pending-model-changes \
@@ -121,6 +126,8 @@ jobs:
 
       - name: Generate idempotent SQL
         working-directory: apps/backend
+        env:
+          Binexus__RuntimeMode: Cloud
         run: |
           mkdir -p db ../../artifacts/migrations
           dotnet ef migrations script --idempotent \
@@ -139,6 +146,8 @@ jobs:
 
       - name: Test
         working-directory: apps/backend
+        env:
+          Binexus__RuntimeMode: Cloud
         run: dotnet test Binexus.slnx --configuration Release --no-build
 
       - name: Verify OpenAPI artifact

@@ -14,7 +14,9 @@ WORKDIR /src/apps/backend
 RUN dotnet restore src/Binexus.Api/Binexus.Api.csproj
 
 # Publish with OpenAPI-on-build off (host CI still generates artifacts/openapi).
-ENV Jwt__SigningKey=docker-build-signing-key-with-more-than-thirty-two-bytes
+# Build-stage only: RuntimeMode for tooling that hosts the app (efbundle). Not copied to final image.
+ENV Jwt__SigningKey=docker-build-signing-key-with-more-than-thirty-two-bytes \
+    Binexus__RuntimeMode=Cloud
 RUN dotnet publish src/Binexus.Api/Binexus.Api.csproj \
     -c Release \
     -o /app/publish \
