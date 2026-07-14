@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Binexus.Composition\Binexus.Composition.csproj" />
     <ProjectReference Include="..\Binexus.Platform\Binexus.Platform.csproj" />
     <ProjectReference Include="..\Binexus.SharedKernel\Binexus.SharedKernel.csproj" />
     <ProjectReference Include="..\Modules\Binexus.Modules.Identity\Binexus.Modules.Identity.csproj" />
