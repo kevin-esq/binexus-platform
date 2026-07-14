@@ -1,11 +1,4 @@
-using Binexus.Modules.Identity;
-using Binexus.Modules.Identity.Application;
-using Binexus.Modules.Identity.Infrastructure;
-using Binexus.Modules.Inventory;
-using Binexus.Modules.Logistics;
-using Binexus.Modules.Orders;
-using Binexus.Modules.Sales;
-using Binexus.Modules.Warehouse;
+using Binexus.Composition;
 using Binexus.Platform.DependencyInjection;
 using Binexus.Platform.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Testcontainers.PostgreSql;
+using Binexus.Modules.Identity.Application;
+using Binexus.Modules.Identity.Infrastructure;
 
 namespace Binexus.IntegrationTests.Infrastructure;
 
@@ -64,6 +59,7 @@ public sealed class PostgresTestFixture : IAsyncLifetime
                 ["Database:ConnectionString"] = ConnectionString,
                 ["Cors:AllowedOrigins:0"] = "http://localhost:3000",
                 ["ASPNETCORE_ENVIRONMENT"] = environmentName,
+                ["Binexus:RuntimeMode"] = "Cloud",
                 ["Jwt:Issuer"] = "binexus",
                 ["Jwt:Audience"] = "binexus-api",
                 ["Jwt:SigningKey"] = "integration-test-signing-key-with-more-than-32-bytes",
@@ -76,14 +72,8 @@ public sealed class PostgresTestFixture : IAsyncLifetime
 
         var hostEnvironment = new TestHostEnvironment(environmentName);
         services.AddSingleton<IHostEnvironment>(hostEnvironment);
-        services.AddBinexusPlatform(configuration);
-        services.AddBinexusDispatching();
-        services.AddIdentityModule(configuration, hostEnvironment);
-        services.AddInventoryModule();
-        services.AddOrdersModule();
-        services.AddWarehouseModule();
-        services.AddLogisticsModule(configuration);
-        services.AddSalesModule();
+        services.AddBinexusCore(configuration, hostEnvironment);
+        services.AddBinexusRuntime(configuration);
         services.AddLogging();
         configure?.Invoke(services);
         return services.BuildServiceProvider().CreateScope();

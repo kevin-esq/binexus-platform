@@ -12,21 +12,20 @@ using Binexus.Modules.Orders.Domain;
 using Binexus.Platform.Ids;
 using Binexus.Platform.Persistence;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Binexus.IntegrationTests.Logistics;
 
 [Collection("postgres")]
-public sealed class LocalDevObjectStorageTests : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+public sealed class LocalDevObjectStorageTests : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "local-dev-storage-signing-key-with-more-than-thirty-two-bytes";
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly PostgresTestFixture _postgres;
     private readonly HttpClient _client;
 
-    public LocalDevObjectStorageTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public LocalDevObjectStorageTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _client = factory.WithWebHostBuilder(builder =>

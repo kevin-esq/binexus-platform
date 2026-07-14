@@ -13,21 +13,20 @@ using Binexus.Platform.Ids;
 using Binexus.Platform.Messaging;
 using Binexus.Platform.Persistence;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Binexus.IntegrationTests.Logistics;
 
 [Collection("postgres")]
-public sealed class LogisticsFlowTests : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+public sealed class LogisticsFlowTests : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "logistics-integration-signing-key-with-more-than-thirty-two-bytes";
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly PostgresTestFixture _postgres;
     private readonly HttpClient _client;
 
-    public LogisticsFlowTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public LogisticsFlowTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _client = factory.WithWebHostBuilder(builder =>

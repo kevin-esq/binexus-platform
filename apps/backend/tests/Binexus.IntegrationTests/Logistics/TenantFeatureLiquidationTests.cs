@@ -10,20 +10,19 @@ using Binexus.Platform.Features.Contracts;
 using Binexus.Platform.Ids;
 using Binexus.Platform.Persistence;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Binexus.IntegrationTests.Logistics;
 
 [Collection("postgres")]
-public sealed class TenantFeatureLiquidationTests : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+public sealed class TenantFeatureLiquidationTests : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "liquidation-feature-signing-key-with-more-than-thirty-two-bytes";
     private readonly PostgresTestFixture _postgres;
     private readonly HttpClient _client;
 
-    public TenantFeatureLiquidationTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public TenantFeatureLiquidationTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _client = factory.WithWebHostBuilder(builder =>

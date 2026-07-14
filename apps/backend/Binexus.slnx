@@ -21,5 +21,6 @@
     <Project Path="tests/Binexus.ArchitectureTests/Binexus.ArchitectureTests.csproj" />
     <Project Path="tests/Binexus.IntegrationTests/Binexus.IntegrationTests.csproj" />
     <Project Path="tests/Binexus.UnitTests/Binexus.UnitTests.csproj" />
+    <Project Path="tests/Binexus.Workers.Tests/Binexus.Workers.Tests.csproj" />
   </Folder>
 </Solution>

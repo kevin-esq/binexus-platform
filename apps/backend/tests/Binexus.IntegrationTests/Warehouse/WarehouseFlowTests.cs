@@ -12,7 +12,6 @@ using Binexus.Platform.Ids;
 using Binexus.Platform.Messaging;
 using Binexus.Platform.Persistence;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -20,14 +19,14 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Binexus.IntegrationTests.Warehouse;
 
 [Collection("postgres")]
-public sealed class WarehouseFlowTests : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+public sealed class WarehouseFlowTests : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "warehouse-integration-signing-key-with-more-than-thirty-two-bytes";
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly PostgresTestFixture _postgres;
     private readonly HttpClient _client;
 
-    public WarehouseFlowTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public WarehouseFlowTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _client = factory.WithWebHostBuilder(builder =>

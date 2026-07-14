@@ -1,14 +1,15 @@
 using System.Net;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
+
+using Binexus.IntegrationTests.Infrastructure;
 
 namespace Binexus.IntegrationTests.Api;
 
-public sealed class HealthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class HealthEndpointTests : IClassFixture<CloudApiFactory>
 {
     private readonly HttpClient _client;
 
-    public HealthEndpointTests(WebApplicationFactory<Program> factory)
+    public HealthEndpointTests(CloudApiFactory factory)
     {
         _client = factory.WithWebHostBuilder(builder =>
         {
