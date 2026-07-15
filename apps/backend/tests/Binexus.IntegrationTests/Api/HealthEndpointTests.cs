@@ -1,7 +1,6 @@
 using System.Net;
-using FluentAssertions;
-
 using Binexus.IntegrationTests.Infrastructure;
+using FluentAssertions;
 
 namespace Binexus.IntegrationTests.Api;
 

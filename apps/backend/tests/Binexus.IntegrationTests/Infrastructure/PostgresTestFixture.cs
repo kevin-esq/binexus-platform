@@ -1,4 +1,6 @@
 using Binexus.Composition;
+using Binexus.Modules.Identity.Application;
+using Binexus.Modules.Identity.Infrastructure;
 using Binexus.Platform.DependencyInjection;
 using Binexus.Platform.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Testcontainers.PostgreSql;
-using Binexus.Modules.Identity.Application;
-using Binexus.Modules.Identity.Infrastructure;
 
 namespace Binexus.IntegrationTests.Infrastructure;
 

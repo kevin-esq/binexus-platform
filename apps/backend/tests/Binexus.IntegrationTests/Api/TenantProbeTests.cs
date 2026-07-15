@@ -1,10 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
+using Binexus.IntegrationTests.Infrastructure;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-
-using Binexus.IntegrationTests.Infrastructure;
 
 namespace Binexus.IntegrationTests.Api;
 
