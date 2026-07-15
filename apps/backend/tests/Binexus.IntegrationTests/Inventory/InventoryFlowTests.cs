@@ -12,13 +12,12 @@ using Binexus.Platform.Ids;
 using Binexus.Platform.Persistence;
 using Binexus.Platform.Tenancy;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Binexus.IntegrationTests.Inventory;
 
-public sealed class InventoryFlowTests : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+public sealed class InventoryFlowTests : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "identity-integration-signing-key-with-more-than-thirty-two-bytes";
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
@@ -26,7 +25,7 @@ public sealed class InventoryFlowTests : IClassFixture<PostgresTestFixture>, ICl
     private readonly PostgresTestFixture _postgres;
     private readonly HttpClient _client;
 
-    public InventoryFlowTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public InventoryFlowTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _client = factory.WithWebHostBuilder(builder =>

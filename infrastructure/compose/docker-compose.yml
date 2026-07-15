@@ -11,6 +11,8 @@ name: binexus
 x-dotnet-env: &dotnet-env
   ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
   DOTNET_ENVIRONMENT: ${DOTNET_ENVIRONMENT:-Development}
+  # PR1 compatibility: current compose stack is Cloud Runtime (explicit deploy config, not an image default).
+  Binexus__RuntimeMode: Cloud
   # Always the compose service hostname (do not use localhost from host .env).
   Database__ConnectionString: Host=postgres;Port=5432;Database=binexus;Username=binexus;Password=binexus
   Jwt__SigningKey: ${Jwt__SigningKey:?Jwt__SigningKey required}

@@ -12,21 +12,20 @@ using Binexus.Modules.Identity.Infrastructure;
 using Binexus.Platform.Ids;
 using Binexus.Platform.Persistence;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Binexus.IntegrationTests.Identity;
 
-public sealed class AuthFlowTests : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+public sealed class AuthFlowTests : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "identity-integration-signing-key-with-more-than-thirty-two-bytes";
     private readonly PostgresTestFixture _postgres;
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly CloudApiFactory _factory;
     private readonly HttpClient _client;
 
-    public AuthFlowTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public AuthFlowTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _factory = factory;
@@ -34,7 +33,7 @@ public sealed class AuthFlowTests : IClassFixture<PostgresTestFixture>, IClassFi
     }
 
     private static HttpClient CreateClient(
-        WebApplicationFactory<Program> factory,
+        CloudApiFactory factory,
         string connectionString,
         string environment = "Testing") =>
         factory.WithWebHostBuilder(builder =>

@@ -1,17 +1,17 @@
 using System.Net;
 using System.Net.Http.Json;
+using Binexus.IntegrationTests.Infrastructure;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Hosting;
 
 namespace Binexus.IntegrationTests.Api;
 
-public sealed class TenantProbeTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class TenantProbeTests : IClassFixture<CloudApiFactory>
 {
     private readonly HttpClient _client;
 
-    public TenantProbeTests(WebApplicationFactory<Program> factory)
+    public TenantProbeTests(CloudApiFactory factory)
     {
         _client = factory.WithWebHostBuilder(builder =>
         {

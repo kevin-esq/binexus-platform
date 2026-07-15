@@ -30,6 +30,7 @@ public sealed class ProductionWebApplicationFactory : WebApplicationFactory<Prog
     {
         builder.UseSetting("Database:ConnectionString",
             "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
+        builder.UseSetting("Binexus:RuntimeMode", "Cloud");
         builder.UseSetting(
             "Jwt:SigningKey",
             "production-test-signing-key-with-more-than-thirty-two-bytes");

@@ -12,7 +12,6 @@ using Binexus.Platform.Features.Contracts;
 using Binexus.Platform.Ids;
 using Binexus.Platform.Persistence;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -20,7 +19,7 @@ using Npgsql;
 namespace Binexus.IntegrationTests.Sales;
 
 [Collection("postgres")]
-public sealed class SalesClosingAdjustmentTests : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+public sealed class SalesClosingAdjustmentTests : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "sales-closing-signing-key-with-more-than-thirty-two-bytes";
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
@@ -28,7 +27,7 @@ public sealed class SalesClosingAdjustmentTests : IClassFixture<PostgresTestFixt
     private readonly PostgresTestFixture _postgres;
     private readonly HttpClient _client;
 
-    public SalesClosingAdjustmentTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public SalesClosingAdjustmentTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _client = factory.WithWebHostBuilder(builder =>

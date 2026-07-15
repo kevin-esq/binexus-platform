@@ -13,20 +13,19 @@ using Binexus.Platform.Ids;
 using Binexus.Platform.Persistence;
 using Binexus.Platform.Tenancy;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Binexus.IntegrationTests.Orders;
 
-public sealed class OrderConcurrencyTests : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+public sealed class OrderConcurrencyTests : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "identity-integration-signing-key-with-more-than-thirty-two-bytes";
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly PostgresTestFixture _postgres;
     private readonly HttpClient _client;
 
-    public OrderConcurrencyTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public OrderConcurrencyTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _client = factory.WithWebHostBuilder(builder =>

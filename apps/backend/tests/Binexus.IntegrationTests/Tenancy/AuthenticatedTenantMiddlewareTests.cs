@@ -5,18 +5,17 @@ using Binexus.IntegrationTests.Infrastructure;
 using Binexus.Modules.Identity.Application;
 using Binexus.Platform.Tenancy;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Binexus.IntegrationTests.Tenancy;
 
 public sealed class AuthenticatedTenantMiddlewareTests
-    : IClassFixture<PostgresTestFixture>, IClassFixture<WebApplicationFactory<Program>>
+    : IClassFixture<PostgresTestFixture>, IClassFixture<CloudApiFactory>
 {
     private const string SigningKey = "identity-integration-signing-key-with-more-than-thirty-two-bytes";
     private readonly PostgresTestFixture _postgres;
     private readonly HttpClient _client;
 
-    public AuthenticatedTenantMiddlewareTests(PostgresTestFixture postgres, WebApplicationFactory<Program> factory)
+    public AuthenticatedTenantMiddlewareTests(PostgresTestFixture postgres, CloudApiFactory factory)
     {
         _postgres = postgres;
         _client = factory.WithWebHostBuilder(builder =>

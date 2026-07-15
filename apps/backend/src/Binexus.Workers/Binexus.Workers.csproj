@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Binexus.Composition\Binexus.Composition.csproj" />
     <ProjectReference Include="..\Binexus.Platform\Binexus.Platform.csproj" />
     <ProjectReference Include="..\Modules\Binexus.Modules.Identity\Binexus.Modules.Identity.csproj" />
     <ProjectReference Include="..\Modules\Binexus.Modules.Inventory\Binexus.Modules.Inventory.csproj" />

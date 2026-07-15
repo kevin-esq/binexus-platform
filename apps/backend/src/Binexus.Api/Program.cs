@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Threading.RateLimiting;
 using Binexus.Api.Features.Internal;
 using Binexus.Api.Health;
+using Binexus.Composition;
 using Binexus.Modules.Identity;
 using Binexus.Modules.Identity.Application;
 using Binexus.Modules.Identity.Infrastructure;
@@ -20,14 +21,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddBinexusSerilog();
 builder.Services.AddBinexusForwardedHeaders(builder.Configuration);
-builder.Services.AddBinexusPlatform(builder.Configuration);
-builder.Services.AddBinexusDispatching();
-builder.Services.AddIdentityModule(builder.Configuration, builder.Environment);
-builder.Services.AddInventoryModule();
-builder.Services.AddOrdersModule();
-builder.Services.AddWarehouseModule();
-builder.Services.AddLogisticsModule(builder.Configuration);
-builder.Services.AddSalesModule();
+builder.Services.AddBinexusCore(builder.Configuration, builder.Environment);
+builder.Services.AddBinexusRuntime(builder.Configuration);
 
 if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing"))
 {
@@ -149,6 +144,7 @@ app.MapGet("/health/live", liveness)
     .WithName("HealthLive")
     .WithTags("Health")
     .Produces<object>(StatusCodes.Status200OK);
+app.MapRuntimeHealth();
 
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {

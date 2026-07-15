@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Binexus.Composition</RootNamespace>
+    <AssemblyName>Binexus.Composition</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Binexus.Platform\Binexus.Platform.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Identity\Binexus.Modules.Identity.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Inventory\Binexus.Modules.Inventory.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Logistics\Binexus.Modules.Logistics.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Orders\Binexus.Modules.Orders.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Sales\Binexus.Modules.Sales.csproj" />
+    <ProjectReference Include="..\Modules\Binexus.Modules.Warehouse\Binexus.Modules.Warehouse.csproj" />
+  </ItemGroup>
+
+</Project>

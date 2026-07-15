@@ -11,7 +11,8 @@ COPY apps/backend/src apps/backend/src
 
 WORKDIR /src/apps/backend
 RUN dotnet restore src/Binexus.Workers/Binexus.Workers.csproj
-ENV Jwt__SigningKey=docker-build-signing-key-with-more-than-thirty-two-bytes
+ENV Jwt__SigningKey=docker-build-signing-key-with-more-than-thirty-two-bytes \
+    Binexus__RuntimeMode=Cloud
 RUN dotnet publish src/Binexus.Workers/Binexus.Workers.csproj \
     -c Release \
     -o /app/publish \

@@ -8,7 +8,8 @@
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development",
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:5103"
+        "ASPNETCORE_URLS": "http://localhost:5103",
+        "Binexus__RuntimeMode": "Cloud"
       }
     }
   }
