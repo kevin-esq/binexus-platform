@@ -15,7 +15,7 @@ POS sessions, pairing, and audit need distinct machine, role, and human identiti
 | Concept                 | Meaning                                                 | Authority                                                       |
 | ----------------------- | ------------------------------------------------------- | --------------------------------------------------------------- |
 | Sucursal (`BranchId`)   | Business location                                       | Cloud creates                                                   |
-| `BranchInstanceId`      | Active installed Branch Server + its Postgres           | Cloud issues on activation; Branch stores                       |
+| `BranchInstanceId`      | Active installed Branch Server + its Postgres           | Branch mints UUIDv7 locally; Cloud adopts on activation         |
 | Device (`DeviceId`)     | Machine identity for Branch Server host or Tauri client | Created at activation or pairing                                |
 | Terminal (`TerminalId`) | Logical POS/workstation role (Caja 1, Oficina)          | Branch policy assigns to a Device                               |
 | User (`UserId`)         | Human actor                                             | Cloud provisions; Branch authenticates locally from synced data |

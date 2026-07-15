@@ -24,7 +24,9 @@ one sucursal
 
 Cloud stores at most one `BranchInstanceId` with status `Active` per `(TenantId, BranchId)`.
 
-Branch Server persists that `BranchInstanceId` locally after activation.
+`BranchInstanceId` is **locally minted** (UUIDv7) on first Branch Server startup and **cloud-adopted** during activation. Cloud must not silently replace the ID; it may reject activation on conflict or an existing Active instance (Replace flow).
+
+Branch Server persists the local `BranchInstanceId` before activation (status `ReadyForActivation` in the early implementation).
 
 ### Accidental second server
 

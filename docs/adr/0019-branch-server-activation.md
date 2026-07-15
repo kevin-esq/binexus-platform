@@ -24,26 +24,29 @@ Web Admin generates a short-lived, single-use activation code (or replace token)
 
 ### Result of successful activation
 
-- `BranchInstanceId`
+- Existing local `BranchInstanceId` (cloud-adopted; not reminted)
 - Permanent Branch↔Cloud credential (sync + management)
 - Installation identity (DeviceId for the Principal host)
 - Initial configuration pointer
 - Entitlements snapshot reference
 - Bootstrap checkpoint cursor at start
+- Local status becomes Active (future); TenantId / BranchId bound
 
 ### Flow (design)
 
 ```text
-Web Admin issues activation code
-→ Branch Installer / Wizard submits code to Cloud
+Branch Server first boot mints BranchInstanceId (UUIDv7) locally
+→ Web Admin issues activation code
+→ Branch Installer / Wizard submits code + BranchInstanceId to Cloud
 → Cloud validates entitlement and Active-instance rules (ADR-0017)
-→ Cloud returns BranchInstance identity + credentials
+→ Cloud adopts BranchInstanceId (or rejects on conflict / Replace required)
+→ Cloud returns credentials + TenantId/BranchId binding
 → Branch persists secrets in OS store
 → Branch starts resumable bootstrap (ADR-0026)
 → Branch marks Ready when prerequisites met
 ```
 
-Activation codes do not remain on disk after use.
+Activation codes do not remain on disk after use. Cloud must not silently substitute a different `BranchInstanceId`.
 
 This flow does **not** issue Tauri device credentials for secondary cashiers.
 

@@ -12,17 +12,21 @@ pnpm db:seed:dev       # or db:seed:dev:win on Windows
 pnpm dev:web           # http://localhost:3000 → Api :5102
 ```
 
-| Surface         | URL                                   |
-| --------------- | ------------------------------------- |
-| Api liveness    | http://localhost:5102/health          |
-| Api readiness   | http://localhost:5102/health/ready    |
-| Api runtime     | http://localhost:5102/health/runtime  |
-| Workers         | http://localhost:5103/health          |
-| Workers runtime | http://localhost:5103/health/runtime  |
-| Web             | http://localhost:3000                 |
-| MinIO           | http://localhost:9000 / console :9001 |
+| Surface          | URL                                   |
+| ---------------- | ------------------------------------- |
+| Api liveness     | http://localhost:5102/health          |
+| Api readiness    | http://localhost:5102/health/ready    |
+| Api runtime      | http://localhost:5102/health/runtime  |
+| Api branch\*     | http://localhost:5102/health/branch   |
+| Workers          | http://localhost:5103/health          |
+| Workers runtime  | http://localhost:5103/health/runtime  |
+| Workers branch\* | http://localhost:5103/health/branch   |
+| Web              | http://localhost:3000                 |
+| MinIO            | http://localhost:9000 / console :9001 |
 
-`Binexus__RuntimeMode` is required (no image/code default). Local Compose, `.env.example`, and launch profiles set `Cloud` explicitly for PR 1 compatibility. Use `Branch` only when you intend the Branch composition root.
+`Binexus__RuntimeMode` is required (no image/code default). Local Compose, `.env.example`, and launch profiles set `Cloud` explicitly. Use `Branch` only when you intend the Branch composition root (`$env:Binexus__RuntimeMode='Branch'`). Compose stays Cloud by default.
+
+\* `/health/branch` returns **404** on Cloud and **200** on Branch after installation identity is ensured at startup.
 
 ## Clean database recreate
 
