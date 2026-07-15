@@ -5,6 +5,5 @@ var builder = WorkersHost.CreateBuilder(args);
 builder.Services.AddHostedService<OutboxWorkerHost>();
 
 var app = builder.Build();
-WorkersHost.MapOperationalEndpoints(app);
-
+await WorkersHost.InitializeAsync(app);
 await app.RunAsync();
