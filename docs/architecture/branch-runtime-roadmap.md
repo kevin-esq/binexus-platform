@@ -6,6 +6,8 @@ ADRs 0016–0032 stay `Proposed` until implemented or ADR policy accepts them. E
 
 Do not start PR 1 until the architecture documentation PR is merged to `main`.
 
+PR 1 implementation lives on `feat/branch-runtime-foundation`. Checkpoint: [`pr1-runtime-mode-foundation-checkpoint.md`](../migration/pr1-runtime-mode-foundation-checkpoint.md).
+
 ## PR plan (single developer)
 
 | PR  | Title                                   | Demonstrable value                                                                                                | Depends on | Tests                   | Risks                  | Done when                            | Out of scope            |

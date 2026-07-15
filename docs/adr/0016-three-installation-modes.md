@@ -141,6 +141,19 @@ Branch Client is not a .NET host mode. It is a Tauri installation that talks to 
 2. **Separate .NET products with forked modules** - Rejected: duplicates domain.
 3. **`if (runtimeMode)` inside handlers** - Rejected: scatters deployment policy into domain.
 
+## Implementation status (PR 1)
+
+**ADR status remains `Proposed`.** Branch Client (Tauri), sync, pairing, and activation are not implemented.
+
+PR 1 (`feat/branch-runtime-foundation`) implements only the .NET composition foundation:
+
+- `Binexus:RuntimeMode` (`Cloud` | `Branch`) with fail-fast when missing or invalid
+- `AddBinexusCore` + `AddBinexusRuntime` → `AddCloudRuntime` / `AddBranchRuntime`
+- `IRuntimeDescriptor` (mode only)
+- `GET /health/runtime` on Api and Workers
+
+See [`docs/migration/pr1-runtime-mode-foundation-checkpoint.md`](../migration/pr1-runtime-mode-foundation-checkpoint.md).
+
 ## Decision outcome
 
-Proposed. Await checkpoint approval before Accepted.
+Proposed. Runtime composition (Cloud/Branch .NET hosts) has a partial implementation note above. Full Accepted waits for Branch Client and remaining ADR scope, or a later ADR status update under project policy.
