@@ -1,3 +1,4 @@
+using Binexus.Platform.Branching.Persistence;
 using Binexus.Platform.Messaging;
 using Binexus.Platform.Tenancy;
 using Binexus.SharedKernel.Abstractions;
@@ -23,6 +24,8 @@ public sealed class BinexusDbContext : DbContext
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public DbSet<EventHandlerDelivery> EventHandlerDeliveries => Set<EventHandlerDelivery>();
+
+    public DbSet<BranchInstance> BranchInstances => Set<BranchInstance>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

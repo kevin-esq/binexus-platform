@@ -145,6 +145,7 @@ app.MapGet("/health/live", liveness)
     .WithTags("Health")
     .Produces<object>(StatusCodes.Status200OK);
 app.MapRuntimeHealth();
+app.MapBranchHealth();
 
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
@@ -183,6 +184,7 @@ if (seedOnStart && app.Environment.IsDevelopment())
     }
 }
 
+await app.Services.EnsureBranchRuntimeInitializedAsync();
 await app.RunAsync();
 
 public partial class Program;

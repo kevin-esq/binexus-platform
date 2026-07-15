@@ -1539,3 +1539,36 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715110030_Platform_BranchInstance') THEN
+    CREATE TABLE branch_instances (
+        id uuid NOT NULL,
+        singleton_key character varying(16) NOT NULL,
+        status character varying(64) NOT NULL,
+        created_at_utc timestamp with time zone NOT NULL,
+        CONSTRAINT pk_branch_instances PRIMARY KEY (id),
+        CONSTRAINT ck_branch_instances_singleton_key_local CHECK (singleton_key = 'local'),
+        CONSTRAINT ck_branch_instances_status_ready_for_activation CHECK (status = 'ReadyForActivation')
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715110030_Platform_BranchInstance') THEN
+    CREATE UNIQUE INDEX ix_branch_instances_singleton_key ON branch_instances (singleton_key);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715110030_Platform_BranchInstance') THEN
+    INSERT INTO "__EFMigrationsHistory" (migration_id, product_version)
+    VALUES ('20260715110030_Platform_BranchInstance', '10.0.9');
+    END IF;
+END $EF$;
+COMMIT;
+

@@ -45,5 +45,15 @@ public static class WorkersHost
         app.MapGet("/health", liveness);
         app.MapGet("/health/live", liveness);
         app.MapRuntimeHealth();
+        app.MapBranchHealth();
+    }
+
+    /// <summary>
+    /// Maps operational endpoints and completes Branch identity ensure before the host accepts work.
+    /// </summary>
+    public static async Task InitializeAsync(WebApplication app, CancellationToken cancellationToken = default)
+    {
+        MapOperationalEndpoints(app);
+        await app.Services.EnsureBranchRuntimeInitializedAsync(cancellationToken);
     }
 }
