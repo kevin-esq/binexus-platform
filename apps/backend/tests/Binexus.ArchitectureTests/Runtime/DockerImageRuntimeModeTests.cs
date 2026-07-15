@@ -8,8 +8,8 @@ public sealed class DockerImageRuntimeModeTests
     public void Final_stage_dockerfiles_do_not_set_RuntimeMode_ENV()
     {
         var repoRoot = FindRepoRoot();
-        var api = File.ReadAllText(Path.Combine(repoRoot, "infrastructure", "docker", "Dockerfile.api"));
-        var workers = File.ReadAllText(Path.Combine(repoRoot, "infrastructure", "docker", "Dockerfile.workers"));
+        var api = File.ReadAllText(Path.Join(repoRoot, "infrastructure", "docker", "Dockerfile.api"));
+        var workers = File.ReadAllText(Path.Join(repoRoot, "infrastructure", "docker", "Dockerfile.workers"));
 
         AssertFinalStageHasNoRuntimeMode(api, "Dockerfile.api");
         AssertFinalStageHasNoRuntimeMode(workers, "Dockerfile.workers");
@@ -28,7 +28,7 @@ public sealed class DockerImageRuntimeModeTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "pnpm-workspace.yaml")))
+            if (File.Exists(Path.Join(dir.FullName, "pnpm-workspace.yaml")))
             {
                 return dir.FullName;
             }

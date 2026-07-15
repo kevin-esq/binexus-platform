@@ -16,7 +16,7 @@ public sealed class ApiRuntimeHostTests
     [InlineData("Branch")]
     public async Task Api_starts_and_reports_runtime(string mode)
     {
-        await using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseSetting("Binexus:RuntimeMode", mode);
             builder.UseSetting("Database:ConnectionString",
@@ -50,15 +50,16 @@ public sealed class ApiRuntimeHostTests
         {
             Environment.SetEnvironmentVariable("Binexus__RuntimeMode", null);
 
-            var action = () => new WebApplicationFactory<Program>()
+            using var factory = new WebApplicationFactory<Program>()
                 .WithWebHostBuilder(builder =>
                 {
                     builder.UseSetting("Database:ConnectionString",
                         "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
                     builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
                     builder.UseEnvironment("Testing");
-                })
-                .CreateClient();
+                });
+
+            var action = () => factory.CreateClient();
 
             action.Should().Throw<Exception>()
                 .Which.GetBaseException().Message.Should().Contain("Binexus:RuntimeMode");
@@ -72,7 +73,7 @@ public sealed class ApiRuntimeHostTests
     [Fact]
     public void Api_invalid_runtime_mode_fails()
     {
-        var action = () => new WebApplicationFactory<Program>()
+        using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseSetting("Binexus:RuntimeMode", "Local");
@@ -80,8 +81,9 @@ public sealed class ApiRuntimeHostTests
                     "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
                 builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
                 builder.UseEnvironment("Testing");
-            })
-            .CreateClient();
+            });
+
+        var action = () => factory.CreateClient();
 
         action.Should().Throw<Exception>()
             .Which.GetBaseException().Message.Should().Contain("invalid");
