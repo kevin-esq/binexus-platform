@@ -85,3 +85,9 @@ Replacement sequence (design):
 ## Decision outcome
 
 Proposed. Await checkpoint approval before Accepted.
+
+## Implementation notes (PR 3)
+
+- Local `BranchInstance` singleton remains the install identity; activation binds `TenantId` / `BranchId` and status `Active`.
+- Cloud authority for “one Active per sucursal” is `cloud_branch_instances` with a filtered unique index on `(TenantId, BranchId)`.
+- Confirm Cloud to Active/Consumed **before** local `Activate` + memory Publish (see ADR-0019).

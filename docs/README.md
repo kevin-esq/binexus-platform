@@ -23,19 +23,20 @@ ADRs explain **why** we chose what we chose. Living docs explain **how the syste
 8. [`migration/branch-runtime-architecture-checkpoint.md`](migration/branch-runtime-architecture-checkpoint.md): CHECKPOINT FINAL
 9. [`migration/pr1-runtime-mode-foundation-checkpoint.md`](migration/pr1-runtime-mode-foundation-checkpoint.md): PR 1 RuntimeMode foundation
 10. [`migration/pr2-branch-server-identity-checkpoint.md`](migration/pr2-branch-server-identity-checkpoint.md): PR 2 BranchInstance identity
-11. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
-12. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
-13. [`architecture/event-system.md`](architecture/event-system.md)
-14. [`architecture/audit-log.md`](architecture/audit-log.md)
-15. [`architecture/commands.md`](architecture/commands.md)
-16. [`architecture/observability.md`](architecture/observability.md)
-17. [`architecture/feature-flags.md`](architecture/feature-flags.md)
-18. [`architecture/dev-workflow.md`](architecture/dev-workflow.md): branches, commits, PR, CI, rulesets
-19. [`domains/README.md`](domains/README.md): the 10 operational domains
-20. [`states/order.md`](states/order.md): order state machine
-21. [`workflows/order-creation.md`](workflows/order-creation.md): first end-to-end flow
-22. [`events/README.md`](events/README.md): event catalog
-23. [`migration/local-setup.md`](migration/local-setup.md): .NET local boot and clean DB recreate
+11. [`migration/pr3-branch-server-activation-checkpoint.md`](migration/pr3-branch-server-activation-checkpoint.md): PR 3 Branch Server activation (+ [`pr3-activation-crypto-spike.md`](migration/pr3-activation-crypto-spike.md))
+12. [`architecture/bounded-contexts.md`](architecture/bounded-contexts.md)
+13. [`architecture/multi-tenant.md`](architecture/multi-tenant.md)
+14. [`architecture/event-system.md`](architecture/event-system.md)
+15. [`architecture/audit-log.md`](architecture/audit-log.md)
+16. [`architecture/commands.md`](architecture/commands.md)
+17. [`architecture/observability.md`](architecture/observability.md)
+18. [`architecture/feature-flags.md`](architecture/feature-flags.md)
+19. [`architecture/dev-workflow.md`](architecture/dev-workflow.md): branches, commits, PR, CI, rulesets
+20. [`domains/README.md`](domains/README.md): the 10 operational domains
+21. [`states/order.md`](states/order.md): order state machine
+22. [`workflows/order-creation.md`](workflows/order-creation.md): first end-to-end flow
+23. [`events/README.md`](events/README.md): event catalog
+24. [`migration/local-setup.md`](migration/local-setup.md): .NET local boot and clean DB recreate
 
 ## How to add a new doc
 
