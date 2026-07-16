@@ -102,6 +102,9 @@ public sealed class WorkersRuntimeHostTests
             ["Jwt:ClockSkew"] = "00:00:30",
             ["OutboxWorker:PollInterval"] = "01:00:00",
             ["OutboxWorker:BatchSize"] = "10",
+            ["CloudActivation:CodePepper"] = "integration-test-cloud-activation-pepper-32b",
+            ["BranchCloud:BaseUrl"] = "http://127.0.0.1:5102",
+            ["BranchCredentialStore:Provider"] = "InMemory",
         };
         if (runtimeMode is not null)
         {

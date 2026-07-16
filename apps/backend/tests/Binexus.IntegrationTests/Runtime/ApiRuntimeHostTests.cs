@@ -21,6 +21,7 @@ public sealed class ApiRuntimeHostTests
             builder.UseSetting("Database:ConnectionString",
                 "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
             builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
+            builder.UseSetting("CloudActivation:CodePepper", "integration-test-cloud-activation-pepper-32b");
             builder.UseSetting("SEED_ON_START", "0");
         });
 

@@ -35,7 +35,11 @@ public sealed class BranchInstanceInitializer(
         try
         {
             await db.SaveChangesAsync(cancellationToken);
-            return memoryStore.Publish(new BranchInstanceInfo(candidateId, BranchServerStatus.ReadyForActivation));
+            return memoryStore.Publish(new BranchInstanceInfo(
+                candidateId,
+                BranchServerStatus.ReadyForActivation,
+                null,
+                null));
         }
         catch (DbUpdateException ex) when (BranchInstancePostgresErrors.IsExpectedSingletonRace(ex))
         {
@@ -50,10 +54,13 @@ public sealed class BranchInstanceInitializer(
     }
 
     private static BranchInstanceInfo ToInfo(BranchInstance entity) =>
-        new(entity.Id, ParseStatus(entity.Status));
+        new(entity.Id, ParseStatus(entity.Status), entity.TenantId, entity.BranchId);
 
     private static BranchServerStatus ParseStatus(string status) =>
-        status == BranchInstance.ReadyForActivationStatus
-            ? BranchServerStatus.ReadyForActivation
-            : throw new InvalidOperationException($"Unsupported BranchInstance status '{status}'.");
+        status switch
+        {
+            BranchInstance.ReadyForActivationStatus => BranchServerStatus.ReadyForActivation,
+            BranchInstance.ActiveStatus => BranchServerStatus.Active,
+            _ => throw new InvalidOperationException($"Unsupported BranchInstance status '{status}'."),
+        };
 }

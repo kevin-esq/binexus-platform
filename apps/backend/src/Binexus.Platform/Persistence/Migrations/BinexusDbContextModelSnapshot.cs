@@ -1780,12 +1780,178 @@ namespace Binexus.Platform.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Binexus.Platform.Branching.Persistence.BranchActivation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ActivationReceiptHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("activation_receipt_hash");
+
+                    b.Property<Guid?>("AdoptedBranchInstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("adopted_branch_instance_id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("code_hash");
+
+                    b.Property<DateTimeOffset?>("ConsumedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at_utc");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<int>("FailedAttemptCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("failed_attempt_count");
+
+                    b.Property<string>("InstallationTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("installation_token_hash");
+
+                    b.Property<DateTimeOffset?>("LockedUntilUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("locked_until_utc");
+
+                    b.Property<string>("PublicKeyFingerprint")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("public_key_fingerprint");
+
+                    b.Property<DateTimeOffset?>("ReservedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reserved_at_utc");
+
+                    b.Property<DateTimeOffset?>("ReservedUntilUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("reserved_until_utc");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_branch_activations");
+
+                    b.HasIndex("CodeHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_branch_activations_code_hash");
+
+                    b.HasIndex("TenantId", "BranchId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_branch_activations_tenant_id_branch_id")
+                        .HasFilter("status IN ('Open', 'Reserved')");
+
+                    b.ToTable("branch_activations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_branch_activations_status", "status IN ('Open', 'Reserved', 'Consumed', 'Expired')");
+                        });
+                });
+
+            modelBuilder.Entity("Binexus.Platform.Branching.Persistence.BranchActivationChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BranchInstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_instance_id");
+
+                    b.Property<DateTimeOffset?>("ConsumedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at_utc");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<string>("InstallationTokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("installation_token_hash");
+
+                    b.Property<string>("Nonce")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("nonce");
+
+                    b.Property<string>("PublicKeyFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("public_key_fingerprint");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_branch_activation_challenges");
+
+                    b.HasIndex("BranchInstanceId", "ExpiresAtUtc")
+                        .HasDatabaseName("ix_branch_activation_challenges_branch_instance_id_expires_at_");
+
+                    b.ToTable("branch_activation_challenges", (string)null);
+                });
+
             modelBuilder.Entity("Binexus.Platform.Branching.Persistence.BranchInstance", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ActivatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activated_at_utc");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
+                    b.Property<Guid?>("CloudActivationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cloud_activation_id");
 
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone")
@@ -1802,6 +1968,10 @@ namespace Binexus.Platform.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)")
                         .HasColumnName("status");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
 
                     b.Property<uint>("Version")
                         .IsConcurrencyToken()
@@ -1820,7 +1990,81 @@ namespace Binexus.Platform.Persistence.Migrations
                         {
                             t.HasCheckConstraint("ck_branch_instances_singleton_key_local", "singleton_key = 'local'");
 
-                            t.HasCheckConstraint("ck_branch_instances_status_ready_for_activation", "status = 'ReadyForActivation'");
+                            t.HasCheckConstraint("ck_branch_instances_status", "status IN ('ReadyForActivation', 'Active')");
+                        });
+                });
+
+            modelBuilder.Entity("Binexus.Platform.Branching.Persistence.CloudBranchInstance", b =>
+                {
+                    b.Property<Guid>("BranchInstanceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_instance_id");
+
+                    b.Property<DateTimeOffset?>("ActivatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activated_at_utc");
+
+                    b.Property<DateTimeOffset?>("ActivatingUntilUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("activating_until_utc");
+
+                    b.Property<Guid>("ActivationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("activation_id");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<string>("InstallationTokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("installation_token_hash");
+
+                    b.Property<string>("PublicKey")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("public_key");
+
+                    b.Property<string>("PublicKeyFingerprint")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("public_key_fingerprint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tenant_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("BranchInstanceId")
+                        .HasName("pk_cloud_branch_instances");
+
+                    b.HasIndex("TenantId", "BranchId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cloud_branch_instances_tenant_id_branch_id")
+                        .HasFilter("status IN ('Activating', 'Active')");
+
+                    b.ToTable("cloud_branch_instances", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_cloud_branch_instances_status", "status IN ('Activating', 'Active')");
                         });
                 });
 

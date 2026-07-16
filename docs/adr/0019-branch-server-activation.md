@@ -71,3 +71,9 @@ This flow does **not** issue Tauri device credentials for secondary cashiers.
 ## Decision outcome
 
 Proposed. Await checkpoint approval before Accepted.
+
+## Implementation notes (PR 3)
+
+- Proof-of-possession: ECDSA P-256 + SHA-256 (built-in; Ed25519 rejected for lack of first-party support). See `docs/migration/pr3-activation-crypto-spike.md`.
+- Ceremony: generate code → challenge → signed exchange → receipt → confirm with `Authorization: Branch {installationToken}` → local Active.
+- Activation codes and installation tokens are never persisted raw on Cloud; Branch stores temporary session without the activation code.

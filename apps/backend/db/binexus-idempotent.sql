@@ -1572,3 +1572,148 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    ALTER TABLE branch_instances DROP CONSTRAINT ck_branch_instances_status_ready_for_activation;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    ALTER TABLE branch_instances ADD activated_at_utc timestamp with time zone;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    ALTER TABLE branch_instances ADD branch_id uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    ALTER TABLE branch_instances ADD cloud_activation_id uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    ALTER TABLE branch_instances ADD tenant_id uuid;
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    CREATE TABLE branch_activation_challenges (
+        id uuid NOT NULL,
+        branch_instance_id uuid NOT NULL,
+        public_key_fingerprint character varying(64) NOT NULL,
+        installation_token_hash character varying(64) NOT NULL,
+        nonce character varying(128) NOT NULL,
+        expires_at_utc timestamp with time zone NOT NULL,
+        consumed_at_utc timestamp with time zone,
+        CONSTRAINT pk_branch_activation_challenges PRIMARY KEY (id)
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    CREATE TABLE branch_activations (
+        id uuid NOT NULL,
+        tenant_id uuid NOT NULL,
+        branch_id uuid NOT NULL,
+        code_hash character varying(64) NOT NULL,
+        status character varying(16) NOT NULL,
+        expires_at_utc timestamp with time zone NOT NULL,
+        reserved_until_utc timestamp with time zone,
+        adopted_branch_instance_id uuid,
+        public_key_fingerprint character varying(64),
+        installation_token_hash character varying(64),
+        activation_receipt_hash character varying(64),
+        failed_attempt_count integer NOT NULL,
+        locked_until_utc timestamp with time zone,
+        created_at_utc timestamp with time zone NOT NULL,
+        created_by_user_id uuid NOT NULL,
+        reserved_at_utc timestamp with time zone,
+        consumed_at_utc timestamp with time zone,
+        CONSTRAINT pk_branch_activations PRIMARY KEY (id),
+        CONSTRAINT ck_branch_activations_status CHECK (status IN ('Open', 'Reserved', 'Consumed', 'Expired'))
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    CREATE TABLE cloud_branch_instances (
+        branch_instance_id uuid NOT NULL,
+        tenant_id uuid NOT NULL,
+        branch_id uuid NOT NULL,
+        status character varying(16) NOT NULL,
+        installation_token_hash character varying(64) NOT NULL,
+        public_key text NOT NULL,
+        public_key_fingerprint character varying(64) NOT NULL,
+        activation_id uuid NOT NULL,
+        activating_until_utc timestamp with time zone,
+        activated_at_utc timestamp with time zone,
+        created_at_utc timestamp with time zone NOT NULL,
+        CONSTRAINT pk_cloud_branch_instances PRIMARY KEY (branch_instance_id),
+        CONSTRAINT ck_cloud_branch_instances_status CHECK (status IN ('Activating', 'Active'))
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    ALTER TABLE branch_instances ADD CONSTRAINT ck_branch_instances_status CHECK (status IN ('ReadyForActivation', 'Active'));
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    CREATE INDEX ix_branch_activation_challenges_branch_instance_id_expires_at_ ON branch_activation_challenges (branch_instance_id, expires_at_utc);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    CREATE UNIQUE INDEX ix_branch_activations_code_hash ON branch_activations (code_hash);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    CREATE UNIQUE INDEX ix_branch_activations_tenant_id_branch_id ON branch_activations (tenant_id, branch_id) WHERE status IN ('Open', 'Reserved');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    CREATE UNIQUE INDEX ix_cloud_branch_instances_tenant_id_branch_id ON cloud_branch_instances (tenant_id, branch_id) WHERE status IN ('Activating', 'Active');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260715130453_Platform_BranchActivation') THEN
+    INSERT INTO "__EFMigrationsHistory" (migration_id, product_version)
+    VALUES ('20260715130453_Platform_BranchActivation', '10.0.9');
+    END IF;
+END $EF$;
+COMMIT;
+

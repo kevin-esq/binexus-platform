@@ -1,3 +1,2 @@
-# Root config only — apps/backend is .NET (no package.json); avoid lint-staged
-# probing deleted Nest package.json paths still present in the git index.
+# lint-staged config lives in package.json (TS/Prettier + backend dotnet format).
 pnpm exec lint-staged --config package.json

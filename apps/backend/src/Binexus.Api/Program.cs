@@ -87,6 +87,39 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true,
             });
     });
+
+    options.AddPolicy("branch-activation-generate", httpContext =>
+    {
+        var tenantId = httpContext.User.FindFirst("tenantId")?.Value;
+        var userId = httpContext.User.FindFirst("sub")?.Value;
+        var partition = !string.IsNullOrWhiteSpace(tenantId) && !string.IsNullOrWhiteSpace(userId)
+            ? $"tenant:{tenantId}:user:{userId}"
+            : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+        var permitLimit = builder.Configuration.GetValue("CloudActivation:GeneratePermitLimit", 10);
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partition,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            });
+    });
+
+    options.AddPolicy("branch-activation-machine", httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            ip,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            });
+    });
 });
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>();
@@ -146,6 +179,8 @@ app.MapGet("/health/live", liveness)
     .Produces<object>(StatusCodes.Status200OK);
 app.MapRuntimeHealth();
 app.MapBranchHealth();
+app.MapCloudBranchActivationEndpoints();
+app.MapBranchActivationEndpoints();
 
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {

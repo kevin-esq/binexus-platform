@@ -123,6 +123,7 @@ public sealed class BranchInstanceIntegrationTests(PostgresTestFixture fixture)
             builder.UseSetting("Binexus:RuntimeMode", "Cloud");
             builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
             builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
+            builder.UseSetting("CloudActivation:CodePepper", "integration-test-cloud-activation-pepper-32b");
             builder.UseSetting("SEED_ON_START", "0");
             builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
         });
@@ -147,6 +148,8 @@ public sealed class BranchInstanceIntegrationTests(PostgresTestFixture fixture)
             builder.UseSetting("Binexus:RuntimeMode", "Branch");
             builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
             builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
+            builder.UseSetting("BranchCloud:BaseUrl", "http://127.0.0.1:5102");
+            builder.UseSetting("BranchCredentialStore:Provider", "InMemory");
             builder.UseSetting("SEED_ON_START", "0");
             builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
         });
@@ -163,6 +166,7 @@ public sealed class BranchInstanceIntegrationTests(PostgresTestFixture fixture)
             builder.UseSetting("Binexus:RuntimeMode", "Cloud");
             builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
             builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
+            builder.UseSetting("CloudActivation:CodePepper", "integration-test-cloud-activation-pepper-32b");
             builder.UseSetting("SEED_ON_START", "0");
             builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
         });
@@ -196,6 +200,8 @@ public sealed class BranchInstanceIntegrationTests(PostgresTestFixture fixture)
             builder.UseSetting("Binexus:RuntimeMode", "Branch");
             builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
             builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
+            builder.UseSetting("BranchCloud:BaseUrl", "http://127.0.0.1:5102");
+            builder.UseSetting("BranchCredentialStore:Provider", "InMemory");
             builder.UseSetting("SEED_ON_START", "0");
             builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
         }
@@ -226,14 +232,20 @@ public sealed class BranchInstanceIntegrationTests(PostgresTestFixture fixture)
         }
 
         // User columns only — xmin is a PostgreSQL system column (not in information_schema.columns).
-        columns.Should().BeEquivalentTo(["created_at_utc", "id", "singleton_key", "status"]);
+        columns.Should().BeEquivalentTo([
+            "activated_at_utc",
+            "branch_id",
+            "cloud_activation_id",
+            "created_at_utc",
+            "id",
+            "singleton_key",
+            "status",
+            "tenant_id",
+        ]);
         columns.Should().NotContain(c =>
             c.Contains("secret", StringComparison.OrdinalIgnoreCase)
             || c.Contains("token", StringComparison.OrdinalIgnoreCase)
             || c.Contains("password", StringComparison.OrdinalIgnoreCase)
-            || c.Contains("tenant", StringComparison.OrdinalIgnoreCase)
-            || c.Contains("branch_id", StringComparison.OrdinalIgnoreCase)
-            || c.Contains("activated", StringComparison.OrdinalIgnoreCase)
             || c.Contains("display", StringComparison.OrdinalIgnoreCase)
             || c.Contains("last_started", StringComparison.OrdinalIgnoreCase));
 
@@ -290,7 +302,8 @@ public sealed class BranchInstanceIntegrationTests(PostgresTestFixture fixture)
         }
 
         checks.Should().Contain("ck_branch_instances_singleton_key_local");
-        checks.Should().Contain("ck_branch_instances_status_ready_for_activation");
+        checks.Should().Contain("ck_branch_instances_status");
+        checks.Should().NotContain("ck_branch_instances_status_ready_for_activation");
 
         await using var nullCmd = new NpgsqlCommand(
             """
@@ -353,6 +366,8 @@ public sealed class BranchInstanceIntegrationTests(PostgresTestFixture fixture)
                     "Host=127.0.0.1;Port=1;Database=missing;Username=binexus;Password=binexus;Timeout=1",
                 ["Cors:AllowedOrigins:0"] = "http://localhost:3000",
                 ["Binexus:RuntimeMode"] = "Branch",
+                ["BranchCloud:BaseUrl"] = "http://127.0.0.1:5102",
+                ["BranchCredentialStore:Provider"] = "InMemory",
                 ["Jwt:Issuer"] = "binexus",
                 ["Jwt:Audience"] = "binexus-api",
                 ["Jwt:SigningKey"] = "integration-test-signing-key-with-more-than-32-bytes",
@@ -463,6 +478,8 @@ public sealed class BranchInstanceIntegrationTests(PostgresTestFixture fixture)
                 ["Database:ConnectionString"] = fixture.ConnectionString,
                 ["Cors:AllowedOrigins:0"] = "http://localhost:3000",
                 ["Binexus:RuntimeMode"] = "Branch",
+                ["BranchCloud:BaseUrl"] = "http://127.0.0.1:5102",
+                ["BranchCredentialStore:Provider"] = "InMemory",
                 ["Jwt:Issuer"] = "binexus",
                 ["Jwt:Audience"] = "binexus-api",
                 ["Jwt:SigningKey"] = "integration-test-signing-key-with-more-than-32-bytes",

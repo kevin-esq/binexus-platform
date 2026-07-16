@@ -26,6 +26,9 @@ public sealed class IdentitySeedEnvironmentTests
                     "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
                 builder.UseSetting("Binexus:RuntimeMode", "Cloud");
                 builder.UseSetting(
+                    "CloudActivation:CodePepper",
+                    "production-test-cloud-activation-pepper-32chars");
+                builder.UseSetting(
                     "Jwt:SigningKey",
                     "production-test-signing-key-with-more-than-thirty-two-bytes");
                 builder.UseSetting("Logistics:Storage:Provider", "MinIO");
@@ -54,6 +57,9 @@ public sealed class IdentitySeedEnvironmentTests
                     "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
                 builder.UseSetting("Binexus:RuntimeMode", "Cloud");
                 builder.UseSetting(
+                    "CloudActivation:CodePepper",
+                    "production-test-cloud-activation-pepper-32chars");
+                builder.UseSetting(
                     "Jwt:SigningKey",
                     IdentitySeedDefaults.KnownInsecureLocalSigningKey);
                 builder.UseSetting("Logistics:Storage:Provider", "MinIO");
@@ -79,6 +85,9 @@ public sealed class IdentitySeedEnvironmentTests
                     "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
                 builder.UseSetting("Binexus:RuntimeMode", "Cloud");
                 builder.UseSetting(
+                    "CloudActivation:CodePepper",
+                    "production-test-cloud-activation-pepper-32chars");
+                builder.UseSetting(
                     "Jwt:SigningKey",
                     IdentitySeedDefaults.KnownInsecureLocalSigningKey);
                 builder.UseSetting("Logistics:Storage:Provider", "MinIO");
@@ -102,6 +111,9 @@ public sealed class IdentitySeedEnvironmentTests
             builder.UseSetting("Database:ConnectionString",
                 "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
             builder.UseSetting("Binexus:RuntimeMode", "Cloud");
+            builder.UseSetting(
+                "CloudActivation:CodePepper",
+                "production-test-cloud-activation-pepper-32chars");
             builder.UseSetting(
                 "Jwt:SigningKey",
                 IdentitySeedDefaults.KnownInsecureLocalSigningKey);
@@ -147,6 +159,9 @@ public sealed class IdentitySeedEnvironmentTests
             builder.UseSetting("Database:ConnectionString",
                 "Host=localhost;Port=5432;Database=binexus_test;Username=binexus;Password=binexus");
             builder.UseSetting("Binexus:RuntimeMode", "Cloud");
+            builder.UseSetting(
+                "CloudActivation:CodePepper",
+                "production-test-cloud-activation-pepper-32chars");
             builder.UseSetting(
                 "Jwt:SigningKey",
                 "production-test-signing-key-with-more-than-thirty-two-bytes");

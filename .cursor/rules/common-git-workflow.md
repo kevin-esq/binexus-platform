@@ -54,6 +54,7 @@ docs(adr): record decision to use modular monolith
 
 1. Formats `*.{ts,tsx,js,jsx,json,md,yml,yaml}` with Prettier
 2. Lints `*.{ts,tsx,js,jsx}` with ESLint --fix
+3. Formats staged `apps/backend/**/*.cs` with `dotnet format … --include` (same gate as CI)
 
 If lint-staged fails, fix the issue and re-stage; don't bypass with `--no-verify`.
 

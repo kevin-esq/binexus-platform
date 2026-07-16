@@ -27,6 +27,12 @@ public sealed class BinexusDbContext : DbContext
 
     public DbSet<BranchInstance> BranchInstances => Set<BranchInstance>();
 
+    public DbSet<BranchActivation> BranchActivations => Set<BranchActivation>();
+
+    public DbSet<CloudBranchInstance> CloudBranchInstances => Set<CloudBranchInstance>();
+
+    public DbSet<BranchActivationChallenge> BranchActivationChallenges => Set<BranchActivationChallenge>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BinexusDbContext).Assembly);

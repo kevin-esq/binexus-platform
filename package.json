@@ -60,6 +60,9 @@
     ],
     "*.{json,md,yml,yaml}": [
       "prettier --write"
+    ],
+    "apps/backend/**/*.cs": [
+      "dotnet format apps/backend/Binexus.slnx --severity warn --include"
     ]
   }
 }
