@@ -37,6 +37,46 @@
         }
       }
     },
+    "/cloud/branch-activations": {
+      "post": {
+        "tags": ["BranchActivation"],
+        "operationId": "GenerateBranchActivation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateBranchActivationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateBranchActivationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
     "/auth/login": {
       "post": {
         "tags": ["Auth"],
@@ -2122,6 +2162,33 @@
           }
         }
       },
+      "GenerateBranchActivationRequest": {
+        "required": ["branchId"],
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "GenerateBranchActivationResponse": {
+        "required": ["activationId", "activationCode", "expiresAtUtc"],
+        "type": "object",
+        "properties": {
+          "activationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "activationCode": {
+            "type": "string"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "GetCurrentSalesSessionResult": {
         "required": ["session"],
         "type": "object",
@@ -2983,6 +3050,9 @@
   "tags": [
     {
       "name": "Health"
+    },
+    {
+      "name": "BranchActivation"
     },
     {
       "name": "Auth"

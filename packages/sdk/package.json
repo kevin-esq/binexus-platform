@@ -23,7 +23,7 @@
     "dev": "tsup --watch",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/problem-details.test.ts src/client.refresh.test.ts",
+    "test": "tsx --test src/problem-details.test.ts src/client.refresh.test.ts src/client.branch-activation.test.ts",
     "clean": "rimraf dist"
   },
   "dependencies": {

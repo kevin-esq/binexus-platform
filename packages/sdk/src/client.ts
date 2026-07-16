@@ -84,6 +84,12 @@ export interface CancelOrderInput {
   reason?: string;
 }
 
+export interface CreateBranchActivationResult {
+  activationId: string;
+  activationCode: string;
+  expiresAtUtc: string;
+}
+
 const SLASH_CHAR_CODE = 47;
 
 // Linear, regex-free trailing-slash stripping. Avoids the ReDoS surface (see
@@ -146,6 +152,13 @@ export class BinexusClient {
 
   async me(): Promise<AuthSession> {
     return this.request<AuthSession>('GET', '/auth/me', { auth: true });
+  }
+
+  async createBranchActivation(branchId: string): Promise<CreateBranchActivationResult> {
+    return this.request<CreateBranchActivationResult>('POST', '/cloud/branch-activations', {
+      body: { branchId },
+      auth: true,
+    });
   }
 
   async listOrders(query: ListOrdersQuery = {}): Promise<ListOrdersResult> {
