@@ -12,6 +12,7 @@ using Binexus.Platform.DependencyInjection;
 using Binexus.Platform.Persistence;
 using Binexus.SharedKernel.Abstractions;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NetArchTest.Rules;
 
@@ -31,14 +32,29 @@ public sealed class BranchInstanceArchitectureTests
         typeof(SalesModuleRegistration).Assembly,
     ];
 
+    private static IConfiguration EmptyConfiguration { get; } =
+        new ConfigurationBuilder().AddInMemoryCollection().Build();
+
     [Fact]
-    public void Modules_do_not_reference_Platform_Branching()
+    public void Modules_do_not_reference_Platform_Branching_implementation()
     {
         foreach (var module in Modules)
         {
             Types.InAssembly(module)
                 .ShouldNot()
-                .HaveDependencyOn("Binexus.Platform.Branching")
+                .HaveDependencyOn("Binexus.Platform.Branching.Application")
+                .GetResult()
+                .IsSuccessful.Should().BeTrue(because: module.GetName().Name);
+
+            Types.InAssembly(module)
+                .ShouldNot()
+                .HaveDependencyOn("Binexus.Platform.Branching.Persistence")
+                .GetResult()
+                .IsSuccessful.Should().BeTrue(because: module.GetName().Name);
+
+            Types.InAssembly(module)
+                .ShouldNot()
+                .HaveDependencyOn("Binexus.Platform.Branching.Crypto")
                 .GetResult()
                 .IsSuccessful.Should().BeTrue(because: module.GetName().Name);
         }
@@ -65,7 +81,7 @@ public sealed class BranchInstanceArchitectureTests
     public void Cloud_runtime_does_not_register_branch_identity_services()
     {
         var services = new ServiceCollection();
-        services.AddCloudRuntime();
+        services.AddCloudRuntime(EmptyConfiguration);
         using var provider = services.BuildServiceProvider();
 
         provider.GetService<IBranchInstanceAccessor>().Should().BeNull();
@@ -77,7 +93,7 @@ public sealed class BranchInstanceArchitectureTests
     public void Branch_runtime_registers_correct_lifetimes()
     {
         var services = new ServiceCollection();
-        services.AddBranchRuntime();
+        services.AddBranchRuntime(EmptyConfiguration);
 
         services.Should().Contain(d =>
             d.ServiceType == typeof(IBranchInstanceAccessor)
@@ -115,7 +131,7 @@ public sealed class BranchInstanceArchitectureTests
     public void Branch_runtime_registers_accessor_and_initializer()
     {
         var services = new ServiceCollection();
-        services.AddBranchRuntime();
+        services.AddBranchRuntime(EmptyConfiguration);
 
         services.Should().Contain(d =>
             d.ServiceType == typeof(IBranchInstanceAccessor)

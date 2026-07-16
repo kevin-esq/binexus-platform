@@ -12,5 +12,6 @@ public class CloudApiFactory : WebApplicationFactory<Program>
     {
         builder.UseSetting("Binexus:RuntimeMode", "Cloud");
         builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
+        builder.UseSetting("CloudActivation:CodePepper", "integration-test-cloud-activation-pepper-32b");
     }
 }

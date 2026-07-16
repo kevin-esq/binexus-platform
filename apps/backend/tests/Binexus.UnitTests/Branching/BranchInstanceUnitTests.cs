@@ -20,9 +20,11 @@ public sealed class BranchInstanceUnitTests
     }
 
     [Fact]
-    public void Initial_persisted_status_is_only_ReadyForActivation()
+    public void Persisted_statuses_cover_activation_lifecycle()
     {
-        Enum.GetValues<BranchServerStatus>().Should().Equal(BranchServerStatus.ReadyForActivation);
+        Enum.GetValues<BranchServerStatus>().Should().Equal(
+            BranchServerStatus.ReadyForActivation,
+            BranchServerStatus.Active);
         BranchInstance.ReadyForActivationStatus.Should().Be("ReadyForActivation");
         BranchInstance.LocalSingletonKey.Should().Be("local");
         BranchInstance.SingletonKeyUniqueIndexName.Should().Be("ix_branch_instances_singleton_key");
@@ -70,6 +72,27 @@ public sealed class BranchInstanceUnitTests
         var act = () => store.Publish(
             new BranchInstanceInfo(Guid.CreateVersion7(), BranchServerStatus.ReadyForActivation));
         act.Should().Throw<InvalidOperationException>().WithMessage("*cannot be replaced*");
+    }
+
+    [Fact]
+    public void Publish_allows_same_id_upgrade_to_active()
+    {
+        var store = new BranchInstanceMemoryStore();
+        var id = Guid.CreateVersion7();
+        var tenantId = Guid.CreateVersion7();
+        var branchId = Guid.CreateVersion7();
+        store.Publish(new BranchInstanceInfo(id, BranchServerStatus.ReadyForActivation));
+
+        var active = store.Publish(new BranchInstanceInfo(
+            id,
+            BranchServerStatus.Active,
+            tenantId,
+            branchId));
+
+        active.Status.Should().Be(BranchServerStatus.Active);
+        active.TenantId.Should().Be(tenantId);
+        active.BranchId.Should().Be(branchId);
+        store.GetRequired().Should().BeSameAs(active);
     }
 
     [Fact]

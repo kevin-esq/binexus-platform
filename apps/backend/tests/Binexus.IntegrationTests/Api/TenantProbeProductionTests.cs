@@ -34,6 +34,9 @@ public sealed class ProductionWebApplicationFactory : WebApplicationFactory<Prog
         builder.UseSetting(
             "Jwt:SigningKey",
             "production-test-signing-key-with-more-than-thirty-two-bytes");
+        builder.UseSetting(
+            "CloudActivation:CodePepper",
+            "production-test-cloud-activation-pepper-32chars");
         builder.UseSetting("Logistics:Storage:Provider", "MinIO");
         builder.UseSetting("Logistics:Storage:Endpoint", "http://127.0.0.1:9000");
         builder.UseSetting("Logistics:Storage:Bucket", "binexus-test");
