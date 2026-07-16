@@ -13,8 +13,8 @@ internal sealed class BranchInstanceConfiguration : IEntityTypeConfiguration<Bra
                 "ck_branch_instances_singleton_key_local",
                 $"singleton_key = '{BranchInstance.LocalSingletonKey}'");
             table.HasCheckConstraint(
-                "ck_branch_instances_status_ready_for_activation",
-                $"status = '{BranchInstance.ReadyForActivationStatus}'");
+                "ck_branch_instances_status",
+                $"status IN ('{BranchInstance.ReadyForActivationStatus}', '{BranchInstance.ActiveStatus}')");
         });
 
         builder.HasKey(x => x.Id);

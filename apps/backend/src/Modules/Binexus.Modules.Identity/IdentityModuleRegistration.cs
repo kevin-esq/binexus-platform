@@ -6,6 +6,7 @@ using System.Text;
 using Binexus.Modules.Identity.Application;
 using Binexus.Modules.Identity.Features.Auth;
 using Binexus.Modules.Identity.Infrastructure;
+using Binexus.Platform.Branching.Contracts;
 using Binexus.Platform.Features.Contracts;
 using Binexus.Platform.Persistence;
 using Binexus.Platform.Tenancy;
@@ -97,6 +98,7 @@ public static class IdentityModuleRegistration
         services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
         services.AddSingleton<JwtTokenIssuer>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ITenantBranchLookup, EfTenantBranchLookup>();
         services.AddScoped<ITenantFeatureService, TenantFeatureService>();
         services.AddSingleton<IDbContextModelContributor, IdentityDbContextModelContributor>();
 

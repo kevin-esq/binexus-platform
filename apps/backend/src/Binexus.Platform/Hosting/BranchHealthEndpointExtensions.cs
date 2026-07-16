@@ -24,7 +24,9 @@ public static class BranchHealthEndpointExtensions
                     var info = await accessor.GetAsync(cancellationToken);
                     return Results.Json(new BranchHealthResponse(
                         info.Status.ToString(),
-                        info.Id.ToString("D")));
+                        info.Id.ToString("D"),
+                        info.TenantId?.ToString("D"),
+                        info.BranchId?.ToString("D")));
                 })
             .WithName("HealthBranch")
             .WithTags("Health")
@@ -36,4 +38,6 @@ public static class BranchHealthEndpointExtensions
 
 internal sealed record BranchHealthResponse(
     [property: JsonPropertyName("status")] string Status,
-    [property: JsonPropertyName("branchInstanceId")] string BranchInstanceId);
+    [property: JsonPropertyName("branchInstanceId")] string BranchInstanceId,
+    [property: JsonPropertyName("tenantId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? TenantId,
+    [property: JsonPropertyName("branchId"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? BranchId);

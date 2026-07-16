@@ -39,10 +39,10 @@ public static class BinexusRuntimeServiceCollectionExtensions
         switch (mode)
         {
             case RuntimeMode.Cloud:
-                services.AddCloudRuntime();
+                services.AddCloudRuntime(configuration);
                 break;
             case RuntimeMode.Branch:
-                services.AddBranchRuntime();
+                services.AddBranchRuntime(configuration);
                 break;
             default:
                 throw new InvalidOperationException("Unsupported Binexus runtime mode.");
