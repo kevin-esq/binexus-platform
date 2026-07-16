@@ -30,15 +30,15 @@ public sealed class DevelopmentFileBranchCredentialStore : IBranchCredentialStor
                 "DevelopmentFileBranchCredentialStore is only available in Development.");
         }
 
-        var defaultDirectory = Path.Combine(
+        var defaultDirectory = Path.Join(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "binexus",
             "branch-credentials");
         _directory = overrideRoot is null
             ? defaultDirectory
             : Path.GetFullPath(overrideRoot);
-        _sessionPath = Path.Combine(_directory, "activation-session.json");
-        _permanentPath = Path.Combine(_directory, "permanent-credentials.json");
+        _sessionPath = Path.Join(_directory, "activation-session.json");
+        _permanentPath = Path.Join(_directory, "permanent-credentials.json");
     }
 
     public async Task<BranchActivationSession?> GetSessionAsync(CancellationToken cancellationToken = default)
@@ -134,7 +134,7 @@ public sealed class DevelopmentFileBranchCredentialStore : IBranchCredentialStor
     private async Task WriteAtomicAsync<T>(string path, T value, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(_directory);
-        var tempPath = Path.Combine(
+        var tempPath = Path.Join(
             _directory,
             $".{Path.GetFileName(path)}.{Guid.CreateVersion7():N}.tmp");
         try

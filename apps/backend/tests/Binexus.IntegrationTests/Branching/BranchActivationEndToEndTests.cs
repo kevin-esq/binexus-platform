@@ -14,6 +14,7 @@ using Binexus.Platform.Branching.Crypto;
 using Binexus.Platform.Branching.Persistence;
 using Binexus.Platform.Persistence;
 using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -318,7 +319,7 @@ public sealed class BranchActivationEndToEndTests(PostgresTestFixture fixture)
         int confirmFailuresBeforeSuccess = 0)
     {
         var remainingFailures = confirmFailuresBeforeSuccess;
-        return new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        return new BranchActivationTestFactory(builder =>
         {
             builder.UseSetting("Binexus:RuntimeMode", "Branch");
             builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
@@ -356,7 +357,7 @@ public sealed class BranchActivationEndToEndTests(PostgresTestFixture fixture)
     }
 
     private WebApplicationFactory<Program> CreateCloudFactory() =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        new BranchActivationTestFactory(builder =>
         {
             builder.UseSetting("Binexus:RuntimeMode", "Cloud");
             builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
@@ -494,22 +495,28 @@ public sealed class BranchActivationEndToEndTests(PostgresTestFixture fixture)
             });
     }
 
-    private static Task<HttpResponseMessage> ConfirmAsync(
+    private static async Task<HttpResponseMessage> ConfirmAsync(
         HttpClient cloudClient,
         Guid activationId,
         string receipt,
         string installationToken)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/cloud/branch-activations/confirm")
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/cloud/branch-activations/confirm")
         {
             Content = JsonContent.Create(new { activationId, receipt }),
         };
         request.Headers.TryAddWithoutValidation("Authorization", $"Branch {installationToken}");
-        return cloudClient.SendAsync(request);
+        return await cloudClient.SendAsync(request);
     }
 
     private static void CryptographicOperationsZero(byte[] buffer) =>
         System.Security.Cryptography.CryptographicOperations.ZeroMemory(buffer);
+
+    private sealed class BranchActivationTestFactory(Action<IWebHostBuilder> configure)
+        : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder) => configure(builder);
+    }
 
     private sealed class FailConfirmHandler(HttpMessageHandler inner, Func<bool> shouldFail) : DelegatingHandler(inner)
     {

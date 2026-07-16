@@ -235,7 +235,7 @@ public sealed class BranchActivationIntegrationTests(PostgresTestFixture fixture
     }
 
     private WebApplicationFactory<Program> CreateCloudFactory(Action<IWebHostBuilder>? configure = null) =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        new BranchActivationTestFactory(builder =>
         {
             builder.UseSetting("Binexus:RuntimeMode", "Cloud");
             builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
@@ -247,7 +247,7 @@ public sealed class BranchActivationIntegrationTests(PostgresTestFixture fixture
         });
 
     private WebApplicationFactory<Program> CreateBranchFactory() =>
-        new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        new BranchActivationTestFactory(builder =>
         {
             builder.UseSetting("Binexus:RuntimeMode", "Branch");
             builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
@@ -257,6 +257,12 @@ public sealed class BranchActivationIntegrationTests(PostgresTestFixture fixture
             builder.UseSetting("SEED_ON_START", "0");
             builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
         });
+
+    private sealed class BranchActivationTestFactory(Action<IWebHostBuilder> configure)
+        : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder) => configure(builder);
+    }
 
     private static string CreateAdminJwt(WebApplicationFactory<Program> factory, Guid tenantId, Guid userId)
     {

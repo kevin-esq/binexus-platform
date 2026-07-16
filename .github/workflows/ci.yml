@@ -148,7 +148,7 @@ jobs:
         working-directory: apps/backend
         env:
           Binexus__RuntimeMode: Cloud
-        run: dotnet test Binexus.slnx --configuration Release --no-build
+        run: dotnet test Binexus.slnx --configuration Release --no-build -- RunConfiguration.CollectSourceInformation=false
 
       - name: Verify OpenAPI artifact
         run: test -f artifacts/openapi/binexus-v1.json

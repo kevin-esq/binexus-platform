@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using Binexus.Platform.Branching.Activation;
 using Binexus.Platform.Branching.Configuration;
 using Binexus.Platform.Branching.Contracts;
@@ -120,7 +121,7 @@ public sealed class CloudBranchActivationService(
             fingerprint = EcdsaP256ActivationCrypto.Fingerprint(publicKey);
             using var _ = EcdsaP256ActivationCrypto.ImportPublicKey(publicKey);
         }
-        catch (Exception)
+        catch (Exception exception) when (IsInvalidActivationMaterial(exception))
         {
             throw Invalid();
         }
@@ -176,7 +177,7 @@ public sealed class CloudBranchActivationService(
                 fingerprint = EcdsaP256ActivationCrypto.Fingerprint(publicKey);
                 codeHash = BranchActivationCode.Hash(activationCode, options.Value.CodePepper);
             }
-            catch (Exception)
+            catch (Exception exception) when (IsInvalidActivationMaterial(exception))
             {
                 throw Invalid();
             }
@@ -351,7 +352,7 @@ public sealed class CloudBranchActivationService(
             {
                 fingerprint = EcdsaP256ActivationCrypto.Fingerprint(publicKey);
             }
-            catch (Exception)
+            catch (Exception exception) when (IsInvalidActivationMaterial(exception))
             {
                 throw Invalid();
             }
@@ -543,6 +544,9 @@ public sealed class CloudBranchActivationService(
 
     private static BranchActivationException Invalid() =>
         new(BranchActivationErrorCodes.ActivationInvalid, "Activation request is invalid.");
+
+    private static bool IsInvalidActivationMaterial(Exception exception) =>
+        exception is ArgumentException or FormatException or CryptographicException;
 
     private static DateTimeOffset TruncateToSeconds(DateTimeOffset value) =>
         new(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, TimeSpan.Zero);
