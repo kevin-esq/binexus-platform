@@ -106,7 +106,7 @@ flowchart LR
 ### Required to merge
 
 - PR title follows Conventional Commits (enforced by the `Conventional Commits` job).
-- All required status checks green: **Typecheck**, **Lint**, **Build**, **Test**, **CI Summary**, **Conventional Commits**, **Validate branch name**, **Validate commit messages**, **Analyze javascript-typescript** (CodeQL).
+- All required status checks green: **Frontend (sdk + web)**, **Backend (.NET)**, **Compose smoke**, **CI Summary**, **Conventional Commits**, **Validate branch name**, **Validate commit messages**, **Analyze javascript-typescript**, **Analyze csharp** (CodeQL).
 - At least one approving review from a CODEOWNER.
 - All review conversations resolved.
 - Branch is up to date with `main` (linear history is required — rebase, don't merge `main` into your branch).
@@ -177,7 +177,7 @@ Bypassing hooks (`--no-verify`) is **forbidden** for normal work. Use only when 
 
 | Workflow     | Triggers                          | Purpose                                                   |
 | ------------ | --------------------------------- | --------------------------------------------------------- |
-| `CI`         | PR + push to `main`               | Typecheck, lint, build, test, CI Summary                  |
+| `CI`         | PR + push to `main`               | Frontend, Backend, Compose smoke, CI Summary              |
 | `Validate`   | PR opened / synced                | Branch name regex + commitlint over the PR's commit range |
 | `PR Title`   | PR opened / edited                | Enforce Conventional Commits in PR titles                 |
 | `CodeQL`     | PR + push to `main` + weekly cron | Security and quality scanning                             |
