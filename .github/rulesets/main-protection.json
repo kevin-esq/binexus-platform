@@ -36,15 +36,15 @@
         "strict_required_status_checks_policy": true,
         "do_not_enforce_on_create": false,
         "required_status_checks": [
-          { "context": "Typecheck" },
-          { "context": "Lint" },
-          { "context": "Build" },
-          { "context": "Test" },
+          { "context": "Frontend (sdk + web)" },
+          { "context": "Backend (.NET)" },
+          { "context": "Compose smoke" },
           { "context": "CI Summary" },
           { "context": "Conventional Commits" },
           { "context": "Validate branch name" },
           { "context": "Validate commit messages" },
-          { "context": "Analyze javascript-typescript" }
+          { "context": "Analyze javascript-typescript" },
+          { "context": "Analyze csharp" }
         ]
       }
     }
