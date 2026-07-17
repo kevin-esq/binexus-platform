@@ -1,0 +1,122 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Binexus.IntegrationTests.Infrastructure;
+using FluentAssertions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+
+namespace Binexus.IntegrationTests.Branching;
+
+/// <summary>
+/// Official PR 4 generator for <c>artifacts/openapi/binexus-branch-v1.json</c> until a Branch-mode build host exists.
+/// Regenerate: <c>dotnet test apps/backend/Binexus.slnx -c Release --filter FullyQualifiedName~DevicePairingOpenApiContractTests</c>
+/// </summary>
+[Collection("postgres")]
+public sealed class DevicePairingOpenApiContractTests(PostgresTestFixture fixture)
+    : IClassFixture<PostgresTestFixture>
+{
+    private static readonly JsonSerializerOptions PrettyJson = new() { WriteIndented = true };
+
+    private static readonly string[] ExpectedRoutes =
+    [
+        "/branch/terminals",
+        "/branch/pairing/sessions",
+        "/branch/pairing/requests/{pairingRequestId}",
+        "/branch/pairing/requests/{pairingRequestId}/approve",
+        "/branch/pairing/requests/{pairingRequestId}/reject",
+        "/branch/devices",
+        "/branch/devices/{deviceId}/revoke",
+        "/branch/pairing/challenges",
+        "/branch/pairing/exchange",
+        "/branch/pairing/requests/{pairingRequestId}/status",
+        "/branch/pairing/requests/{pairingRequestId}/receipt/challenges",
+        "/branch/pairing/requests/{pairingRequestId}/receipt/reissue",
+        "/branch/pairing/confirm",
+    ];
+
+    [Fact]
+    public async Task Branch_document_is_pairing_only_reproducible_and_matches_committed_artifact()
+    {
+        await fixture.ApplyMigrationsAsync();
+        await using var factory = CreateBranchFactory();
+        using var client = factory.CreateClient();
+
+        var first = await FetchNormalizedDocumentAsync(client);
+        var second = await FetchNormalizedDocumentAsync(client);
+        first.Should().Be(second, because: "two consecutive generations must be identical");
+
+        using var doc = JsonDocument.Parse(first);
+        var paths = doc.RootElement.GetProperty("paths");
+        paths.EnumerateObject().Select(x => x.Name).Should().BeEquivalentTo(ExpectedRoutes);
+
+        foreach (var route in paths.EnumerateObject())
+        {
+            route.Name.Should().StartWith("/branch/");
+        }
+
+        first.Should().NotContain("localhost");
+        first.Should().NotContain("development-only-branch-pairing-pepper");
+        first.Should().NotMatchRegex(@"""example""\s*:\s*""\d{8}""");
+
+        var artifactPath = FindCommittedArtifactPath();
+        if (string.Equals(Environment.GetEnvironmentVariable("BINEXUS_UPDATE_OPENAPI"), "1", StringComparison.Ordinal))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(artifactPath)!);
+            await File.WriteAllTextAsync(artifactPath, first);
+            return;
+        }
+
+        File.Exists(artifactPath).Should().BeTrue(because: $"run `$env:BINEXUS_UPDATE_OPENAPI=1; dotnet test ... --filter FullyQualifiedName~DevicePairingOpenApiContractTests` to create {artifactPath}");
+        var committed = NormalizeJson(await File.ReadAllTextAsync(artifactPath));
+        first.Should().Be(committed, because: "regenerate with BINEXUS_UPDATE_OPENAPI=1 when the Branch surface changes");
+    }
+
+    private static async Task<string> FetchNormalizedDocumentAsync(HttpClient client)
+    {
+        var response = await client.GetAsync("/openapi/branch-v1.json");
+        response.EnsureSuccessStatusCode();
+        return NormalizeJson(await response.Content.ReadAsStringAsync());
+    }
+
+    private static string NormalizeJson(string json)
+    {
+        var node = JsonNode.Parse(json)!.AsObject();
+        node.Remove("servers");
+        return node.ToJsonString(PrettyJson);
+    }
+
+    private static string FindCommittedArtifactPath()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Join(dir.FullName, "artifacts", "openapi", "binexus-branch-v1.json");
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new InvalidOperationException("artifacts/openapi/binexus-branch-v1.json not found.");
+    }
+
+    private WebApplicationFactory<Program> CreateBranchFactory() =>
+        new ContractTestFactory(builder =>
+        {
+            builder.UseSetting("Binexus:RuntimeMode", "Branch");
+            builder.UseSetting("Database:ConnectionString", fixture.ConnectionString);
+            builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-with-more-than-32-bytes");
+            builder.UseSetting("BranchCloud:BaseUrl", "http://cloud.invalid");
+            builder.UseSetting("BranchCredentialStore:Provider", "InMemory");
+            builder.UseSetting("BranchPairing:CodePepper", "integration-test-branch-pairing-pepper-0000");
+            builder.UseSetting("SEED_ON_START", "0");
+            builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
+        });
+
+    private sealed class ContractTestFactory(Action<IWebHostBuilder> configure) : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder) => configure(builder);
+    }
+}

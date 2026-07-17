@@ -16,6 +16,22 @@ public sealed class BranchHealthOpenApiTests
             .Should().BeFalse();
     }
 
+    [Fact]
+    public void Cloud_openApi_artifact_never_exposes_device_pairing()
+    {
+        var path = FindOpenApiArtifact();
+        File.Exists(path).Should().BeTrue(because: path);
+        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+
+        var paths = doc.RootElement.GetProperty("paths");
+        foreach (var route in paths.EnumerateObject())
+        {
+            route.Name.Should().NotStartWith("/branch/pairing");
+            route.Name.Should().NotStartWith("/branch/devices");
+            route.Name.Should().NotStartWith("/branch/terminals");
+        }
+    }
+
     private static string FindOpenApiArtifact()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
