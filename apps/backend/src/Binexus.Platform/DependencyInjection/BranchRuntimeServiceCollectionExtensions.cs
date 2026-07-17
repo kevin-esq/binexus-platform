@@ -3,6 +3,7 @@ using Binexus.Platform.Branching.Client;
 using Binexus.Platform.Branching.Configuration;
 using Binexus.Platform.Branching.Contracts;
 using Binexus.Platform.Branching.Credentials;
+using Binexus.Platform.Branching.Pairing;
 using Binexus.Platform.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,19 @@ public static class BranchRuntimeServiceCollectionExtensions
         services.TryAddScoped<IBranchInstanceInitializer, BranchInstanceInitializer>();
         services.TryAddSingleton<IBranchInstanceAccessor, BranchInstanceAccessor>();
         services.TryAddScoped<IBranchActivationOrchestrator, BranchActivationOrchestrator>();
+
+        services.AddSingleton<IValidateOptions<DevicePairingOptions>, DevicePairingOptionsValidator>();
+        var pairingOptions = services.AddOptions<DevicePairingOptions>()
+            .Bind(configuration.GetSection(DevicePairingOptions.SectionName))
+            .ValidateDataAnnotations();
+        if (!BinexusRuntimeServiceCollectionExtensions.IsOpenApiDocumentGenerationHost())
+        {
+            pairingOptions.ValidateOnStart();
+        }
+
+        services.TryAddSingleton<IPairingReceiptVault, InMemoryPairingReceiptVault>();
+        services.TryAddScoped<IBranchDevicePairingService, BranchDevicePairingService>();
+        services.TryAddScoped<IBranchDeviceAdminService, BranchDeviceAdminService>();
 
         services.AddOptions<BranchCloudClientOptions>()
             .Bind(configuration.GetSection(BranchCloudClientOptions.SectionName))

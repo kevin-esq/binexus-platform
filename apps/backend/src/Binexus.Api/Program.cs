@@ -32,6 +32,19 @@ if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Te
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
+// Separate Branch machine/admin OpenAPI document (pairing). Registered only for Branch runtime so the
+// Cloud build-time artifact (binexus-v1.json) is never affected. Served at /openapi/branch-v1.json.
+if (string.Equals(builder.Configuration["Binexus:RuntimeMode"], "Branch", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddOpenApi(BranchDevicePairingEndpointExtensions.BranchDocumentGroup, options =>
+    {
+        // Pairing-only surface. Without this, ungrouped endpoints (e.g. /health) leak into every named
+        // document because the default predicate is `GroupName == null || GroupName == documentName`.
+        options.ShouldInclude = api =>
+            string.Equals(api.GroupName, BranchDevicePairingEndpointExtensions.BranchDocumentGroup, StringComparison.Ordinal);
+    });
+}
+
 var corsOptions = builder.Configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>()
     ?? new CorsOptions { AllowedOrigins = ["http://localhost:3000"] };
 
@@ -120,6 +133,40 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true,
             });
     });
+
+    options.AddPolicy("branch-pairing-admin", httpContext =>
+    {
+        var tenantId = httpContext.User.FindFirst("tenantId")?.Value;
+        var userId = httpContext.User.FindFirst("sub")?.Value;
+        var partition = !string.IsNullOrWhiteSpace(tenantId) && !string.IsNullOrWhiteSpace(userId)
+            ? $"tenant:{tenantId}:user:{userId}"
+            : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+        var permitLimit = builder.Configuration.GetValue("BranchPairing:AdminPermitLimit", 10);
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partition,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            });
+    });
+
+    options.AddPolicy("branch-pairing-machine", httpContext =>
+    {
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var permitLimit = builder.Configuration.GetValue("BranchPairing:MachinePermitLimit", 30);
+        return RateLimitPartition.GetFixedWindowLimiter(
+            ip,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = permitLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            });
+    });
 });
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>();
@@ -163,7 +210,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 }
 app.UseAuthorization();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
     app.MapOpenApi();
 }
@@ -181,6 +228,7 @@ app.MapRuntimeHealth();
 app.MapBranchHealth();
 app.MapCloudBranchActivationEndpoints();
 app.MapBranchActivationEndpoints();
+app.MapBranchDevicePairingEndpoints();
 
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {

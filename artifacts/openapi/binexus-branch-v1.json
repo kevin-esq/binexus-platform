@@ -1,0 +1,416 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Binexus.Api | branch-v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/branch/terminals": {
+      "get": {
+        "tags": ["BranchPairingAdmin"],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/sessions": {
+      "post": {
+        "tags": ["BranchPairingAdmin"],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/requests/{pairingRequestId}": {
+      "get": {
+        "tags": ["BranchPairingAdmin"],
+        "parameters": [
+          {
+            "name": "pairingRequestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/requests/{pairingRequestId}/approve": {
+      "post": {
+        "tags": ["BranchPairingAdmin"],
+        "parameters": [
+          {
+            "name": "pairingRequestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/requests/{pairingRequestId}/reject": {
+      "post": {
+        "tags": ["BranchPairingAdmin"],
+        "parameters": [
+          {
+            "name": "pairingRequestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/devices": {
+      "get": {
+        "tags": ["BranchPairingAdmin"],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/devices/{deviceId}/revoke": {
+      "post": {
+        "tags": ["BranchPairingAdmin"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/challenges": {
+      "post": {
+        "tags": ["BranchPairingMachine"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateExchangeChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/exchange": {
+      "post": {
+        "tags": ["BranchPairingMachine"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairingExchangeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/requests/{pairingRequestId}/status": {
+      "post": {
+        "tags": ["BranchPairingMachine"],
+        "parameters": [
+          {
+            "name": "pairingRequestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairingStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/requests/{pairingRequestId}/receipt/challenges": {
+      "post": {
+        "tags": ["BranchPairingMachine"],
+        "parameters": [
+          {
+            "name": "pairingRequestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReceiptReissueChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/requests/{pairingRequestId}/receipt/reissue": {
+      "post": {
+        "tags": ["BranchPairingMachine"],
+        "parameters": [
+          {
+            "name": "pairingRequestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReissuePairingReceiptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/branch/pairing/confirm": {
+      "post": {
+        "tags": ["BranchPairingMachine"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairingConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateExchangeChallengeRequest": {
+        "required": ["pairingSessionId", "pairingCode", "deviceId", "publicKey", "credentialHash"],
+        "type": "object",
+        "properties": {
+          "pairingSessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pairingCode": {
+            "type": "string"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "publicKey": {
+            "type": "string"
+          },
+          "credentialHash": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateReceiptReissueChallengeRequest": {
+        "required": ["pairingStatusToken"],
+        "type": "object",
+        "properties": {
+          "pairingStatusToken": {
+            "type": "string"
+          }
+        }
+      },
+      "PairingConfirmRequest": {
+        "required": [
+          "pairingRequestId",
+          "confirmationChallengeId",
+          "signature",
+          "pairingReceipt",
+          "pairingStatusToken"
+        ],
+        "type": "object",
+        "properties": {
+          "pairingRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "confirmationChallengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "pairingReceipt": {
+            "type": "string"
+          },
+          "pairingStatusToken": {
+            "type": "string"
+          }
+        }
+      },
+      "PairingExchangeRequest": {
+        "required": [
+          "pairingSessionId",
+          "pairingCode",
+          "deviceId",
+          "publicKey",
+          "challengeId",
+          "signature",
+          "credentialHash",
+          "terminalName"
+        ],
+        "type": "object",
+        "properties": {
+          "pairingSessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pairingCode": {
+            "type": "string"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "publicKey": {
+            "type": "string"
+          },
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "credentialHash": {
+            "type": "string"
+          },
+          "terminalName": {
+            "type": "string"
+          }
+        }
+      },
+      "PairingStatusRequest": {
+        "required": ["pairingStatusToken"],
+        "type": "object",
+        "properties": {
+          "pairingStatusToken": {
+            "type": "string"
+          }
+        }
+      },
+      "ReissuePairingReceiptRequest": {
+        "required": ["pairingStatusToken", "reissueChallengeId", "signature"],
+        "type": "object",
+        "properties": {
+          "pairingStatusToken": {
+            "type": "string"
+          },
+          "reissueChallengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "signature": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "BranchPairingAdmin"
+    },
+    {
+      "name": "BranchPairingMachine"
+    }
+  ]
+}
