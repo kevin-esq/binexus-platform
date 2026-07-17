@@ -33,6 +33,16 @@ public sealed class BinexusDbContext : DbContext
 
     public DbSet<BranchActivationChallenge> BranchActivationChallenges => Set<BranchActivationChallenge>();
 
+    public DbSet<DevicePairingSession> DevicePairingSessions => Set<DevicePairingSession>();
+
+    public DbSet<DevicePairingChallenge> DevicePairingChallenges => Set<DevicePairingChallenge>();
+
+    public DbSet<DevicePairingRequest> DevicePairingRequests => Set<DevicePairingRequest>();
+
+    public DbSet<BranchDevice> BranchDevices => Set<BranchDevice>();
+
+    public DbSet<BranchTerminal> BranchTerminals => Set<BranchTerminal>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BinexusDbContext).Assembly);

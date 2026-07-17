@@ -1717,3 +1717,199 @@ BEGIN
 END $EF$;
 COMMIT;
 
+START TRANSACTION;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE TABLE branch_devices (
+        id uuid NOT NULL,
+        branch_instance_id uuid NOT NULL,
+        public_key character varying(512) NOT NULL,
+        public_key_fingerprint character varying(64) NOT NULL,
+        credential_hash character varying(64) NOT NULL,
+        status character varying(24) NOT NULL,
+        pairing_request_id uuid NOT NULL,
+        created_at_utc timestamp with time zone NOT NULL,
+        paired_at_utc timestamp with time zone,
+        revoked_at_utc timestamp with time zone,
+        revoked_by_user_id uuid,
+        CONSTRAINT pk_branch_devices PRIMARY KEY (id),
+        CONSTRAINT ck_branch_devices_status CHECK (status IN ('PendingConfirmation', 'Active', 'Revoked'))
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE TABLE branch_terminals (
+        id uuid NOT NULL,
+        branch_instance_id uuid NOT NULL,
+        device_id uuid NOT NULL,
+        name character varying(50) NOT NULL,
+        normalized_name character varying(50) NOT NULL,
+        status character varying(24) NOT NULL,
+        created_at_utc timestamp with time zone NOT NULL,
+        activated_at_utc timestamp with time zone,
+        CONSTRAINT pk_branch_terminals PRIMARY KEY (id),
+        CONSTRAINT ck_branch_terminals_status CHECK (status IN ('PendingConfirmation', 'Active', 'Disabled'))
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE TABLE device_pairing_challenges (
+        id uuid NOT NULL,
+        phase character varying(16) NOT NULL,
+        branch_instance_id uuid NOT NULL,
+        pairing_session_id uuid,
+        pairing_request_id uuid,
+        device_id uuid NOT NULL,
+        terminal_id uuid,
+        public_key_fingerprint character varying(64) NOT NULL,
+        credential_hash character varying(64) NOT NULL,
+        pairing_receipt_hash character varying(64),
+        nonce character varying(128) NOT NULL,
+        expires_at_utc timestamp with time zone NOT NULL,
+        consumed_at_utc timestamp with time zone,
+        created_at_utc timestamp with time zone NOT NULL,
+        CONSTRAINT pk_device_pairing_challenges PRIMARY KEY (id),
+        CONSTRAINT ck_device_pairing_challenges_phase CHECK (phase IN ('Exchange', 'Confirmation')),
+        CONSTRAINT ck_device_pairing_challenges_phase_targets CHECK ((phase = 'Exchange' AND pairing_session_id IS NOT NULL) OR (phase = 'Confirmation' AND pairing_request_id IS NOT NULL AND pairing_receipt_hash IS NOT NULL))
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE TABLE device_pairing_requests (
+        id uuid NOT NULL,
+        pairing_session_id uuid NOT NULL,
+        branch_instance_id uuid NOT NULL,
+        device_id uuid NOT NULL,
+        public_key character varying(512) NOT NULL,
+        public_key_fingerprint character varying(64) NOT NULL,
+        credential_hash character varying(64) NOT NULL,
+        requested_terminal_name character varying(50) NOT NULL,
+        requested_terminal_name_normalized character varying(50) NOT NULL,
+        status character varying(16) NOT NULL,
+        status_token_hash character varying(64) NOT NULL,
+        status_token_expires_at_utc timestamp with time zone NOT NULL,
+        requested_at_utc timestamp with time zone NOT NULL,
+        expires_at_utc timestamp with time zone NOT NULL,
+        terminal_id uuid,
+        pairing_receipt_hash character varying(64),
+        approved_at_utc timestamp with time zone,
+        approved_by_user_id uuid,
+        rejected_at_utc timestamp with time zone,
+        rejected_by_user_id uuid,
+        completed_at_utc timestamp with time zone,
+        CONSTRAINT pk_device_pairing_requests PRIMARY KEY (id),
+        CONSTRAINT ck_device_pairing_requests_status CHECK (status IN ('PendingApproval', 'Approved', 'Rejected', 'Expired', 'Completed'))
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE TABLE device_pairing_sessions (
+        id uuid NOT NULL,
+        branch_instance_id uuid NOT NULL,
+        code_hash character varying(64) NOT NULL,
+        status character varying(16) NOT NULL,
+        created_by_user_id uuid NOT NULL,
+        failed_attempt_count integer NOT NULL,
+        locked_until_utc timestamp with time zone,
+        expires_at_utc timestamp with time zone NOT NULL,
+        created_at_utc timestamp with time zone NOT NULL,
+        consumed_at_utc timestamp with time zone,
+        CONSTRAINT pk_device_pairing_sessions PRIMARY KEY (id),
+        CONSTRAINT ck_device_pairing_sessions_status CHECK (status IN ('Open', 'Consumed', 'Expired'))
+    );
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE UNIQUE INDEX ix_branch_devices_branch_instance_id_credential_hash ON branch_devices (branch_instance_id, credential_hash);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE UNIQUE INDEX ix_branch_devices_branch_instance_id_public_key_fingerprint ON branch_devices (branch_instance_id, public_key_fingerprint);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE UNIQUE INDEX ix_branch_devices_pairing_request_id ON branch_devices (pairing_request_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE UNIQUE INDEX ix_branch_terminals_branch_instance_id_normalized_name ON branch_terminals (branch_instance_id, normalized_name) WHERE status IN ('PendingConfirmation', 'Active');
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE UNIQUE INDEX ix_branch_terminals_device_id ON branch_terminals (device_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE INDEX ix_device_pairing_challenges_branch_instance_id_expires_at_utc ON device_pairing_challenges (branch_instance_id, expires_at_utc);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE INDEX ix_device_pairing_challenges_pairing_request_id ON device_pairing_challenges (pairing_request_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE UNIQUE INDEX ix_device_pairing_requests_pairing_session_id_device_id ON device_pairing_requests (pairing_session_id, device_id);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE INDEX ix_device_pairing_sessions_branch_instance_id_status ON device_pairing_sessions (branch_instance_id, status);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    CREATE UNIQUE INDEX ix_device_pairing_sessions_code_hash ON device_pairing_sessions (code_hash);
+    END IF;
+END $EF$;
+
+DO $EF$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM "__EFMigrationsHistory" WHERE "migration_id" = '20260717072639_Platform_BranchDevicePairing') THEN
+    INSERT INTO "__EFMigrationsHistory" (migration_id, product_version)
+    VALUES ('20260717072639_Platform_BranchDevicePairing', '10.0.9');
+    END IF;
+END $EF$;
+COMMIT;
+
