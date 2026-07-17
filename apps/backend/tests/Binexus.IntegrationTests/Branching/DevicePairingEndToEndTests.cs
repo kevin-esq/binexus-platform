@@ -144,7 +144,6 @@ public sealed class DevicePairingEndToEndTests(PostgresTestFixture fixture)
         reuse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
         // Fresh material re-pairs, reusing the freed terminal name.
-        var freshSession = await CreateSessionAsync(admin);
         var freshDevice = new SimulatedPairingClient();
         await PairFullyAsync(context, admin, machine, freshDevice, "Caja 1");
         freshDevice.DeviceId.Should().NotBe(device.DeviceId);
