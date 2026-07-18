@@ -1,0 +1,48 @@
+---
+description: Post-migration work is named by product capability, not PR numbers
+alwaysApply: true
+---
+
+# Product initiatives (not migration PRs)
+
+The numbered migration (PR1–PR5) is **closed and finished**. Do not plan, branch, document, or talk about new work as `PR 6`, `PR 7`, `PR X.Y`, or similar. Do not use global numbering to represent project progress.
+
+Binexus develops by **product initiatives and capabilities** on the definitive architecture — not as a continuing architectural migration.
+
+## Before proposing implementation
+
+1. Name the **product initiative** explicitly (enough to understand the goal without any prior numbering).
+2. Organize work by that initiative / feature, not by a migration sequence.
+3. Use descriptive titles for plans and checkpoints tied to the capability.
+
+## Naming
+
+| Artifact | Format | Example |
+| -------- | ------ | ------- |
+| Branch | `feat/<capability-name>` | `feat/branch-device-auth` |
+| Plan | `PLAN — <CAPABILITY>` | `PLAN — BRANCH DEVICE AUTHENTICATION` |
+| Checkpoint | `CHECKPOINT — <CAPABILITY> <MILESTONE>` | `CHECKPOINT — BRANCH DEVICE AUTH PR READY` |
+| Large initiative phases | `Phase N — <slice>` **inside** that initiative only | `Phase 1 — Contracts` |
+
+Forbidden: `PLAN PR 6`, `CHECKPOINT PR 6.1`, `feat/pr6-…`, migration-style `PR X.Y` labels for new work.
+
+## Documentation
+
+- `docs/migration/` is reserved exclusively for historical artifacts of the completed PR1–PR5 migration. Do not add new capability plans or checkpoints there.
+- New plans, checkpoints, and feature notes live under a path that reflects the capability (e.g. `docs/<capability>/`, or living areas under `docs/architecture/`, `docs/domains/`, etc. when that fits).
+- Architecture decisions, plans, and checkpoints must be self-explanatory from the initiative name alone.
+
+## Examples (good)
+
+```text
+PLAN — BRANCH DEVICE AUTHENTICATION
+CHECKPOINT — BRANCH DEVICE AUTH IMPLEMENTATION
+CHECKPOINT — BRANCH DEVICE AUTH PR READY
+```
+
+```text
+PLAN — OFFLINE SALES ENGINE
+Phase 1 — Contracts
+Phase 2 — Persistence
+Phase 3 — Sync
+```

@@ -1,15 +1,12 @@
 # Branch Runtime implementation roadmap
 
+> **Status:** The numbered migration **PR1–PR5 is complete and merged**. This document is a **historical** sequence. Do not plan new work as “PR 6 / PR 7 / PR X.Y”. Reframe remaining backlog as **named product initiatives** (e.g. Offline Sales Engine, Branch Device Auth) with `feat/<capability-name>` branches and capability-titled plans/checkpoints. New docs do not go in `docs/migration/`.
+
 Sequencing for Branch Runtime and Desktop Tauri after [CHECKPOINT FINAL](../migration/branch-runtime-architecture-checkpoint.md) direction approval.
 
 ADRs 0016–0032 stay `Proposed` until implemented or ADR policy accepts them. Each implementation PR should reference the ADRs it realizes.
 
-Do not start PR 1 until the architecture documentation PR is merged to `main`.
-
-PR 1 merged (`#75`). PR 2 checkpoint: [`pr2-branch-server-identity-checkpoint.md`](../migration/pr2-branch-server-identity-checkpoint.md).  
-PR 3 on `feat/branch-server-activation`: [`pr3-branch-server-activation-checkpoint.md`](../migration/pr3-branch-server-activation-checkpoint.md) + [`pr3-activation-crypto-spike.md`](../migration/pr3-activation-crypto-spike.md).
-
-## PR plan (single developer)
+## Historical PR plan (migration; PR1–PR5 done)
 
 | PR  | Title                                 | Demonstrable value                                                                                                | Depends on | Tests                   | Risks                  | Done when                            | Out of scope           |
 | --- | ------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------- | ----------------------- | ---------------------- | ------------------------------------ | ---------------------- |
@@ -25,12 +22,13 @@ PR 3 on `feat/branch-server-activation`: [`pr3-branch-server-activation-checkpoi
 | 10  | Sync upstream Sales                   | Sale reaches Cloud idempotently                                                                                   | PR9, PR6   | Integration             | Duplicates             | Cloud shows sale after sync          | Downstream catalog     |
 | 11  | Downstream configuration              | Flags / users / config pull                                                                                       | PR9        | Integration             | Stale auth             | Branch applies config version        | Full catalog product   |
 
-## Later PRs
+## Later (reframe as named initiatives)
 
-Bootstrap UX, proof object pipeline, backup scheduler, version gates, Web Admin freshness fields, catalog downstream, production OS credential store.
+Former “later PRs” backlog — plan each as a capability, not a migration index: bootstrap UX, proof object pipeline, backup scheduler, version gates, Web Admin freshness fields, catalog downstream, production OS credential store; plus anything still listed in the table above that was never started under PR1–PR5 (POS/offline sales, multi-terminal LAN, installer, sync journal, etc.).
 
 ## Rules
 
-- One concern per PR.
+- One concern per product PR / branch.
 - No mega-branch with Runtime + Wizard + Tauri + Installer + Sync.
-- New work from updated `main` on a new branch each time.
+- New work from updated `main` on `feat/<capability-name>`.
+- Name the initiative before planning; checkpoints use the capability name.
