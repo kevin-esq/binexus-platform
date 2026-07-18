@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Binexus.Spike.BranchGuiSmokeHost</RootNamespace>
+    <StartupObject>Binexus.Spike.BranchGuiSmokeHost.HostRunner</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Binexus.Api\Binexus.Api.csproj" />
+    <ProjectReference Include="..\..\src\Binexus.Composition\Binexus.Composition.csproj" />
+    <ProjectReference Include="..\..\src\Binexus.Platform\Binexus.Platform.csproj" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "secure-storage-spike",
+    "crypto-interop-spike",
+    "single-instance-spike",
+]
+resolver = "2"
