@@ -18,6 +18,9 @@ Tauri 2 Branch Client for device pairing with a Branch Server. Not the Cloud ope
 # From repo root (requires MSVC + WebView2)
 pnpm install
 pnpm --filter @binexus/desktop dev
+
+# Vite-only (CI / turbo). Full NSIS installer:
+pnpm --filter @binexus/desktop build:app
 ```
 
 ## Pairing payload

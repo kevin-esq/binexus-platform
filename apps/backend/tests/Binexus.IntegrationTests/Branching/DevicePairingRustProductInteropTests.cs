@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Binexus.IntegrationTests.Branching;
@@ -269,8 +268,14 @@ public sealed class DevicePairingRustProductInteropTests(PostgresTestFixture fix
         }
 
         var factory = new ListeningBranchFactory(fixture.ConnectionString, SigningKey, Pepper);
-        _ = factory.CreateClient(); // force host start
-        return new ListeningBranchContext(factory, tenantId, branchId, userId, factory.ServerAddress);
+        // ASP.NET Core 10+: real Kestrel listener (Rust client needs a TCP port, not TestServer).
+        factory.UseKestrel(0);
+        factory.StartServer();
+        var baseAddress = factory.Services.GetRequiredService<IServer>().Features
+            .Get<IServerAddressesFeature>()
+            ?.Addresses.FirstOrDefault()
+            ?? throw new InvalidOperationException("Kestrel did not publish a listen address.");
+        return new ListeningBranchContext(factory, tenantId, branchId, userId, baseAddress);
     }
 
     private async Task ResetAsync()
@@ -308,10 +313,6 @@ public sealed class DevicePairingRustProductInteropTests(PostgresTestFixture fix
     private sealed class ListeningBranchFactory(string connectionString, string signingKey, string pepper)
         : WebApplicationFactory<Program>
     {
-        private IHost? _kestrelHost;
-
-        public string ServerAddress { get; private set; } = "http://127.0.0.1:0";
-
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseSetting("Binexus:RuntimeMode", "Branch");
@@ -322,39 +323,6 @@ public sealed class DevicePairingRustProductInteropTests(PostgresTestFixture fix
             builder.UseSetting("BranchPairing:CodePepper", pepper);
             builder.UseSetting("SEED_ON_START", "0");
             builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
-            builder.UseKestrel();
-            builder.UseUrls("http://127.0.0.1:0");
-        }
-
-        protected override IHost CreateHost(IHostBuilder builder)
-        {
-            // WebApplicationFactory requires a TestServer host; start a real Kestrel host for Rust.
-            var testHost = builder.Build();
-
-            builder.ConfigureWebHost(web =>
-            {
-                web.UseKestrel();
-                web.UseUrls("http://127.0.0.1:0");
-            });
-
-            _kestrelHost = builder.Build();
-            _kestrelHost.Start();
-
-            var server = _kestrelHost.Services.GetRequiredService<IServer>();
-            var addresses = server.Features.Get<IServerAddressesFeature>()
-                ?? throw new InvalidOperationException("IServerAddressesFeature missing");
-            ServerAddress = addresses.Addresses.First();
-            return testHost;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _kestrelHost?.Dispose();
-            }
-
-            base.Dispose(disposing);
         }
     }
 

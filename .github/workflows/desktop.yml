@@ -177,8 +177,8 @@ jobs:
       - name: Package scripts (Vite + tauri build)
         working-directory: apps/desktop
         run: |
-          # package.json "build" = build:vite && tauri build (unsigned)
-          pnpm build
+          # build:app = build:vite && tauri build (unsigned). Turbo "build" is Vite-only.
+          pnpm build:app
         env:
           TAURI_SIGNING_PRIVATE_KEY: ''
 
