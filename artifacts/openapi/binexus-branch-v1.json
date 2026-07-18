@@ -5,12 +5,68 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/health/runtime": {
+      "get": {
+        "tags": ["BranchDesktopHealth"],
+        "operationId": "HealthRuntime",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/branch": {
+      "get": {
+        "tags": ["BranchDesktopHealth"],
+        "operationId": "HealthBranch",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BranchHealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/branch/terminals": {
       "get": {
         "tags": ["BranchPairingAdmin"],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BranchTerminalResponse"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -20,7 +76,34 @@
         "tags": ["BranchPairingAdmin"],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePairingSessionResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -41,7 +124,34 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingRequestResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -62,7 +172,54 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApprovePairingRequestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -83,7 +240,54 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectPairingRequestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -93,7 +297,27 @@
         "tags": ["BranchPairingAdmin"],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PairedDeviceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -114,7 +338,34 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeDeviceResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -134,7 +385,44 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateExchangeChallengeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -154,7 +442,44 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingExchangeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -185,7 +510,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -216,7 +558,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateReceiptReissueChallengeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -247,7 +606,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReissuePairingReceiptResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -267,7 +643,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PairingConfirmResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -275,6 +668,83 @@
   },
   "components": {
     "schemas": {
+      "ApprovePairingRequestResponse": {
+        "required": [
+          "pairingRequestId",
+          "deviceId",
+          "terminalId",
+          "confirmationChallengeId",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "pairingRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "confirmationChallengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "BranchHealthResponse": {
+        "required": ["status", "branchInstanceId", "tenantId", "branchId"],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "branchInstanceId": {
+            "type": "string"
+          },
+          "tenantId": {
+            "type": ["null", "string"]
+          },
+          "branchId": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "BranchTerminalResponse": {
+        "required": ["terminalId", "deviceId", "name", "status", "createdAtUtc", "activatedAtUtc"],
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "activatedAtUtc": {
+            "type": ["null", "string"],
+            "format": "date-time"
+          }
+        }
+      },
       "CreateExchangeChallengeRequest": {
         "required": ["pairingSessionId", "pairingCode", "deviceId", "publicKey", "credentialHash"],
         "type": "object",
@@ -298,12 +768,110 @@
           }
         }
       },
+      "CreateExchangeChallengeResponse": {
+        "required": ["challengeId", "branchInstanceId", "nonce", "expiresAtUtc"],
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "branchInstanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreatePairingSessionResponse": {
+        "required": ["pairingSessionId", "pairingCode", "expiresAtUtc"],
+        "type": "object",
+        "properties": {
+          "pairingSessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pairingCode": {
+            "type": "string"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CreateReceiptReissueChallengeRequest": {
         "required": ["pairingStatusToken"],
         "type": "object",
         "properties": {
           "pairingStatusToken": {
             "type": "string"
+          }
+        }
+      },
+      "CreateReceiptReissueChallengeResponse": {
+        "required": ["challengeId", "branchInstanceId", "nonce", "expiresAtUtc"],
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "branchInstanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PairedDeviceResponse": {
+        "required": [
+          "deviceId",
+          "publicKeyFingerprint",
+          "deviceFingerprintShort",
+          "status",
+          "createdAtUtc",
+          "pairedAtUtc",
+          "revokedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "publicKeyFingerprint": {
+            "type": "string"
+          },
+          "deviceFingerprintShort": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pairedAtUtc": {
+            "type": ["null", "string"],
+            "format": "date-time"
+          },
+          "revokedAtUtc": {
+            "type": ["null", "string"],
+            "format": "date-time"
           }
         }
       },
@@ -333,6 +901,30 @@
           },
           "pairingStatusToken": {
             "type": "string"
+          }
+        }
+      },
+      "PairingConfirmResponse": {
+        "required": ["pairingRequestId", "deviceId", "terminalId", "status", "alreadyActive"],
+        "type": "object",
+        "properties": {
+          "pairingRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "alreadyActive": {
+            "type": "boolean"
           }
         }
       },
@@ -378,12 +970,166 @@
           }
         }
       },
+      "PairingExchangeResponse": {
+        "required": [
+          "pairingRequestId",
+          "deviceFingerprintShort",
+          "status",
+          "pairingStatusToken",
+          "expiresAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "pairingRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceFingerprintShort": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "pairingStatusToken": {
+            "type": "string"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PairingRequestResponse": {
+        "required": [
+          "pairingRequestId",
+          "deviceId",
+          "deviceFingerprintShort",
+          "requestedTerminalName",
+          "status",
+          "requestedAtUtc",
+          "expiresAtUtc",
+          "terminalId",
+          "approvedAtUtc",
+          "rejectedAtUtc",
+          "completedAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "pairingRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceFingerprintShort": {
+            "type": "string"
+          },
+          "requestedTerminalName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "requestedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "terminalId": {
+            "type": ["null", "string"],
+            "format": "uuid"
+          },
+          "approvedAtUtc": {
+            "type": ["null", "string"],
+            "format": "date-time"
+          },
+          "rejectedAtUtc": {
+            "type": ["null", "string"],
+            "format": "date-time"
+          },
+          "completedAtUtc": {
+            "type": ["null", "string"],
+            "format": "date-time"
+          }
+        }
+      },
       "PairingStatusRequest": {
         "required": ["pairingStatusToken"],
         "type": "object",
         "properties": {
           "pairingStatusToken": {
             "type": "string"
+          }
+        }
+      },
+      "PairingStatusResponse": {
+        "required": [
+          "pairingRequestId",
+          "status",
+          "branchInstanceId",
+          "terminalId",
+          "confirmationChallengeId",
+          "confirmationNonce",
+          "confirmationExpiresAtUtc",
+          "pairingReceipt"
+        ],
+        "type": "object",
+        "properties": {
+          "pairingRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "branchInstanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalId": {
+            "type": ["null", "string"],
+            "format": "uuid"
+          },
+          "confirmationChallengeId": {
+            "type": ["null", "string"],
+            "format": "uuid"
+          },
+          "confirmationNonce": {
+            "type": ["null", "string"]
+          },
+          "confirmationExpiresAtUtc": {
+            "type": ["null", "string"],
+            "format": "date-time"
+          },
+          "pairingReceipt": {
+            "type": ["null", "string"]
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": ["null", "string"]
+          },
+          "title": {
+            "type": ["null", "string"]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": ["null", "integer", "string"],
+            "format": "int32"
+          },
+          "detail": {
+            "type": ["null", "string"]
+          },
+          "instance": {
+            "type": ["null", "string"]
           }
         }
       },
@@ -402,10 +1148,92 @@
             "type": "string"
           }
         }
+      },
+      "ReissuePairingReceiptResponse": {
+        "required": [
+          "pairingRequestId",
+          "branchInstanceId",
+          "terminalId",
+          "pairingReceipt",
+          "confirmationChallengeId",
+          "confirmationNonce",
+          "confirmationExpiresAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "pairingRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "branchInstanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pairingReceipt": {
+            "type": "string"
+          },
+          "confirmationChallengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "confirmationNonce": {
+            "type": "string"
+          },
+          "confirmationExpiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RejectPairingRequestResponse": {
+        "required": ["pairingRequestId", "status"],
+        "type": "object",
+        "properties": {
+          "pairingRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "RevokeDeviceResponse": {
+        "required": ["deviceId", "terminalId", "deviceStatus"],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalId": {
+            "type": ["null", "string"],
+            "format": "uuid"
+          },
+          "deviceStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "RuntimeHealthResponse": {
+        "required": ["runtimeMode"],
+        "type": "object",
+        "properties": {
+          "runtimeMode": {
+            "type": "string"
+          }
+        }
       }
     }
   },
   "tags": [
+    {
+      "name": "BranchDesktopHealth"
+    },
     {
       "name": "BranchPairingAdmin"
     },

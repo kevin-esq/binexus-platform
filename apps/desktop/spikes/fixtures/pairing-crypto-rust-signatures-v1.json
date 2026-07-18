@@ -1,0 +1,18 @@
+{
+  "source": "crypto-interop-spike",
+  "toolchain": "1.97.1",
+  "signatures": [
+    {
+      "name": "exchange",
+      "signatureBase64Url": "MLpqgS0RABEMXvMB6Bqrt8JHUgxppe5Vk5B-nd-ARd_mTohPrb5g9QyJYKpN4GMA23N-pNwfiffyDsy8s5NBHA"
+    },
+    {
+      "name": "confirm",
+      "signatureBase64Url": "jRFVlN8KyqWXJ7cYyfyQL3_p2mInH6jzvFM-I29Ryt3Hr_UtP7Zm01w0AhWOtC-lGCQ7wBl_TwtKGvIn_67joA"
+    },
+    {
+      "name": "receipt-reissue",
+      "signatureBase64Url": "Da7mgYqS7pGSkhAgaFHumd_qf7cK3KWyvRwEVtxXWPcjuQYRmEt-MSItWw1-A1e2JL5KuLiidJABc5r05uoj9A"
+    }
+  ]
+}
