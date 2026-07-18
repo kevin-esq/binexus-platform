@@ -162,7 +162,8 @@ try {
   result = { scenario, ok: false, error: String(err) };
 }
 
-const out = path.join(os.tmpdir(), `binexus-gui-smoke-${scenario}.json`);
+const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'binexus-gui-smoke-'));
+const out = path.join(outDir, `${scenario}.json`);
 fs.writeFileSync(out, JSON.stringify(result, null, 2));
 console.log(JSON.stringify(result));
 await browser.close().catch(() => {});

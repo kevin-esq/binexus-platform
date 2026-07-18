@@ -8,3 +8,6 @@ coverage
 pnpm-lock.yaml
 apps/backend/prisma/migrations
 apps/desktop/src-tauri/target
+# tsc emit leftovers (source of truth is vite.config.ts)
+apps/desktop/vite.config.js
+apps/desktop/vite.config.d.ts

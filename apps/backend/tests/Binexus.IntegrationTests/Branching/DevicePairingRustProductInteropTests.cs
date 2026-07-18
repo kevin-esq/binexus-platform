@@ -43,7 +43,7 @@ public sealed class DevicePairingRustProductInteropTests(PostgresTestFixture fix
         sessionResponse.StatusCode.Should().Be(HttpStatusCode.OK, await sessionResponse.Content.ReadAsStringAsync());
         var session = (await sessionResponse.Content.ReadFromJsonAsync<SessionDto>())!;
 
-        var dataDir = Path.Combine(Path.GetTempPath(), "binexus-rust-interop-" + Guid.NewGuid().ToString("N"));
+        var dataDir = Path.Join(Path.GetTempPath(), "binexus-rust-interop-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dataDir);
 
         var pairingCode = $"{session.PairingSessionId:D}:{session.PairingCode}";
@@ -155,7 +155,7 @@ public sealed class DevicePairingRustProductInteropTests(PostgresTestFixture fix
         sessionResponse.EnsureSuccessStatusCode();
         var session = (await sessionResponse.Content.ReadFromJsonAsync<SessionDto>())!;
 
-        var dataDir = Path.Combine(Path.GetTempPath(), "binexus-rust-reissue-" + Guid.NewGuid().ToString("N"));
+        var dataDir = Path.Join(Path.GetTempPath(), "binexus-rust-reissue-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(dataDir);
 
         var psi = new ProcessStartInfo
@@ -222,8 +222,8 @@ public sealed class DevicePairingRustProductInteropTests(PostgresTestFixture fix
         var repoRoot = FindRepoRoot();
         var candidates = new[]
         {
-            Path.Combine(repoRoot, "apps", "desktop", "src-tauri", "target", "debug", "pairing_interop.exe"),
-            Path.Combine(repoRoot, "apps", "desktop", "src-tauri", "target", "release", "pairing_interop.exe"),
+            Path.Join(repoRoot, "apps", "desktop", "src-tauri", "target", "debug", "pairing_interop.exe"),
+            Path.Join(repoRoot, "apps", "desktop", "src-tauri", "target", "release", "pairing_interop.exe"),
             Environment.GetEnvironmentVariable("BINEXUS_PAIRING_INTEROP_EXE") ?? string.Empty,
         };
         var path = candidates.FirstOrDefault(File.Exists);
@@ -241,7 +241,7 @@ public sealed class DevicePairingRustProductInteropTests(PostgresTestFixture fix
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "pnpm-workspace.yaml")))
+            if (File.Exists(Path.Join(dir.FullName, "pnpm-workspace.yaml")))
             {
                 return dir.FullName;
             }

@@ -14,24 +14,50 @@ namespace Binexus.IntegrationTests.Infrastructure;
 
 public sealed class PostgresTestFixture : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _container = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
-        .WithDatabase("binexus_test")
-        .WithUsername("binexus")
-        .WithPassword("binexus")
-        .Build();
+    /// <summary>
+    /// When set, skip Testcontainers and use this connection (Windows CI cannot run Linux images).
+    /// </summary>
+    public const string ExternalConnectionEnvironmentVariable = "BINEXUS_TEST_DATABASE_CONNECTION";
 
-    public string ConnectionString => _container.GetConnectionString();
+    private PostgreSqlContainer? _container;
+    private string _connectionString = string.Empty;
+
+    public string ConnectionString =>
+        string.IsNullOrEmpty(_connectionString)
+            ? throw new InvalidOperationException("PostgresTestFixture has not been initialized.")
+            : _connectionString;
 
     public async Task InitializeAsync()
     {
-        await _container.StartAsync();
+        var external = Environment.GetEnvironmentVariable(ExternalConnectionEnvironmentVariable);
+        if (!string.IsNullOrWhiteSpace(external))
+        {
+            _connectionString = external;
+        }
+        else
+        {
+            _container = new PostgreSqlBuilder()
+                .WithImage("postgres:16-alpine")
+                .WithDatabase("binexus_test")
+                .WithUsername("binexus")
+                .WithPassword("binexus")
+                .Build();
+            await _container.StartAsync();
+            _connectionString = _container.GetConnectionString();
+        }
+
         await ApplyMigrationsAsync();
         using var scope = CreateScope();
         await scope.ServiceProvider.GetRequiredService<DevelopmentIdentitySeeder>().SeedAsync();
     }
 
-    public async Task DisposeAsync() => await _container.DisposeAsync();
+    public async Task DisposeAsync()
+    {
+        if (_container is not null)
+        {
+            await _container.DisposeAsync();
+        }
+    }
 
     public async Task ApplyMigrationsAsync()
     {

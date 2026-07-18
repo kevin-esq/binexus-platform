@@ -28,7 +28,7 @@ flowchart TD
 - 1 approving review from a CODEOWNER, dismissed on new push.
 - All review threads resolved.
 - Squash is the only allowed merge method.
-- All required status checks green: `Frontend (sdk + web)`, `Backend (.NET)`, `Compose smoke`, `CI Summary`, `Conventional Commits`, `Validate branch name`, `Validate commit messages`, `Analyze javascript-typescript`, `Analyze csharp` (CodeQL).
+- All required status checks green: `Frontend (sdk + web)`, `Backend (.NET)`, `Compose smoke`, `CI Summary`, `Conventional Commits`, `Validate branch name`, `Validate commit messages`, `Analyze javascript-typescript`, `Analyze csharp` (CodeQL), `Desktop Windows MSVC`.
 
 ## Branch and commit conventions (enforced by CI checks)
 

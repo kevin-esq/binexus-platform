@@ -116,10 +116,44 @@ jobs:
         run: |
           dotnet test apps/backend/tests/Binexus.UnitTests/Binexus.UnitTests.csproj -c Release --filter "FullyQualifiedName~DevicePairingGoldenVector"
 
+      # windows-latest Docker is Windows-container mode; postgres:* images are Linux-only.
+      # Install native PostgreSQL and point Testcontainers fixture at it via env override.
+      - name: Install PostgreSQL 16 (Windows native)
+        run: |
+          choco install postgresql16 --yes --no-progress --params '/Password:binexus'
+          $pgRoot = Get-ChildItem 'C:\Program Files\PostgreSQL' -Directory |
+            Sort-Object Name -Descending |
+            Select-Object -First 1
+          if (-not $pgRoot) { throw 'PostgreSQL install directory not found' }
+          $pgBin = Join-Path $pgRoot.FullName 'bin'
+          $env:Path = "$pgBin;$env:Path"
+          $env:PGPASSWORD = 'binexus'
+          # Service may need a moment after choco install
+          $deadline = (Get-Date).AddMinutes(2)
+          do {
+            Start-Sleep -Seconds 3
+            & "$pgBin\pg_isready.exe" -h 127.0.0.1 -p 5432 -U postgres
+          } while ($LASTEXITCODE -ne 0 -and (Get-Date) -lt $deadline)
+          if ($LASTEXITCODE -ne 0) { throw 'PostgreSQL did not become ready' }
+          & "$pgBin\psql.exe" -h 127.0.0.1 -U postgres -c "SELECT 1" | Out-Null
+          & "$pgBin\psql.exe" -h 127.0.0.1 -U postgres -c "SELECT 1 FROM pg_database WHERE datname='binexus_test'" |
+            Out-Null
+          $exists = & "$pgBin\psql.exe" -h 127.0.0.1 -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='binexus_test'"
+          if ($exists -ne '1') {
+            & "$pgBin\createdb.exe" -h 127.0.0.1 -U postgres binexus_test
+          }
+          "BINEXUS_TEST_DATABASE_CONNECTION=Host=127.0.0.1;Port=5432;Database=binexus_test;Username=postgres;Password=binexus" |
+            Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Using native PostgreSQL at $($pgRoot.FullName)"
+
       - name: Rust product client ↔ Branch Runtime ↔ PostgreSQL
         env:
           BINEXUS_PAIRING_INTEROP_EXE: ${{ github.workspace }}\apps\desktop\src-tauri\target\debug\pairing_interop.exe
         run: |
+          if (-not $env:BINEXUS_TEST_DATABASE_CONNECTION) {
+            throw 'BINEXUS_TEST_DATABASE_CONNECTION was not set by PostgreSQL install step'
+          }
+          Write-Host "Interop DB: $($env:BINEXUS_TEST_DATABASE_CONNECTION -replace 'Password=[^;]+','Password=***')"
           dotnet test apps/backend/tests/Binexus.IntegrationTests/Binexus.IntegrationTests.csproj -c Release --filter "FullyQualifiedName~DevicePairingRustProductInteropTests"
 
       - name: cargo audit (per-advisory exceptions)
