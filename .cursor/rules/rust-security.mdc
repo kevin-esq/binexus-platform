@@ -1,0 +1,28 @@
+---
+description: Rust and Tauri security — capabilities, CSP, secrets, supply chain
+globs: apps/desktop/**/*.{rs,json,toml},**/src-tauri/**/*,**/capabilities/**/*
+alwaysApply: false
+---
+
+# Rust / Tauri security
+
+Read `.cursor/skills/rust-security/SKILL.md`.
+
+## Always
+
+- Least-privilege capabilities per window
+- CSP set and tightened for new hosts
+- Secrets via OS keyring / memory — never committed or sent to UI
+- Parameterized SQL; scoped filesystem paths
+- `cargo audit` / deny mindset for new deps
+
+## Never
+
+- `dangerousInsecureTransport` in prod updater
+- Log tokens or device keys
+- Trust the frontend for authorization
+- Unreviewed remote capability URLs
+
+## On finding a secret leak
+
+Stop, tell the user, rotate (history matters), grep for duplicates.

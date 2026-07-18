@@ -27,6 +27,10 @@ Markdown files with YAML frontmatter (`description`, `globs`, `alwaysApply`). Cu
 | `typescript-security.md`         | `**/*.{ts,tsx,js,jsx}` — ReDoS, Argon2, Prisma raw query rules   |
 | `typescript-testing.md`          | `**/*.{ts,tsx,js,jsx}` — Vitest / Playwright guidance            |
 | `graphify.mdc`                   | always — knowledge-graph query hints when `graphify-out/` exists |
+| `rust-tauri.mdc`                 | `apps/desktop/**`, `**/src-tauri/**` — Tauri host standards      |
+| `rust-coding.mdc`                | `**/*.rs` — idiomatic Rust                                       |
+| `rust-security.mdc`              | desktop/capabilities — trust boundary + supply chain             |
+| `rust-testing.mdc`               | desktop Rust/TS — unit/integration/E2E expectations              |
 
 ### `skills/`
 
@@ -52,6 +56,14 @@ Token / context economy:
 Stack-specific:
 
 - `mcp-server-patterns`, `nextjs-turbopack`
+- **Rust + Tauri (Branch Client / desktop):**
+  - `rust-tauri-handbook` — master index + architecture, libraries, folders, CI/CD, checklists, anti-patterns
+  - `rust-tauri` — commands, IPC, plugins, capabilities
+  - `rust-architecture` — modular monolith, offline-first, crate boundaries
+  - `rust-security` — capabilities, CSP, secrets, audit/deny
+  - `rust-fundamentals` — ownership, errors, async, Clippy
+  - `rust-tauri-testing`, `rust-tauri-performance`, `rust-sqlite`, `rust-tauri-deployment`
+  - `desktop-ux`, `rust-code-review`
 - `react-best-practices` — Vercel rules adapted to `apps/web` (Next.js 15 + React 19). Triggers on RSC vs Client, bundle, waterfalls.
 - `composition-patterns` — React composition for `apps/web`: avoid boolean-prop explosions, use compound components, lift state via providers.
 - `webapp-testing` — Playwright (TypeScript) E2E for `apps/web` against the NestJS backend. Bootstraps `apps/web/e2e/` and gives the day-to-day flow.

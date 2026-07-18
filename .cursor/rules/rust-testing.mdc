@@ -1,0 +1,25 @@
+---
+description: Rust/Tauri testing expectations for desktop host code
+globs: apps/desktop/**/*.{rs,ts,tsx},**/src-tauri/**/*
+alwaysApply: false
+---
+
+# Rust / Tauri testing
+
+Read `.cursor/skills/rust-tauri-testing/SKILL.md` when adding behavior.
+
+## Always
+
+- Unit tests for policy/crypto/domain
+- Integration tests with `tempfile` / `wiremock` / fake stores
+- Cover rejection + recovery for pairing and security flows
+
+## Never
+
+- Require live network or real OS keyring for unit tests
+- Ship critical IPC changes with zero automated coverage
+
+## Prefer
+
+- Injectable traits for secret stores and HTTP
+- WebDriver E2E for release-critical UI paths (optional in PR, required over time)

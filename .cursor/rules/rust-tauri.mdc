@@ -1,0 +1,36 @@
+---
+description: Rust + Tauri v2 standards for Branch Client and desktop host code
+globs: apps/desktop/**/*.{rs,toml,json},**/src-tauri/**/*
+alwaysApply: false
+---
+
+# Rust + Tauri
+
+Before substantive edits, **Read**:
+
+1. `.cursor/skills/rust-tauri/SKILL.md`
+2. `.cursor/skills/rust-security/SKILL.md`
+3. `.cursor/skills/rust-architecture/SKILL.md` when changing structure/crates
+
+## Always
+
+- WebView untrusted; secrets/crypto/hardware/HTTP pairing in Rust
+- Minimal capabilities; plugin install = cargo + `.plugin` + capability permission
+- Typed `PublicError` codes over IPC
+- Async or `spawn_blocking` for heavy work
+- Register commands in one `generate_handler!`
+
+## Never
+
+- Postgres credentials or authoritative money/stock commits only in the desktop app
+- Broad fs/shell/http permissions without review
+- `unwrap` in command paths
+- Secrets in frontend storage
+
+## Prefer
+
+- Feature modules (`pairing/`, `secrets/`, …) over god `lib.rs`
+- `thiserror` + stable codes (existing `AppError` pattern)
+- `reqwest` + rustls; `keyring` for secrets; `tracing` for logs
+
+Binexus architecture: `docs/architecture/desktop-tauri.md`.
