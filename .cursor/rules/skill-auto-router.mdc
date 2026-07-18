@@ -17,6 +17,7 @@ Before substantive work, match the task below and **Read** the listed `.cursor/s
 | Public / marketing UI (`(public)`, landing, pricing, signup, onboarding) | `taste`, `ui-ux-pro`, `marketing-copy`; `cro` / `growth-seo` if conversion or SEO |
 | `packages/types`, `packages/events`, `packages/sdk`, Prisma schema, new commands/events/DTOs | `semantic-naming` |
 | `docs/**`, ADRs, domain pages, Notion sync of docs | `stop-slop`, `doc-coauthoring`, `notion-docs-sync` |
+| New product initiative / plan / checkpoint (post-migration) | Name capability first; follow `product-initiatives` rule — not `docs/migration/` |
 | Playwright / E2E specs | `webapp-testing` |
 | `apps/mobile` or RN | `react-native`; store listing → `aso` |
 | MCP server / tools | `mcp-server-patterns`, `mcp-builder` |

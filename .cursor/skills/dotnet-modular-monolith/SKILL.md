@@ -104,7 +104,7 @@ Slice done = happy path + business rejection + multi-tenant case.
 
 - One bounded context = one module; vertical slices, not giant horizontal layers.
 - Architecture changes → short ADR.
-- Close slices with checkpoint docs (`docs/migration/*`).
+- Close slices with checkpoint docs under the **capability** being built (not `docs/migration/` — that folder is historical).
 - Mantra: **Foundation wide. Execution narrow.**
 
 ## Pre-PR checklist
