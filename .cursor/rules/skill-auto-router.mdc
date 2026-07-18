@@ -12,6 +12,7 @@ Before substantive work, match the task below and **Read** the listed `.cursor/s
 | Working in… | Read skills |
 |-------------|-------------|
 | `apps/backend/**/*.cs`, `*.csproj` | `dotnet-modular-monolith`, `dotnet-clean-code`, `semantic-naming` (new names) |
+| `apps/desktop/**`, `**/src-tauri/**`, Tauri/`*.rs` desktop host | `rust-tauri`, `rust-security`; + `rust-architecture` if crates/structure; + `rust-fundamentals` if language/async/errors; handbook via `rust-tauri-handbook` when scaffolding or setting standards |
 | `apps/web` operator (`orders`, `logistics`, `inventory`, `warehouse`, `pos`, `login`) | `react-best-practices`, `composition-patterns` |
 | Public / marketing UI (`(public)`, landing, pricing, signup, onboarding) | `taste`, `ui-ux-pro`, `marketing-copy`; `cro` / `growth-seo` if conversion or SEO |
 | `packages/types`, `packages/events`, `packages/sdk`, Prisma schema, new commands/events/DTOs | `semantic-naming` |
@@ -41,6 +42,12 @@ Before substantive work, match the task below and **Read** the listed `.cursor/s
 | Commit/PR prose, changelog, human text | `stop-slop` |
 | Spec-kit / large unclear slice | `spec-kit` or `ecc` as appropriate |
 | Commit hooks / Husky setup | `setup-pre-commit` |
+| Rust/Tauri review, desktop PR review | `rust-code-review` (+ `rust-security`) |
+| SQLite / local cache / offline sync in desktop | `rust-sqlite`, `rust-architecture` |
+| Tauri binary size, IPC jank, startup | `rust-tauri-performance` |
+| Tauri bundle / updater / signing | `rust-tauri-deployment` |
+| Desktop window/tray/POS UX chrome | `desktop-ux` |
+| Rust+Tauri handbook / standards / scaffold | `rust-tauri-handbook` |
 
 ## Explicit-only (never auto)
 
@@ -51,4 +58,5 @@ Only when the user invokes them: `caveman`, `zoom-out`, `write-a-skill`, `web-ar
 1. Path rules win for code under that path.
 2. If both public and operator UI: use the surface being edited.
 3. Backend C# always beats generic TS/Nest advice still lingering in old docs.
-4. Prefer reading the skill over inventing parallel conventions.
+4. Desktop Tauri (`apps/desktop`) beats generic Electron/web advice; Rust host skills beat frontend-only patterns for IPC/secrets/hardware.
+5. Prefer reading the skill over inventing parallel conventions.

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Binexus Capabilities Spike",
+  "version": "0.1.0",
+  "identifier": "io.binexus.desktop.capabilities-spike",
+  "build": {
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Binexus Capabilities Spike",
+        "width": 800,
+        "height": 600,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'none'; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'",
+      "capabilities": ["main-capability"]
+    }
+  },
+  "bundle": {
+    "active": false
+  }
+}

@@ -1,0 +1,29 @@
+---
+description: Idiomatic Rust coding standards (ownership, errors, async, Clippy)
+globs: "**/*.rs"
+alwaysApply: false
+---
+
+# Rust coding
+
+Read `.cursor/skills/rust-fundamentals/SKILL.md` when writing non-trivial Rust.
+
+## Always
+
+- `Result`/`Option`; map errors at boundaries
+- `cargo fmt`; Clippy with warnings denied in CI mindset
+- Feature-gate Tokio; avoid `full` by default
+- Document `unsafe` with `// SAFETY:`
+
+## Never
+
+- `unwrap`/`expect` in production paths
+- Hold `std::sync::Mutex` across `.await`
+- Ignore spawned task `JoinHandle` results
+- `println!` instead of `tracing` in libraries
+
+## Prefer
+
+- Owned data at async boundaries
+- `thiserror` for library/domain errors
+- Small `pub` surfaces (`pub(crate)` default)

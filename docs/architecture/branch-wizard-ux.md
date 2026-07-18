@@ -1,6 +1,6 @@
 # Branch wizard UX (architecture)
 
-First-run UX for Branch Server activation and Branch Client pairing. Implementation is out of scope.
+First-run UX for Branch Server activation and Branch Client pairing. The Branch Client pairing frontend implements manual Branch Server URL setup, code entry, approval waiting, finalization, and recovery. Discovery remains deferred.
 
 Related: [ADR-0019](../adr/0019-branch-server-activation.md), [ADR-0020](../adr/0020-branch-client-pairing.md), [ADR-0021](../adr/0021-lan-discovery.md), [ADR-0022](../adr/0022-branch-installer.md), [ADR-0026](../adr/0026-resumable-bootstrap.md).
 
@@ -46,6 +46,10 @@ Discover candidates (name, InstanceId fragment, address, version, fingerprint)
 ```
 
 Manual `IP:port` always available. mDNS never skips fingerprint confirmation.
+
+## Current pairing frontend
+
+`apps/desktop` owns the Branch Client pairing screens. React keeps the pairing code only long enough to invoke native IPC and does not use browser storage. Rust owns the Branch Server connection, cryptography, and secure credential storage.
 
 ## Failure copy (design)
 

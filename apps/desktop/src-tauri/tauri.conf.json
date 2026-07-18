@@ -1,30 +1,32 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Binexus",
-  "version": "0.0.0",
-  "identifier": "io.binexus.app",
+  "version": "0.1.0",
+  "identifier": "io.binexus.desktop",
   "build": {
-    "beforeDevCommand": "pnpm --filter @binexus/web dev",
-    "beforeBuildCommand": "pnpm --filter @binexus/web build",
-    "devUrl": "http://localhost:3000",
-    "frontendDist": "../../web/.next"
+    "beforeDevCommand": "pnpm --filter @binexus/desktop dev:vite",
+    "beforeBuildCommand": "pnpm --filter @binexus/desktop build:vite",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Binexus",
-        "width": 1280,
-        "height": 800,
-        "minWidth": 1024,
-        "minHeight": 640
+        "width": 960,
+        "height": 720,
+        "resizable": true
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; connect-src 'none'; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'",
+      "capabilities": ["main-capability"]
     }
   },
   "bundle": {
-    "active": false,
-    "targets": "all"
+    "active": true,
+    "targets": ["nsis"],
+    "icon": ["icons/icon.ico"]
   }
 }

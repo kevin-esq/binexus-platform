@@ -1,0 +1,11 @@
+# cargo-audit exceptions for apps/desktop/src-tauri (PR5)
+# Each ignored advisory MUST have a matching row in
+# docs/migration/cargo-audit-exceptions-desktop.json with owner, reviewBy, removalCondition.
+# Do not ignore whole packages. Do not use open-ended “Tauri transitive” excuses.
+
+[advisories]
+ignore = [
+  "RUSTSEC-2026-0194",
+  "RUSTSEC-2026-0195",
+  "RUSTSEC-2026-0009",
+]

@@ -33,33 +33,40 @@ public static class BranchDevicePairingEndpointExtensions
 
         group.MapPost("/sessions", CreateSessionAsync)
             .RequireAuthorization()
-            .RequireRateLimiting("branch-pairing-admin");
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithCreateSessionOpenApi();
 
         group.MapGet("/requests/{pairingRequestId:guid}", GetRequestAsync)
             .RequireAuthorization()
-            .RequireRateLimiting("branch-pairing-admin");
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithGetRequestOpenApi();
 
         group.MapPost("/requests/{pairingRequestId:guid}/approve", ApproveRequestAsync)
             .RequireAuthorization()
-            .RequireRateLimiting("branch-pairing-admin");
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithApproveRequestOpenApi();
 
         group.MapPost("/requests/{pairingRequestId:guid}/reject", RejectRequestAsync)
             .RequireAuthorization()
-            .RequireRateLimiting("branch-pairing-admin");
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithRejectRequestOpenApi();
 
         var devices = endpoints.MapGroup("/branch/devices").WithTags("BranchPairingAdmin").WithGroupName(BranchDocumentGroup);
         devices.MapGet("/", ListDevicesAsync)
             .RequireAuthorization()
-            .RequireRateLimiting("branch-pairing-admin");
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithListDevicesOpenApi();
         devices.MapPost("/{deviceId:guid}/revoke", RevokeDeviceAsync)
             .RequireAuthorization()
-            .RequireRateLimiting("branch-pairing-admin");
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithRevokeDeviceOpenApi();
 
         endpoints.MapGet("/branch/terminals", ListTerminalsAsync)
             .WithTags("BranchPairingAdmin")
             .WithGroupName(BranchDocumentGroup)
             .RequireAuthorization()
-            .RequireRateLimiting("branch-pairing-admin");
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithListTerminalsOpenApi();
     }
 
     private static void MapMachineEndpoints(IEndpointRouteBuilder endpoints)
@@ -68,27 +75,33 @@ public static class BranchDevicePairingEndpointExtensions
 
         group.MapPost("/challenges", CreateExchangeChallengeAsync)
             .AllowAnonymous()
-            .RequireRateLimiting("branch-pairing-machine");
+            .RequireRateLimiting("branch-pairing-machine")
+            .WithCreateExchangeChallengeOpenApi();
 
         group.MapPost("/exchange", ExchangeAsync)
             .AllowAnonymous()
-            .RequireRateLimiting("branch-pairing-machine");
+            .RequireRateLimiting("branch-pairing-machine")
+            .WithExchangeOpenApi();
 
         group.MapPost("/requests/{pairingRequestId:guid}/status", StatusAsync)
             .AllowAnonymous()
-            .RequireRateLimiting("branch-pairing-machine");
+            .RequireRateLimiting("branch-pairing-machine")
+            .WithStatusOpenApi();
 
         group.MapPost("/requests/{pairingRequestId:guid}/receipt/challenges", CreateReceiptReissueChallengeAsync)
             .AllowAnonymous()
-            .RequireRateLimiting("branch-pairing-machine");
+            .RequireRateLimiting("branch-pairing-machine")
+            .WithReceiptReissueChallengeOpenApi();
 
         group.MapPost("/requests/{pairingRequestId:guid}/receipt/reissue", ReissueReceiptAsync)
             .AllowAnonymous()
-            .RequireRateLimiting("branch-pairing-machine");
+            .RequireRateLimiting("branch-pairing-machine")
+            .WithReceiptReissueOpenApi();
 
         group.MapPost("/confirm", ConfirmAsync)
             .AllowAnonymous()
-            .RequireRateLimiting("branch-pairing-machine");
+            .RequireRateLimiting("branch-pairing-machine")
+            .WithConfirmOpenApi();
     }
 
     private static async Task<IResult> CreateSessionAsync(

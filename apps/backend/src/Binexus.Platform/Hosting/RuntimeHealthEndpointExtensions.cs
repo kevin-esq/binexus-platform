@@ -14,9 +14,11 @@ public static class RuntimeHealthEndpointExtensions
                 (IRuntimeDescriptor descriptor) =>
                     Results.Json(new RuntimeHealthResponse(descriptor.Mode.ToString())))
             .WithName("HealthRuntime")
-            .WithTags("Health")
-            .ExcludeFromDescription();
+            .WithTags("BranchDesktopHealth")
+            .WithRuntimeHealthOpenApi();
 
         return endpoints;
     }
 }
+
+internal sealed record RuntimeHealthResponse(string RuntimeMode);

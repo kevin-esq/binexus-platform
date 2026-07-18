@@ -1,35 +1,39 @@
-# Binexus Desktop (Tauri)
+# Binexus Branch Client (desktop)
 
-Status: **scaffold only in Phase 0**. The `src-tauri/` directory contains the minimal Tauri 2 configuration so the app builds, but no native plugins or features are wired yet.
+Tauri 2 Branch Client for device pairing with a Branch Server. Not the Cloud operator panel (`apps/web`).
 
-## What it is
+## Stack
 
-A thin Tauri 2 wrapper that loads `apps/web` (Next.js) in a native window. We chose Tauri because Phase 4+ will need direct hardware access (receipt printers, scales, barcode readers) that a PWA can't provide.
+| Component    | Version                           |
+| ------------ | --------------------------------- |
+| Rust         | 1.97.1 (`x86_64-pc-windows-msvc`) |
+| Tauri        | 2.11.5                            |
+| tauri-build  | 2.6.3                             |
+| tauri-cli    | 2.11.4                            |
+| Vite + React | Vite 6 / React 19                 |
 
-## What it is NOT (in Phase 0)
+## Develop
 
-- Not auto-updated
-- Not signed
-- Not packaged for distribution
-- Not wired to any backend differently than the web app
+```powershell
+# From repo root (requires MSVC + WebView2)
+pnpm install
+pnpm --filter @binexus/desktop dev
 
-## Development
-
-```bash
-# First, run the web app in dev (it serves at http://localhost:3000)
-pnpm --filter @binexus/web dev
-
-# Then in another shell, install Rust toolchain (one-time) and:
-cd apps/desktop
-pnpm tauri dev
+# Vite-only (CI / turbo). Full NSIS installer:
+pnpm --filter @binexus/desktop build:app
 ```
 
-Tauri requires the Rust toolchain (`rustup`). See <https://tauri.app/start/prerequisites/>.
+## Pairing payload
 
-## Why a separate app and not just a PWA?
+PR5 machine APIs require both `pairingSessionId` and `pairingCode`. Paste:
 
-PWAs can't drive USB/serial peripherals reliably across OSes. POS retail, restaurant, and warehouse all need that. Tauri gives us:
+```text
+{pairingSessionId}:{8-digit-code}
+```
 
-- Local IPC bridge to Rust where we'll talk to printers/scales (Phase 5+).
-- Smaller binary than Electron.
-- Same web build as the dashboard.
+## Security notes
+
+- Secrets stay in Windows Credential Manager (`keyring` 3.6.2).
+- Config is non-secret JSON under app data.
+- JS has no network (`connect-src 'none'`); Branch HTTP is Rust-only.
+- Single-instance via `fs2` file lock only.

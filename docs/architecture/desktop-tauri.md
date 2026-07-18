@@ -39,10 +39,14 @@ Allowed: unconfirmed cart, config, visual session, cached reads, retry of lost r
 
 Not allowed as confirmed truth: sales or stock without Branch Server commit (ADR-0024).
 
-## Wizard roles
+## PR5 implementation note
 
-| Path                | Tauri role                                  |
-| ------------------- | ------------------------------------------- |
-| Principal first run | Invoke Branch Installer, then activation UX |
-| Secondary cashier   | Pairing UX only                             |
-| Cloud operator      | Not Tauri; Web Admin                        |
+As of PR5 the Branch Client ships as `apps/desktop` (Vite + React + Tauri 2.11.5):
+
+- Pairing ceremony and Branch HTTP run in Rust only.
+- Device secrets live in Windows Credential Manager via `keyring` 3.6.2 (`windows-native`).
+- Single-instance uses an `fs2` file lock (no plugin).
+- Config missing + envelope present yields `RecoveryRequired` (never auto-`Paired`).
+- Out of scope still: POS UI, sync, mDNS, TLS pinning, installer, updater, hardware.
+
+See [pr5-checkpoint-tauri-pairing-client.md](../migration/pr5-checkpoint-tauri-pairing-client.md).

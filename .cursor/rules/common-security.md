@@ -30,7 +30,7 @@ Before ANY commit:
 If a security issue is found:
 
 1. STOP immediately and tell the user
-2. Open `typescript-security.md` for stack-specific guidance, or `diagnose` skill if the issue is a live incident
+2. Open `typescript-security.md` for web/TS, `rust-security` skill for `apps/desktop` / Tauri, or `diagnose` skill if the issue is a live incident
 3. Fix CRITICAL issues before continuing other work
 4. Rotate any exposed secrets — do NOT just commit a deletion, the secret is in git history
 5. Grep the rest of the codebase for the same anti-pattern

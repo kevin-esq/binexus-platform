@@ -29,8 +29,8 @@ public static class BranchHealthEndpointExtensions
                         info.BranchId?.ToString("D")));
                 })
             .WithName("HealthBranch")
-            .WithTags("Health")
-            .ExcludeFromDescription();
+            .WithTags("BranchDesktopHealth")
+            .WithBranchHealthOpenApi();
 
         return endpoints;
     }

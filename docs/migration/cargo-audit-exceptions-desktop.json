@@ -1,0 +1,50 @@
+[
+  {
+    "advisoryId": "RUSTSEC-2026-0194",
+    "severity": "High",
+    "affectedCrate": "quick-xml",
+    "resolvedVersion": "0.38.4",
+    "patchedVersion": ">=0.41.0",
+    "dependencyPath": "binexus-desktop → tauri 2.11.5 → tauri-utils 2.9.3 → plist 1.8.0 → quick-xml 0.38.4",
+    "featureIntroducing": "tauri default → compression / config; plist default (serde) pulls quick-xml default",
+    "runtimeReachability": "plist parses Apple property-list XML. On Windows MSVC desktop the runtime path is build/codegen and Tauri resource/config tooling — not Branch pairing HTTP or WCM. Remote DoS requires feeding attacker-controlled multi-megabyte XML with tens of thousands of attributes into plist/quick-xml attribute iteration. Binexus does not accept untrusted plist/XML over the pairing surface.",
+    "binexusImpact": "Availability DoS only if untrusted XML is parsed via plist; pairing/crypto/config.json paths do not use quick-xml.",
+    "whyCannotUpdate": "plist 1.8.0 requires quick-xml ^0.38.0; cargo cannot select 0.41.0. Updating plist alone is not published against tauri-utils 2.9.3 in the approved Tauri 2.11.5 matrix.",
+    "mitigation": "Do not parse untrusted XML/plist in product code; pairing uses JSON only; Branch URL policy rejects public/metadata hosts.",
+    "exceptionOwner": "desktop-platform",
+    "reviewBy": "2026-10-17",
+    "removalCondition": "Bump approved Tauri matrix to a release whose tauri-utils/plist pulls quick-xml >= 0.41.0, then remove this ignore and re-run cargo audit clean."
+  },
+  {
+    "advisoryId": "RUSTSEC-2026-0195",
+    "severity": "High",
+    "affectedCrate": "quick-xml",
+    "resolvedVersion": "0.38.4",
+    "patchedVersion": ">=0.41.0",
+    "dependencyPath": "binexus-desktop → tauri 2.11.5 → tauri-utils 2.9.3 → plist 1.8.0 → quick-xml 0.38.4",
+    "featureIntroducing": "Same as RUSTSEC-2026-0194 (plist → NsReader path)",
+    "runtimeReachability": "NsReader unbounded namespace-declaration allocation. Same plist path as 0194; not on Branch pairing JSON. Untrusted XML would be required.",
+    "binexusImpact": "Memory exhaustion DoS only if untrusted namespaced XML is parsed via plist NsReader; not reachable from pairing ceremony.",
+    "whyCannotUpdate": "Identical constraint: plist 1.8.0 pins quick-xml ^0.38; incompatible with 0.41 without upstream Tauri/plist bump.",
+    "mitigation": "No product code constructs NsReader on attacker input; CI secret-scan and CSP limit unintended content loading.",
+    "exceptionOwner": "desktop-platform",
+    "reviewBy": "2026-10-17",
+    "removalCondition": "Same as RUSTSEC-2026-0194 — Tauri matrix bump that resolves quick-xml >= 0.41.0."
+  },
+  {
+    "advisoryId": "RUSTSEC-2026-0009",
+    "severity": "Medium",
+    "affectedCrate": "time",
+    "resolvedVersion": "0.3.44",
+    "patchedVersion": ">=0.3.47",
+    "dependencyPath": "binexus-desktop → tauri 2.11.5 → cookie 0.18.1 → time 0.3.44; also wry → cookie; also plist → time",
+    "featureIntroducing": "tauri default (wry/webview) → cookie; plist default → time",
+    "runtimeReachability": "Cookie date parsing can stack-exhaust on crafted Set-Cookie. WebView2 may process cookies when navigating; pairing BranchClient uses reqwest with no cookie jar for ceremony HTTP.",
+    "binexusImpact": "Theoretical WebView cookie DoS if a loaded origin returns pathological Set-Cookie. Pairing HTTP itself does not use cookie/time parsing.",
+    "whyCannotUpdate": "Direct cargo update -p time --precise 0.3.47 not verified across cookie/plist within locked Tauri 2.11.5; defer to matrix bump rather than silent [patch].",
+    "mitigation": "Branch URL policy restricts navigation targets to loopback/private literals; CSP; pairing API is JSON over reqwest without cookies.",
+    "exceptionOwner": "desktop-platform",
+    "reviewBy": "2026-10-17",
+    "removalCondition": "Tauri matrix bump or verified cargo update of time to >=0.3.47 that keeps tauri 2.11.5 building; then remove ignore."
+  }
+]

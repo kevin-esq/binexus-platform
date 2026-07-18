@@ -95,3 +95,13 @@ coverage/
 .cursor/*.log
 .cursor/mcp.json
 .cursor/mcp.local.json
+
+# Cursor local design-system / agent state files
+.cursor/dsb-state*.json
+
+# Desktop spike Cargo build outputs (keep fixtures/ and gen/schemas versioned)
+apps/desktop/spikes/target/
+apps/desktop/spikes/**/target/
+
+# Tauri codegen output for product app (regenerated on build; spike schemas stay tracked)
+apps/desktop/src-tauri/gen/

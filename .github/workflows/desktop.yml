@@ -1,0 +1,215 @@
+name: Desktop (Tauri)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/desktop/**'
+      - 'apps/backend/tests/Binexus.IntegrationTests/Branching/DevicePairingRustProductInteropTests.cs'
+      - 'apps/backend/src/Binexus.Platform/Hosting/BranchDevicePairing*'
+      - 'artifacts/openapi/binexus-branch-v1.json'
+      - 'docs/migration/cargo-audit-exceptions-desktop.json'
+      - '.github/workflows/desktop.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/desktop/**'
+      - 'apps/backend/tests/Binexus.IntegrationTests/Branching/DevicePairingRustProductInteropTests.cs'
+      - '.github/workflows/desktop.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: desktop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  desktop-windows:
+    name: Desktop Windows MSVC
+    runs-on: windows-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install Rust toolchain (pinned)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: '1.97.1'
+          targets: x86_64-pc-windows-msvc
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri -> target
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: apps/backend/global.json
+
+      - name: Vite typecheck and build
+        working-directory: apps/desktop
+        run: |
+          pnpm typecheck
+          pnpm build:vite
+
+      - name: Frontend unit tests
+        working-directory: apps/desktop
+        run: pnpm test
+
+      - name: cargo fmt
+        working-directory: apps/desktop/src-tauri
+        run: cargo fmt --all -- --check
+
+      - name: cargo clippy
+        working-directory: apps/desktop/src-tauri
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: cargo test (workspace all targets)
+        working-directory: apps/desktop/src-tauri
+        run: |
+          cargo test --workspace --all-targets -- --nocapture
+          if (-not $?) { exit $LASTEXITCODE }
+          # Fail closed if the lib suite discovers zero tests
+          $list = cargo test --lib -- --list 2>&1 | Out-String
+          if ($list -notmatch '^\d+ tests?,' -and $list -notmatch 'tests:') {
+            # cargo --list prints "N tests, M benchmarks" lines
+          }
+          if ($list -notmatch '(?m)^(\d+) tests?,') {
+            Write-Host $list
+            throw "cargo test --lib --list produced no countable tests"
+          }
+          $count = [int]([regex]::Match($list, '(?m)^(\d+) tests?,').Groups[1].Value)
+          if ($count -lt 1) { throw "cargo test --lib discovered 0 tests" }
+          Write-Host "Discovered $count lib tests"
+
+      - name: Build pairing_interop harness
+        working-directory: apps/desktop/src-tauri
+        run: cargo build --bin pairing_interop
+
+      - name: C# golden vector interop
+        run: |
+          dotnet test apps/backend/tests/Binexus.UnitTests/Binexus.UnitTests.csproj -c Release --filter "FullyQualifiedName~DevicePairingGoldenVector"
+
+      # windows-latest Docker is Windows-container mode; postgres:* images are Linux-only.
+      # Install native PostgreSQL and point Testcontainers fixture at it via env override.
+      - name: Install PostgreSQL 16 (Windows native)
+        run: |
+          choco install postgresql16 --yes --no-progress --params '/Password:binexus'
+          $pgRoot = Get-ChildItem 'C:\Program Files\PostgreSQL' -Directory |
+            Sort-Object Name -Descending |
+            Select-Object -First 1
+          if (-not $pgRoot) { throw 'PostgreSQL install directory not found' }
+          $pgBin = Join-Path $pgRoot.FullName 'bin'
+          $env:Path = "$pgBin;$env:Path"
+          $env:PGPASSWORD = 'binexus'
+          # Service may need a moment after choco install
+          $deadline = (Get-Date).AddMinutes(2)
+          do {
+            Start-Sleep -Seconds 3
+            & "$pgBin\pg_isready.exe" -h 127.0.0.1 -p 5432 -U postgres
+          } while ($LASTEXITCODE -ne 0 -and (Get-Date) -lt $deadline)
+          if ($LASTEXITCODE -ne 0) { throw 'PostgreSQL did not become ready' }
+          & "$pgBin\psql.exe" -h 127.0.0.1 -U postgres -c "SELECT 1" | Out-Null
+          & "$pgBin\psql.exe" -h 127.0.0.1 -U postgres -c "SELECT 1 FROM pg_database WHERE datname='binexus_test'" |
+            Out-Null
+          $exists = & "$pgBin\psql.exe" -h 127.0.0.1 -U postgres -tAc "SELECT 1 FROM pg_database WHERE datname='binexus_test'"
+          if ($exists -ne '1') {
+            & "$pgBin\createdb.exe" -h 127.0.0.1 -U postgres binexus_test
+          }
+          "BINEXUS_TEST_DATABASE_CONNECTION=Host=127.0.0.1;Port=5432;Database=binexus_test;Username=postgres;Password=binexus" |
+            Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          Write-Host "Using native PostgreSQL at $($pgRoot.FullName)"
+
+      - name: Rust product client ↔ Branch Runtime ↔ PostgreSQL
+        env:
+          BINEXUS_PAIRING_INTEROP_EXE: ${{ github.workspace }}\apps\desktop\src-tauri\target\debug\pairing_interop.exe
+        run: |
+          if (-not $env:BINEXUS_TEST_DATABASE_CONNECTION) {
+            throw 'BINEXUS_TEST_DATABASE_CONNECTION was not set by PostgreSQL install step'
+          }
+          Write-Host "Interop DB: $($env:BINEXUS_TEST_DATABASE_CONNECTION -replace 'Password=[^;]+','Password=***')"
+          dotnet test apps/backend/tests/Binexus.IntegrationTests/Binexus.IntegrationTests.csproj -c Release --filter "FullyQualifiedName~DevicePairingRustProductInteropTests"
+
+      - name: cargo audit (per-advisory exceptions)
+        working-directory: apps/desktop/src-tauri
+        run: |
+          cargo install cargo-audit --locked
+          $exceptions = Get-Content ..\..\..\docs\migration\cargo-audit-exceptions-desktop.json -Raw | ConvertFrom-Json
+          if (-not $exceptions -or $exceptions.Count -lt 1) { throw "audit exceptions file empty" }
+          foreach ($e in $exceptions) {
+            if (-not $e.advisoryId -or -not $e.reviewBy -or -not $e.removalCondition -or -not $e.exceptionOwner) {
+              throw "Incomplete audit exception row: $($e | ConvertTo-Json -Compress)"
+            }
+            if ([datetime]::Parse($e.reviewBy) -lt [datetime]::UtcNow.Date) {
+              throw "Audit exception $($e.advisoryId) past reviewBy $($e.reviewBy)"
+            }
+          }
+          $ignoreArgs = @()
+          foreach ($e in $exceptions) { $ignoreArgs += @('--ignore', $e.advisoryId) }
+          cargo audit @ignoreArgs
+
+      - name: Package scripts (Vite + tauri build)
+        working-directory: apps/desktop
+        run: |
+          # build:app = build:vite && tauri build (unsigned). Turbo "build" is Vite-only.
+          pnpm build:app
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ''
+
+      - name: Assert NSIS or exe artifact + SHA-256
+        run: |
+          $nsis = Get-ChildItem -Path apps/desktop/src-tauri/target/release/bundle/nsis -Filter *.exe -ErrorAction SilentlyContinue
+          $exe = Get-ChildItem -Path apps/desktop/src-tauri/target/release -Filter binexus-desktop.exe -ErrorAction SilentlyContinue
+          if (-not $nsis -and -not $exe) { throw "No desktop build artifact found" }
+          $artifact = if ($nsis) { $nsis | Select-Object -First 1 } else { $exe | Select-Object -First 1 }
+          $hash = (Get-FileHash -Algorithm SHA256 $artifact.FullName).Hash
+          Write-Host "artifact=$($artifact.FullName)"
+          Write-Host "filename=$($artifact.Name)"
+          Write-Host "size=$($artifact.Length)"
+          Write-Host "sha256=$hash"
+          if ($nsis) { Write-Host "bundleType=nsis" } else { Write-Host "bundleType=unpackaged-exe"; Write-Host "::warning::NSIS bundle missing; only unpackaged exe present" }
+
+      - name: Upload desktop artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binexus-desktop-windows
+          path: |
+            apps/desktop/src-tauri/target/release/bundle/nsis/*
+            apps/desktop/src-tauri/target/release/binexus-desktop.exe
+          if-no-files-found: error
+
+      - name: Cleanup WCM harness leftovers
+        if: always()
+        shell: pwsh
+        run: |
+          # Product store uses service io.binexus.desktop / account device-secret-envelope-v1
+          # Interop harness uses file envelope under %TEMP%\binexus-rust-* — remove those dirs.
+          Get-ChildItem $env:TEMP -Directory -Filter 'binexus-rust-*' -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Get-ChildItem $env:TEMP -Directory -Filter 'binexus-interop-*' -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Write-Host "Temp harness directories cleaned (best-effort). WCM interactive credentials are not deleted in CI runners without a paired session."
