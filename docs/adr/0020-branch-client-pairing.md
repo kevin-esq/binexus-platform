@@ -69,4 +69,4 @@ mDNS / DNS-SD only returns candidates. It never proves trust.
 
 ## Decision outcome
 
-Proposed. Await checkpoint approval before Accepted.
+Proposed. PR5 implements the Branch Client pairing shell (Tauri + secure store + ceremony) on Windows MSVC; status remains Proposed until operational TLS, mDNS discovery, and POS surfaces land.
