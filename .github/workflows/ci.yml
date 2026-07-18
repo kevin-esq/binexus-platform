@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -65,7 +65,7 @@ jobs:
     env:
       Jwt__SigningKey: ci-only-binexus-signing-key-with-more-than-32-bytes
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
         with:
@@ -192,7 +192,7 @@ jobs:
       NEXT_PUBLIC_API_URL: http://localhost:5102
       PLAYWRIGHT_API_URL: http://localhost:5102
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
         with:
