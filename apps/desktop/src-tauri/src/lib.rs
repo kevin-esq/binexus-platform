@@ -1,10 +1,12 @@
 #![allow(dead_code)]
 #![allow(clippy::too_many_arguments)]
 
+pub mod branch;
 pub mod commands;
 pub mod config;
 pub mod crypto;
 pub mod error;
+pub mod pairing;
 pub mod secrets;
 pub mod single_instance;
 pub mod state;
@@ -27,9 +29,11 @@ pub fn run() {
                     app.manage(lock);
                 }
                 Err(SingleInstanceError::AlreadyRunning) => {
+                    // Controlled handoff — no panic, no stack trace, no config/secret touch.
                     std::process::exit(EXIT_ALREADY_RUNNING);
                 }
                 Err(SingleInstanceError::Failed) => {
+                    // Real boot I/O failure — typed exit (GUI subsystem may hide stderr).
                     std::process::exit(EXIT_LOCK_FAILED);
                 }
             }
@@ -41,6 +45,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_app_state,
             commands::initialize_device,
+            commands::configure_branch_url,
+            commands::begin_pairing,
+            commands::cancel_pairing,
+            commands::resume_pairing,
             commands::retire_device,
         ])
         .run(tauri::generate_context!());
