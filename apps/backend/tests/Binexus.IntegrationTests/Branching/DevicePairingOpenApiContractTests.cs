@@ -22,12 +22,17 @@ public sealed class DevicePairingOpenApiContractTests(PostgresTestFixture fixtur
         "/health/runtime",
         "/health/branch",
         "/branch/terminals",
+        "/branch/terminals/{terminalId}/disable",
         "/branch/pairing/sessions",
         "/branch/pairing/requests/{pairingRequestId}",
         "/branch/pairing/requests/{pairingRequestId}/approve",
         "/branch/pairing/requests/{pairingRequestId}/reject",
         "/branch/devices",
         "/branch/devices/{deviceId}/revoke",
+        "/branch/devices/{deviceId}/terminals/rebind",
+        "/branch/device-auth/challenges",
+        "/branch/device-auth/tokens",
+        "/branch/device-auth/me",
         "/branch/pairing/challenges",
         "/branch/pairing/exchange",
         "/branch/pairing/requests/{pairingRequestId}/status",
@@ -44,6 +49,9 @@ public sealed class DevicePairingOpenApiContractTests(PostgresTestFixture fixtur
         ("/branch/pairing/requests/{pairingRequestId}/receipt/challenges", "post", "CreateReceiptReissueChallengeResponse"),
         ("/branch/pairing/requests/{pairingRequestId}/receipt/reissue", "post", "ReissuePairingReceiptResponse"),
         ("/branch/pairing/confirm", "post", "PairingConfirmResponse"),
+        ("/branch/device-auth/challenges", "post", "DeviceAuthChallengeResponse"),
+        ("/branch/device-auth/tokens", "post", "DeviceAuthTokenResponse"),
+        ("/branch/device-auth/me", "get", "DeviceAuthMeResponse"),
     ];
 
     [Fact]
@@ -69,6 +77,7 @@ public sealed class DevicePairingOpenApiContractTests(PostgresTestFixture fixtur
         AssertHealthSchemas(doc);
         AssertMachineResponseSchemas(doc);
         AssertProblemResponses(doc, "/branch/pairing/exchange", "post");
+        AssertDeviceAuthContract(doc);
         AssertNoSecretExamples(first);
 
         first.Should().NotContain("localhost");
@@ -86,6 +95,24 @@ public sealed class DevicePairingOpenApiContractTests(PostgresTestFixture fixtur
         File.Exists(artifactPath).Should().BeTrue(because: $"run `$env:BINEXUS_UPDATE_OPENAPI=1; dotnet test ... --filter FullyQualifiedName~DevicePairingOpenApiContractTests` to create {artifactPath}");
         var committed = NormalizeJson(await File.ReadAllTextAsync(artifactPath));
         first.Should().Be(committed, because: "regenerate with BINEXUS_UPDATE_OPENAPI=1 when the Branch surface changes");
+    }
+
+    [Fact]
+    public async Task Branch_default_document_composes_user_and_device_security_for_sales()
+    {
+        await fixture.ApplyMigrationsAsync();
+        await using var factory = CreateBranchFactory();
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync("/openapi/v1.json");
+        response.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+
+        var sales = doc.RootElement.GetProperty("paths").GetProperty("/sales/sessions/current").GetProperty("get");
+        var security = sales.GetProperty("security");
+        security.GetArrayLength().Should().Be(1, because: "UserBearer and DeviceBearer compose with AND");
+        security[0].TryGetProperty("UserBearer", out _).Should().BeTrue();
+        security[0].TryGetProperty("DeviceBearer", out _).Should().BeTrue();
     }
 
     private static void AssertHealthSchemas(JsonDocument doc)
@@ -124,6 +151,55 @@ public sealed class DevicePairingOpenApiContractTests(PostgresTestFixture fixtur
         var responses = operation.GetProperty("responses");
         responses.TryGetProperty("400", out var badRequest).Should().BeTrue();
         badRequest.GetProperty("content").GetProperty("application/problem+json").Should().NotBeNull();
+    }
+
+    private static void AssertDeviceAuthContract(JsonDocument doc)
+    {
+        var components = doc.RootElement.GetProperty("components");
+        components.GetProperty("securitySchemes").TryGetProperty("DeviceBearer", out var deviceBearer)
+            .Should().BeTrue();
+        components.GetProperty("securitySchemes").TryGetProperty("UserBearer", out _).Should().BeTrue();
+        deviceBearer.GetProperty("name").GetString().Should().Be("X-Binexus-Device-Authorization");
+
+        var me = doc.RootElement.GetProperty("paths").GetProperty("/branch/device-auth/me").GetProperty("get");
+        me.TryGetProperty("security", out var security).Should().BeTrue();
+        security.GetArrayLength().Should().BeGreaterThan(0);
+        // OpenAPI.NET 2 may serialize scheme refs as object keys named DeviceBearer or via $ref payloads.
+        var securityJson = security[0].GetRawText();
+        securityJson.Should().Contain("DeviceBearer");
+
+        AssertDeviceAuthOperation(
+            doc,
+            "/branch/device-auth/challenges",
+            "CreateDeviceAuthChallengeRequest",
+            ["deviceId"]);
+        AssertDeviceAuthOperation(
+            doc,
+            "/branch/device-auth/tokens",
+            "IssueDeviceAuthTokenRequest",
+            ["challengeId", "deviceId", "signature", "protocolVersion"]);
+    }
+
+    private static void AssertDeviceAuthOperation(
+        JsonDocument doc,
+        string path,
+        string schemaName,
+        IReadOnlyList<string> requiredFields)
+    {
+        var operation = doc.RootElement.GetProperty("paths").GetProperty(path).GetProperty("post");
+        var responses = operation.GetProperty("responses");
+        foreach (var status in new[] { "429", "503" })
+        {
+            responses.TryGetProperty(status, out var response).Should().BeTrue();
+            response.GetProperty("content").TryGetProperty("application/problem+json", out _).Should().BeTrue();
+        }
+
+        var requestSchema = operation.GetProperty("requestBody").GetProperty("content")
+            .GetProperty("application/json").GetProperty("schema");
+        requestSchema.GetProperty("$ref").GetString().Should().Be($"#/components/schemas/{schemaName}");
+        var schema = doc.RootElement.GetProperty("components").GetProperty("schemas").GetProperty(schemaName);
+        var required = schema.GetProperty("required").EnumerateArray().Select(x => x.GetString()).ToArray();
+        required.Should().BeEquivalentTo(requiredFields);
     }
 
     private static void AssertNoSecretExamples(string json)
@@ -173,6 +249,9 @@ public sealed class DevicePairingOpenApiContractTests(PostgresTestFixture fixtur
             builder.UseSetting("BranchCloud:BaseUrl", "http://cloud.invalid");
             builder.UseSetting("BranchCredentialStore:Provider", "InMemory");
             builder.UseSetting("BranchPairing:CodePepper", "integration-test-branch-pairing-pepper-0000");
+            builder.UseSetting("BranchDeviceAuth:CurrentKeyId", "test-dat-1");
+            builder.UseSetting("BranchDeviceAuth:SigningKeys:0:KeyId", "test-dat-1");
+            builder.UseSetting("BranchDeviceAuth:SigningKeys:0:Key", "integration-test-branch-device-auth-signing-key-32b");
             builder.UseSetting("SEED_ON_START", "0");
             builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
         });
