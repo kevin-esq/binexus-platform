@@ -51,6 +51,23 @@ internal static class BranchDevicePairingOpenApiExtensions
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound);
 
+    internal static RouteHandlerBuilder WithDisableTerminalOpenApi(this RouteHandlerBuilder builder) =>
+        builder
+            .WithBranchPairingOpenApi()
+            .Produces<DisableTerminalResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
+    internal static RouteHandlerBuilder WithRebindTerminalOpenApi(this RouteHandlerBuilder builder) =>
+        builder
+            .WithBranchPairingOpenApi()
+            .Accepts<RebindTerminalRequest>("application/json")
+            .Produces<RebindTerminalResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
     internal static RouteHandlerBuilder WithListDevicesOpenApi(this RouteHandlerBuilder builder) =>
         builder
             .WithBranchPairingOpenApi()

@@ -1,5 +1,6 @@
 using Binexus.Modules.Orders.Application;
 using Binexus.Modules.Orders.Domain;
+using Binexus.Platform.Branching.DeviceAuth;
 using Binexus.Platform.Dispatching;
 using Binexus.Platform.Ids;
 using Binexus.Platform.Tenancy;
@@ -14,7 +15,8 @@ public static class OrdersEndpoints
 {
     public static IEndpointRouteBuilder MapOrdersEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/orders").WithTags("Orders").RequireAuthorization();
+        var group = endpoints.MapGroup("/orders").WithTags("Orders")
+            .RequireOperationalAuthorization(endpoints);
         group.MapGet("", ListAsync).Produces<ListOrdersResult>();
         group.MapGet("/{id:guid}", GetAsync).Produces<OrderDetail>().ProducesProblem(404);
         group.MapPost("", CreateAsync).Produces<CreateOrderResult>(StatusCodes.Status201Created).Produces<CreateOrderResult>().ProducesProblem(400).ProducesProblem(409);

@@ -1,4 +1,5 @@
 using Binexus.Modules.Sales.Application;
+using Binexus.Platform.Branching.DeviceAuth;
 using Binexus.Platform.Dispatching;
 using Binexus.Platform.Ids;
 using Binexus.SharedKernel.Results;
@@ -12,7 +13,8 @@ public static class SalesEndpoints
 {
     public static IEndpointRouteBuilder MapSalesEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/sales/sessions").WithTags("Sales").RequireAuthorization();
+        var group = endpoints.MapGroup("/sales/sessions").WithTags("Sales")
+            .RequireOperationalAuthorization(endpoints);
         group.MapPost("/open", OpenAsync).Produces<OpenSalesSessionResult>().ProducesProblem(403).ProducesProblem(409);
         group.MapGet("/current", GetCurrentAsync).Produces<GetCurrentSalesSessionResult>().ProducesProblem(403);
         group.MapGet("/{id:guid}", GetByIdAsync).Produces<SalesSessionSummary>().ProducesProblem(404).ProducesProblem(403);

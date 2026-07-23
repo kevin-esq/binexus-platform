@@ -1,4 +1,5 @@
 using Binexus.Modules.Warehouse.Application;
+using Binexus.Platform.Branching.DeviceAuth;
 using Binexus.Platform.Dispatching;
 using Binexus.SharedKernel.Results;
 using Microsoft.AspNetCore.Builder;
@@ -11,7 +12,8 @@ public static class WarehouseEndpoints
 {
     public static IEndpointRouteBuilder MapWarehouseEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/warehouse/picking-tasks").WithTags("Warehouse").RequireAuthorization();
+        var group = endpoints.MapGroup("/warehouse/picking-tasks").WithTags("Warehouse")
+            .RequireOperationalAuthorization(endpoints);
         group.MapGet("", ListAsync).Produces<ListPickingTasksResult>();
         group.MapPost("/{id:guid}/complete", CompleteAsync).Produces<PickingTaskSummary>().ProducesProblem(404).ProducesProblem(409);
         return endpoints;

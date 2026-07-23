@@ -1,5 +1,6 @@
 using Binexus.Modules.Inventory.Application;
 using Binexus.Modules.Inventory.Domain;
+using Binexus.Platform.Branching.DeviceAuth;
 using Binexus.Platform.Tenancy;
 using Binexus.SharedKernel.Results;
 using Microsoft.AspNetCore.Builder;
@@ -12,7 +13,8 @@ public static class InventoryEndpoints
 {
     public static IEndpointRouteBuilder MapInventoryEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/inventory/stock").WithTags("Inventory").RequireAuthorization();
+        var group = endpoints.MapGroup("/inventory/stock").WithTags("Inventory")
+            .RequireOperationalAuthorization(endpoints);
         group.MapGet("", ListStockAsync).Produces<ListStockItemsResult>();
         group.MapPost("/adjust", AdjustAsync).Produces<AdjustStockResult>().ProducesProblem(400).ProducesProblem(409);
         group.MapPost("/transfers", CreateTransferAsync).Produces<StockTransferSummary>().ProducesProblem(400);

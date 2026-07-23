@@ -60,6 +60,10 @@ public static class BranchDevicePairingEndpointExtensions
             .RequireAuthorization()
             .RequireRateLimiting("branch-pairing-admin")
             .WithRevokeDeviceOpenApi();
+        devices.MapPost("/{deviceId:guid}/terminals/rebind", RebindTerminalAsync)
+            .RequireAuthorization()
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithRebindTerminalOpenApi();
 
         endpoints.MapGet("/branch/terminals", ListTerminalsAsync)
             .WithTags("BranchPairingAdmin")
@@ -67,6 +71,12 @@ public static class BranchDevicePairingEndpointExtensions
             .RequireAuthorization()
             .RequireRateLimiting("branch-pairing-admin")
             .WithListTerminalsOpenApi();
+        endpoints.MapPost("/branch/terminals/{terminalId:guid}/disable", DisableTerminalAsync)
+            .WithTags("BranchPairingAdmin")
+            .WithGroupName(BranchDocumentGroup)
+            .RequireAuthorization()
+            .RequireRateLimiting("branch-pairing-admin")
+            .WithDisableTerminalOpenApi();
     }
 
     private static void MapMachineEndpoints(IEndpointRouteBuilder endpoints)
@@ -213,6 +223,63 @@ public static class BranchDevicePairingEndpointExtensions
             var result = await service.RevokeDeviceAsync(
                 context.TenantId, context.BranchId, context.UserId, context.Role, deviceId, cancellationToken);
             return Results.Ok(new RevokeDeviceResponse(result.DeviceId, result.TerminalId, result.DeviceStatus));
+        }
+        catch (DevicePairingException exception)
+        {
+            return PairingError(exception);
+        }
+    }
+
+    private static async Task<IResult> DisableTerminalAsync(
+        Guid terminalId,
+        ClaimsPrincipal user,
+        IBranchDeviceAdminService service,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetAdminContext(user, out var context))
+        {
+            return PairingError(new DevicePairingException(DevicePairingErrorCodes.Forbidden, "Missing identity claims."));
+        }
+
+        try
+        {
+            var result = await service.DisableTerminalAsync(
+                context.TenantId, context.BranchId, context.UserId, context.Role, terminalId, cancellationToken);
+            return Results.Ok(new DisableTerminalResponse(result.TerminalId, result.DeviceId, result.TerminalStatus));
+        }
+        catch (DevicePairingException exception)
+        {
+            return PairingError(exception);
+        }
+    }
+
+    private static async Task<IResult> RebindTerminalAsync(
+        Guid deviceId,
+        RebindTerminalRequest body,
+        ClaimsPrincipal user,
+        IBranchDeviceAdminService service,
+        CancellationToken cancellationToken)
+    {
+        if (!TryGetAdminContext(user, out var context))
+        {
+            return PairingError(new DevicePairingException(DevicePairingErrorCodes.Forbidden, "Missing identity claims."));
+        }
+
+        try
+        {
+            var result = await service.RebindTerminalAsync(
+                context.TenantId,
+                context.BranchId,
+                context.UserId,
+                context.Role,
+                deviceId,
+                body.TerminalName,
+                cancellationToken);
+            return Results.Ok(new RebindTerminalResponse(
+                result.DeviceId,
+                result.PreviousTerminalId,
+                result.NewTerminalId,
+                result.NewTerminalName));
         }
         catch (DevicePairingException exception)
         {

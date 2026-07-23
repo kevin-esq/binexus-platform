@@ -31,6 +31,19 @@ public sealed record RejectPairingRequestResponse(Guid PairingRequestId, string 
 
 public sealed record RevokeDeviceResponse(Guid DeviceId, Guid? TerminalId, string DeviceStatus);
 
+public sealed record DisableTerminalResponse(
+    Guid TerminalId,
+    Guid DeviceId,
+    string TerminalStatus);
+
+public sealed record RebindTerminalRequest(string TerminalName);
+
+public sealed record RebindTerminalResponse(
+    Guid DeviceId,
+    Guid PreviousTerminalId,
+    Guid NewTerminalId,
+    string NewTerminalName);
+
 public sealed record PairedDeviceResponse(
     Guid DeviceId,
     string PublicKeyFingerprint,
