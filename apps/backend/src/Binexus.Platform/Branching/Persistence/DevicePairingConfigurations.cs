@@ -79,6 +79,7 @@ internal sealed class BranchDeviceConfiguration : IEntityTypeConfiguration<Branc
         builder.Property(x => x.PublicKey).HasMaxLength(512).IsRequired();
         builder.Property(x => x.PublicKeyFingerprint).HasMaxLength(64).IsRequired();
         builder.Property(x => x.CredentialHash).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.SecurityStamp).HasMaxLength(32).IsRequired();
         builder.Property(x => x.Status).HasMaxLength(24).IsRequired();
 
         // No-reuse policy: fingerprint and credential hash are globally unique per Branch instance,

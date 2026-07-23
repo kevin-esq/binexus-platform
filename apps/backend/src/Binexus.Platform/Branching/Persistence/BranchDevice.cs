@@ -32,6 +32,7 @@ public sealed class BranchDevice
             CredentialHash = credentialHash,
             PairingRequestId = pairingRequestId,
             Status = PendingConfirmationStatus,
+            SecurityStamp = Guid.CreateVersion7().ToString("N"),
             CreatedAtUtc = createdAtUtc,
         };
 
@@ -41,6 +42,8 @@ public sealed class BranchDevice
     public string PublicKeyFingerprint { get; private set; } = string.Empty;
     public string CredentialHash { get; private set; } = string.Empty;
     public string Status { get; private set; } = PendingConfirmationStatus;
+    /// <summary>Opaque stamp embedded in DATs; bump to invalidate outstanding tokens.</summary>
+    public string SecurityStamp { get; private set; } = string.Empty;
     public Guid PairingRequestId { get; private set; }
     public DateTimeOffset CreatedAtUtc { get; private set; }
     public DateTimeOffset? PairedAtUtc { get; private set; }
@@ -52,6 +55,7 @@ public sealed class BranchDevice
     {
         Status = ActiveStatus;
         PairedAtUtc = pairedAtUtc;
+        BumpSecurityStamp();
     }
 
     public void Revoke(Guid revokedByUserId, DateTimeOffset revokedAtUtc)
@@ -59,5 +63,8 @@ public sealed class BranchDevice
         Status = RevokedStatus;
         RevokedByUserId = revokedByUserId;
         RevokedAtUtc = revokedAtUtc;
+        BumpSecurityStamp();
     }
+
+    public void BumpSecurityStamp() => SecurityStamp = Guid.CreateVersion7().ToString("N");
 }
