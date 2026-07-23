@@ -5,6 +5,7 @@ use serde::Deserialize;
 pub struct ProblemDetails {
     pub r#type: Option<String>,
     pub title: Option<String>,
+    pub code: Option<String>,
     pub status: Option<u16>,
     pub detail: Option<String>,
     pub instance: Option<String>,

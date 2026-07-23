@@ -7,7 +7,7 @@ pub struct PublicError {
     pub message: String,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error)]
 pub enum AppError {
     #[error("Configuration is invalid.")]
     Configuration,
@@ -21,6 +21,14 @@ pub enum AppError {
     CredentialsUnavailable,
     #[error("Pairing cannot continue.")]
     Pairing,
+    #[error("Device authentication failed.")]
+    DeviceAuth { code: Option<String> },
+    #[error("The device session has expired.")]
+    DeviceSessionExpired,
+    #[error("This device has been revoked.")]
+    DeviceRevoked,
+    #[error("The Branch identity does not match this device.")]
+    BranchIdentityMismatch,
     #[error("Another Binexus instance is already running.")]
     AlreadyRunning,
     #[error("Secure storage is unavailable.")]
@@ -38,6 +46,10 @@ impl AppError {
             Self::RecoveryRequired => "RECOVERY_REQUIRED",
             Self::CredentialsUnavailable => "PAIRED_CREDENTIALS_UNAVAILABLE",
             Self::Pairing => "PAIRING_FAILED",
+            Self::DeviceAuth { .. } => "DEVICE_AUTH_FAILED",
+            Self::DeviceSessionExpired => "DEVICE_SESSION_EXPIRED",
+            Self::DeviceRevoked => "DEVICE_REVOKED",
+            Self::BranchIdentityMismatch => "BRANCH_IDENTITY_MISMATCH",
             Self::AlreadyRunning => "ALREADY_RUNNING",
             Self::SecretStore => "SECURE_STORAGE_UNAVAILABLE",
             Self::Internal => "INTERNAL_ERROR",
