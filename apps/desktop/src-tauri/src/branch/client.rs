@@ -78,6 +78,11 @@ impl BranchClient {
             .map_err(|_| AppError::Network)?;
         Ok(Self { base, http })
     }
+
+    /// Configured Branch base URL (normalized without a trailing slash).
+    pub fn base_url(&self) -> &str {
+        self.base.as_str().trim_end_matches('/')
+    }
     fn endpoint(&self, path: &str) -> AppResult<Url> {
         validate_branch_url(self.base.as_str())?;
         self.base.join(path).map_err(|_| AppError::Network)
@@ -162,4 +167,137 @@ impl BranchClient {
         )
         .await
     }
+
+    pub async fn device_auth_challenge(&self, device_id: Uuid) -> AppResult<DeviceAuthChallenge> {
+        self.json_device_auth(
+            self.http
+                .post(self.endpoint("branch/device-auth/challenges")?)
+                .json(&serde_json::json!({ "deviceId": device_id }))
+                .send()
+                .await,
+        )
+        .await
+    }
+
+    pub async fn device_auth_tokens(
+        &self,
+        challenge_id: Uuid,
+        device_id: Uuid,
+        signature: &str,
+        protocol_version: &str,
+    ) -> AppResult<DeviceAuthToken> {
+        self.json_device_auth(
+            self.http
+                .post(self.endpoint("branch/device-auth/tokens")?)
+                .json(&serde_json::json!({
+                    "challengeId": challenge_id,
+                    "deviceId": device_id,
+                    "signature": signature,
+                    "protocolVersion": protocol_version,
+                }))
+                .send()
+                .await,
+        )
+        .await
+    }
+
+    pub async fn device_auth_me(&self, device_authorization: &str) -> AppResult<DeviceAuthMe> {
+        self.json_device_auth(
+            self.http
+                .get(self.endpoint("branch/device-auth/me")?)
+                .header(crate::device_auth::DEVICE_AUTH_HEADER, device_authorization)
+                .send()
+                .await,
+        )
+        .await
+    }
+
+    /// Calls an operational endpoint with a DAT and, when supplied, the user JWT.
+    /// The response body is deliberately discarded because callers only need authorization status.
+    pub async fn device_auth_operational_status(
+        &self,
+        device_authorization: &str,
+        user_jwt: Option<&str>,
+    ) -> AppResult<u16> {
+        let mut request = self
+            .http
+            .get(self.endpoint("sales/sessions/current")?)
+            .header(crate::device_auth::DEVICE_AUTH_HEADER, device_authorization);
+        if let Some(user_jwt) = user_jwt {
+            request = request.bearer_auth(user_jwt);
+        }
+
+        let response = request.send().await.map_err(|_| AppError::Network)?;
+        if response.status().is_success() {
+            return Ok(response.status().as_u16());
+        }
+
+        let status = response.status().as_u16();
+        let error = self.device_auth_error(response).await;
+        match error {
+            AppError::DeviceAuth { .. } => Ok(status),
+            error => Err(error),
+        }
+    }
+
+    async fn json_device_auth<T: DeserializeOwned>(
+        &self,
+        response: Result<Response, reqwest::Error>,
+    ) -> AppResult<T> {
+        let response = response.map_err(|_| AppError::Network)?;
+        if response.status().is_success() {
+            return response.json().await.map_err(|_| AppError::Network);
+        }
+        Err(self.device_auth_error(response).await)
+    }
+
+    async fn device_auth_error(&self, response: Response) -> AppError {
+        let status = response.status();
+        let problem: Result<ProblemDetails, _> = response.json().await;
+        let code = problem.ok().and_then(|value| value.code.or(value.title));
+        match (status.as_u16(), code.as_deref()) {
+            (401, Some("DEVICE_TOKEN_EXPIRED")) | (401, Some("DEVICE_AUTH_REQUIRED")) => {
+                AppError::DeviceSessionExpired
+            }
+            (403, Some("DEVICE_REVOKED")) | (403, Some("DEVICE_NOT_ACTIVE")) => {
+                AppError::DeviceRevoked
+            }
+            (403, Some("DEVICE_BRANCH_MISMATCH")) | (403, Some("USER_BRANCH_MISMATCH")) => {
+                AppError::BranchIdentityMismatch
+            }
+            _ => AppError::DeviceAuth { code },
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeviceAuthChallenge {
+    pub challenge_id: Uuid,
+    pub nonce: String,
+    pub branch_instance_id: Uuid,
+    pub expires_at_utc: DateTime<Utc>,
+    pub protocol_version: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeviceAuthToken {
+    pub access_token: String,
+    pub token_type: String,
+    pub expires_at_utc: DateTime<Utc>,
+    pub device_id: Uuid,
+    pub terminal_id: Uuid,
+    pub branch_instance_id: Uuid,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeviceAuthMe {
+    pub device_id: Uuid,
+    pub status: String,
+    pub terminal_id: Uuid,
+    pub branch_instance_id: Uuid,
+    pub tenant_id: Uuid,
+    pub branch_id: Uuid,
 }

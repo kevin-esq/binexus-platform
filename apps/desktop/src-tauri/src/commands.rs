@@ -8,6 +8,7 @@ use uuid::Uuid;
 use crate::branch::{validate_branch_url, BranchClient};
 use crate::config::{ConfigStatus, ConfigStore, DesktopConfig};
 use crate::crypto;
+use crate::device_auth::{DeviceAuthIdentity, DeviceAuthSession, DeviceSessionPublicState};
 use crate::error::{AppError, AppResult};
 use crate::pairing::PairingOrchestrator;
 use crate::secrets::{KeyringSecretStore, PairingEnvelope, SecretEnvelopeV1, SecretStore};
@@ -17,6 +18,7 @@ pub struct AppContext {
     pub config: Arc<Mutex<DesktopConfig>>,
     pub config_store: Arc<ConfigStore>,
     pub secrets: Arc<dyn SecretStore>,
+    pub device_auth: Arc<DeviceAuthSession>,
     pub orchestrator: Mutex<Option<Arc<PairingOrchestrator>>>,
     pub terminal_name: Mutex<Option<String>>,
     /// True when `config.json` was absent at process start (distinct from Uninitialized-with-file).
@@ -29,10 +31,13 @@ impl AppContext {
         let loaded = config_store.load()?;
         let config_file_missing_on_boot = loaded.is_none();
         let config = loaded.unwrap_or_default();
+        let secrets: Arc<dyn SecretStore> = Arc::new(KeyringSecretStore::new());
+        let device_auth = Arc::new(DeviceAuthSession::new(Arc::clone(&secrets)));
         Ok(Self {
             config: Arc::new(Mutex::new(config)),
             config_store,
-            secrets: Arc::new(KeyringSecretStore::new()),
+            secrets,
+            device_auth,
             orchestrator: Mutex::new(None),
             terminal_name: Mutex::new(None),
             config_file_missing_on_boot: std::sync::atomic::AtomicBool::new(
@@ -264,7 +269,12 @@ pub async fn configure_branch_url(
     if ctx.secrets.get().map_err(map_err)?.is_none() {
         return Err(map_err(AppError::CredentialsUnavailable));
     }
-    config.branch_base_url = Some(url.as_str().trim_end_matches('/').to_string());
+    let normalized_url = url.as_str().trim_end_matches('/').to_string();
+    if config.branch_base_url.as_deref() != Some(normalized_url.as_str()) {
+        // A DAT is scoped to the prior Branch instance and must never survive a URL change.
+        ctx.device_auth.clear_on_branch_url_change();
+    }
+    config.branch_base_url = Some(normalized_url);
     config.status = ConfigStatus::ServerConfigured;
     ctx.config_store.save(&config).map_err(map_err)?;
     drop(config);
@@ -296,6 +306,7 @@ pub async fn cancel_pairing(ctx: State<'_, AppContext>) -> Result<AppUiState, St
     if let Some(orchestrator) = ctx.orchestrator.lock().as_ref() {
         orchestrator.cancel();
     }
+    ctx.device_auth.clear();
     let mut config = ctx.config.lock();
     if config.status == ConfigStatus::PairingInProgress {
         config.status = ConfigStatus::ServerConfigured;
@@ -335,6 +346,7 @@ pub async fn retire_device(ctx: State<'_, AppContext>) -> Result<AppUiState, Str
     if let Some(orchestrator) = ctx.orchestrator.lock().as_ref() {
         orchestrator.cancel();
     }
+    ctx.device_auth.clear();
     // Explicit retire is the assisted-recovery / restart-setup path: wipe the secure
     // envelope and non-secret config, then mint a fresh identity so Server setup works.
     ctx.secrets.delete().map_err(map_err)?;
@@ -374,6 +386,58 @@ pub async fn retire_device(ctx: State<'_, AppContext>) -> Result<AppUiState, Str
     Ok(ctx.resolve_ui_state())
 }
 
+#[tauri::command]
+pub fn get_device_session_state(
+    ctx: State<'_, AppContext>,
+) -> Result<DeviceSessionPublicState, String> {
+    Ok(ctx.device_auth.public_state())
+}
+
+/// Ensures a DAT is in Rust memory via PoP. Returns public state only — never the token.
+#[tauri::command]
+pub async fn ensure_device_session(
+    ctx: State<'_, AppContext>,
+) -> Result<DeviceSessionPublicState, String> {
+    let identity = {
+        let config = ctx.config.lock();
+        let branch_base_url = config
+            .branch_base_url
+            .clone()
+            .ok_or_else(|| map_err(AppError::Configuration))?;
+        let branch_instance_id = config
+            .branch_instance_id
+            .ok_or_else(|| map_err(AppError::Configuration))?;
+        let device_id = config
+            .device_id
+            .ok_or_else(|| map_err(AppError::Configuration))?;
+        DeviceAuthIdentity {
+            branch_instance_id,
+            device_id,
+            terminal_id: config.terminal_id,
+            branch_base_url,
+        }
+    };
+    let client = BranchClient::new(
+        url::Url::parse(&identity.branch_base_url).map_err(|_| map_err(AppError::UrlPolicy))?,
+    )
+    .map_err(map_err)?;
+    // Discard the bearer value — IPC must not receive the DAT.
+    let _ = ctx
+        .device_auth
+        .ensure_access_token(&client, &identity)
+        .await
+        .map_err(map_err)?;
+    Ok(ctx.device_auth.public_state())
+}
+
+#[tauri::command]
+pub fn clear_device_session(
+    ctx: State<'_, AppContext>,
+) -> Result<DeviceSessionPublicState, String> {
+    ctx.device_auth.clear();
+    Ok(ctx.device_auth.public_state())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -387,10 +451,12 @@ mod tests {
         if let Some(value) = envelope {
             secrets.set(&value).unwrap();
         }
+        let device_auth = Arc::new(DeviceAuthSession::new(Arc::clone(&secrets)));
         AppContext {
             config: Arc::new(Mutex::new(config)),
             config_store: store,
             secrets,
+            device_auth,
             orchestrator: Mutex::new(None),
             terminal_name: Mutex::new(None),
             config_file_missing_on_boot: std::sync::atomic::AtomicBool::new(false),
@@ -628,10 +694,12 @@ mod tests {
         let secrets: Arc<dyn SecretStore> = Arc::new(InMemorySecretStore::default());
         let old_id = Uuid::from_u128(99);
         secrets.set(&envelope(old_id)).unwrap();
+        let device_auth = Arc::new(DeviceAuthSession::new(Arc::clone(&secrets)));
         let ctx = AppContext {
             config: Arc::new(Mutex::new(DesktopConfig::default())),
             config_store: store,
             secrets: Arc::clone(&secrets),
+            device_auth,
             orchestrator: Mutex::new(None),
             terminal_name: Mutex::new(None),
             config_file_missing_on_boot: std::sync::atomic::AtomicBool::new(true),

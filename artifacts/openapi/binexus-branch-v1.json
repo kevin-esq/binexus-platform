@@ -71,6 +71,54 @@
         }
       }
     },
+    "/branch/terminals/{terminalId}/disable": {
+      "post": {
+        "tags": ["BranchPairingAdmin"],
+        "parameters": [
+          {
+            "name": "terminalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisableTerminalResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/branch/pairing/sessions": {
       "post": {
         "tags": ["BranchPairingAdmin"],
@@ -359,6 +407,84 @@
           },
           "404": {
             "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/branch/devices/{deviceId}/terminals/rebind": {
+      "post": {
+        "tags": ["BranchPairingAdmin"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RebindTerminalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RebindTerminalResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
             "content": {
               "application/problem\u002Bjson": {
                 "schema": {
@@ -664,6 +790,212 @@
           }
         }
       }
+    },
+    "/branch/device-auth/challenges": {
+      "post": {
+        "tags": ["BranchDeviceAuth"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDeviceAuthChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceAuthChallengeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/branch/device-auth/tokens": {
+      "post": {
+        "tags": ["BranchDeviceAuth"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueDeviceAuthTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceAuthTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/branch/device-auth/me": {
+      "get": {
+        "tags": ["BranchDeviceAuth"],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceAuthMeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "DeviceBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -744,6 +1076,17 @@
             "format": "date-time"
           }
         }
+      },
+      "CreateDeviceAuthChallengeRequest": {
+        "required": ["deviceId"],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "description": "Public OpenAPI request contracts for Branch device authentication."
       },
       "CreateExchangeChallengeRequest": {
         "required": ["pairingSessionId", "pairingCode", "deviceId", "publicKey", "credentialHash"],
@@ -833,6 +1176,138 @@
           "expiresAtUtc": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "DeviceAuthChallengeResponse": {
+        "required": ["challengeId", "nonce", "branchInstanceId", "expiresAtUtc", "protocolVersion"],
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nonce": {
+            "type": "string"
+          },
+          "branchInstanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "protocolVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "DeviceAuthMeResponse": {
+        "required": [
+          "deviceId",
+          "status",
+          "terminalId",
+          "branchInstanceId",
+          "tenantId",
+          "branchId"
+        ],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "terminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "branchInstanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "branchId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "DeviceAuthTokenResponse": {
+        "required": [
+          "accessToken",
+          "tokenType",
+          "expiresAtUtc",
+          "deviceId",
+          "terminalId",
+          "branchInstanceId"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": "string"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "branchInstanceId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "DisableTerminalResponse": {
+        "required": ["terminalId", "deviceId", "terminalStatus"],
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "terminalStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "IssueDeviceAuthTokenRequest": {
+        "required": ["challengeId", "deviceId", "signature", "protocolVersion"],
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "protocolVersion": {
+            "type": "string"
           }
         }
       },
@@ -1133,6 +1608,36 @@
           }
         }
       },
+      "RebindTerminalRequest": {
+        "required": ["terminalName"],
+        "type": "object",
+        "properties": {
+          "terminalName": {
+            "type": "string"
+          }
+        }
+      },
+      "RebindTerminalResponse": {
+        "required": ["deviceId", "previousTerminalId", "newTerminalId", "newTerminalName"],
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "previousTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "newTerminalId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "newTerminalName": {
+            "type": "string"
+          }
+        }
+      },
       "ReissuePairingReceiptRequest": {
         "required": ["pairingStatusToken", "reissueChallengeId", "signature"],
         "type": "object",
@@ -1228,6 +1733,20 @@
           }
         }
       }
+    },
+    "securitySchemes": {
+      "UserBearer": {
+        "type": "http",
+        "description": "Interim user access token (Authorization: Bearer). On Branch operational APIs, compose with DeviceBearer (AND).",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "DeviceBearer": {
+        "type": "apiKey",
+        "description": "Device Access Token. Value form: Bearer \u003CDAT\u003E. Never place DAT material in OpenAPI examples. Compose with UserBearer (AND) for Branch operational modules.",
+        "name": "X-Binexus-Device-Authorization",
+        "in": "header"
+      }
     }
   },
   "tags": [
@@ -1239,6 +1758,9 @@
     },
     {
       "name": "BranchPairingMachine"
+    },
+    {
+      "name": "BranchDeviceAuth"
     }
   ]
 }

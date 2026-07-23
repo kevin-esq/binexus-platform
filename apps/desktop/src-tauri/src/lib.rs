@@ -5,6 +5,7 @@ pub mod branch;
 pub mod commands;
 pub mod config;
 pub mod crypto;
+pub mod device_auth;
 pub mod error;
 pub mod pairing;
 pub mod secrets;
@@ -50,6 +51,9 @@ pub fn run() {
             commands::cancel_pairing,
             commands::resume_pairing,
             commands::retire_device,
+            commands::get_device_session_state,
+            commands::ensure_device_session,
+            commands::clear_device_session,
         ])
         .run(tauri::generate_context!());
 

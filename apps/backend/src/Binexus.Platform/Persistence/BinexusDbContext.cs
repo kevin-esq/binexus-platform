@@ -43,6 +43,8 @@ public sealed class BinexusDbContext : DbContext
 
     public DbSet<BranchTerminal> BranchTerminals => Set<BranchTerminal>();
 
+    public DbSet<DeviceAuthChallenge> DeviceAuthChallenges => Set<DeviceAuthChallenge>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BinexusDbContext).Assembly);

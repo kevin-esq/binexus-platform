@@ -45,6 +45,25 @@ public interface IBranchDeviceAdminService
         Guid deviceId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Disables the Active terminal for a device, bumps security stamp, and evicts DAT status cache.</summary>
+    Task<DisableTerminalResult> DisableTerminalAsync(
+        Guid tenantId,
+        Guid branchId,
+        Guid userId,
+        string role,
+        Guid terminalId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Replaces the Active terminal binding, bumps security stamp, and evicts DAT status cache.</summary>
+    Task<RebindTerminalResult> RebindTerminalAsync(
+        Guid tenantId,
+        Guid branchId,
+        Guid userId,
+        string role,
+        Guid deviceId,
+        string newTerminalName,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<PairedDeviceView>> ListDevicesAsync(
         Guid tenantId,
         Guid branchId,

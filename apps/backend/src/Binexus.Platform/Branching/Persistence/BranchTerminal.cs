@@ -49,4 +49,10 @@ public sealed class BranchTerminal
     }
 
     public void Disable() => Status = DisabledStatus;
+
+    public void Rename(string name, string normalizedName)
+    {
+        Name = name;
+        NormalizedName = normalizedName;
+    }
 }

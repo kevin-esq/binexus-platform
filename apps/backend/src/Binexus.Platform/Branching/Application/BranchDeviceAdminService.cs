@@ -1,6 +1,7 @@
 using Binexus.Platform.Branching.Configuration;
 using Binexus.Platform.Branching.Contracts;
 using Binexus.Platform.Branching.Crypto;
+using Binexus.Platform.Branching.DeviceAuth;
 using Binexus.Platform.Branching.Pairing;
 using Binexus.Platform.Branching.Persistence;
 using Binexus.Platform.Persistence;
@@ -19,7 +20,8 @@ public sealed class BranchDeviceAdminService(
     IBranchInstanceAccessor branchInstance,
     IPairingReceiptVault receiptVault,
     IOptions<DevicePairingOptions> options,
-    TimeProvider timeProvider) : IBranchDeviceAdminService
+    TimeProvider timeProvider,
+    IDeviceStatusResolver deviceStatusResolver) : IBranchDeviceAdminService
 {
     private DevicePairingOptions Options => options.Value;
 
@@ -257,7 +259,120 @@ public sealed class BranchDeviceAdminService(
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
+            deviceStatusResolver.Evict(instanceId, device.Id);
             return new RevokeDeviceResult(device.Id, terminal?.Id, device.Status, AlreadyRevoked: false);
+        });
+    }
+
+    public async Task<DisableTerminalResult> DisableTerminalAsync(
+        Guid tenantId,
+        Guid branchId,
+        Guid userId,
+        string role,
+        Guid terminalId,
+        CancellationToken cancellationToken = default)
+    {
+        var instance = await branchInstance.GetAsync(cancellationToken);
+        var instanceId = BranchPairingSupport.RequireActiveBranch(instance);
+        BranchPairingSupport.RequireAdmin(role);
+        BranchPairingSupport.RequireCoherentTenantBranch(instance, tenantId, branchId);
+
+        return await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+            var terminal = await db.BranchTerminals
+                .SingleOrDefaultAsync(x => x.Id == terminalId && x.BranchInstanceId == instanceId, cancellationToken);
+            if (terminal is null)
+            {
+                throw new DevicePairingException(DevicePairingErrorCodes.DeviceNotFound, "Terminal was not found.");
+            }
+
+            var device = await db.BranchDevices
+                .SingleOrDefaultAsync(x => x.Id == terminal.DeviceId && x.BranchInstanceId == instanceId, cancellationToken);
+            if (device is null)
+            {
+                throw new DevicePairingException(DevicePairingErrorCodes.DeviceNotFound, "Device was not found.");
+            }
+
+            if (terminal.Status != BranchTerminal.DisabledStatus)
+            {
+                terminal.Disable();
+            }
+
+            device.BumpSecurityStamp();
+            await db.SaveChangesAsync(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
+            deviceStatusResolver.Evict(instanceId, device.Id);
+            return new DisableTerminalResult(terminal.Id, device.Id, terminal.Status, device.SecurityStamp);
+        });
+    }
+
+    public async Task<RebindTerminalResult> RebindTerminalAsync(
+        Guid tenantId,
+        Guid branchId,
+        Guid userId,
+        string role,
+        Guid deviceId,
+        string newTerminalName,
+        CancellationToken cancellationToken = default)
+    {
+        var instance = await branchInstance.GetAsync(cancellationToken);
+        var instanceId = BranchPairingSupport.RequireActiveBranch(instance);
+        BranchPairingSupport.RequireAdmin(role);
+        BranchPairingSupport.RequireCoherentTenantBranch(instance, tenantId, branchId);
+
+        if (string.IsNullOrWhiteSpace(newTerminalName))
+        {
+            throw new DevicePairingException(DevicePairingErrorCodes.PairingInvalid, "Terminal name is required.");
+        }
+
+        var normalized = newTerminalName.Trim().ToUpperInvariant();
+
+        return await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+
+            var device = await db.BranchDevices
+                .SingleOrDefaultAsync(x => x.Id == deviceId && x.BranchInstanceId == instanceId, cancellationToken);
+            if (device is null || device.Status != BranchDevice.ActiveStatus)
+            {
+                throw new DevicePairingException(DevicePairingErrorCodes.DeviceNotFound, "Active device was not found.");
+            }
+
+            var terminals = await db.BranchTerminals
+                .Where(x => x.DeviceId == deviceId && x.BranchInstanceId == instanceId)
+                .ToListAsync(cancellationToken);
+            var current = terminals.SingleOrDefault(x => x.Status == BranchTerminal.ActiveStatus);
+            if (current is null)
+            {
+                throw new DevicePairingException(DevicePairingErrorCodes.PairingConflict, "No active terminal to rebind.");
+            }
+
+            var nameTaken = await db.BranchTerminals.AnyAsync(
+                x => x.BranchInstanceId == instanceId
+                    && x.NormalizedName == normalized
+                    && x.Status != BranchTerminal.DisabledStatus
+                    && x.Id != current.Id,
+                cancellationToken);
+            if (nameTaken)
+            {
+                throw new DevicePairingException(DevicePairingErrorCodes.PairingConflict, "Terminal name is already in use.");
+            }
+
+            // One DeviceId → one terminal row (unique index). Rebind renames in place and bumps stamp.
+            var previousId = current.Id;
+            current.Rename(newTerminalName.Trim(), normalized);
+            device.BumpSecurityStamp();
+
+            await db.SaveChangesAsync(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
+            deviceStatusResolver.Evict(instanceId, device.Id);
+            return new RebindTerminalResult(
+                device.Id,
+                previousId,
+                current.Id,
+                current.Name,
+                device.SecurityStamp);
         });
     }
 

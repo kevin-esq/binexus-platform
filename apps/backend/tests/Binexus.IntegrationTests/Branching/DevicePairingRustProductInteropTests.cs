@@ -285,7 +285,7 @@ public sealed class DevicePairingRustProductInteropTests(PostgresTestFixture fix
         var db = scope.ServiceProvider.GetRequiredService<BinexusDbContext>();
         await db.Database.ExecuteSqlRawAsync(
             """
-            TRUNCATE TABLE device_pairing_challenges, device_pairing_requests, device_pairing_sessions,
+            TRUNCATE TABLE device_auth_challenges, device_pairing_challenges, device_pairing_requests, device_pairing_sessions,
                 branch_devices, branch_terminals, branch_instances CASCADE;
             """);
     }

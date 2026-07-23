@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Threading.RateLimiting;
 using Binexus.Api.Features.Internal;
 using Binexus.Api.Health;
+using Binexus.Api.OpenApi;
+using Binexus.Api.RateLimiting;
 using Binexus.Composition;
 using Binexus.Modules.Identity;
 using Binexus.Modules.Identity.Application;
@@ -11,6 +13,7 @@ using Binexus.Modules.Logistics;
 using Binexus.Modules.Orders;
 using Binexus.Modules.Sales;
 using Binexus.Modules.Warehouse;
+using Binexus.Platform.Branching.Configuration;
 using Binexus.Platform.Configuration;
 using Binexus.Platform.DependencyInjection;
 using Binexus.Platform.Hosting;
@@ -30,11 +33,24 @@ if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Te
 }
 
 builder.Services.AddProblemDetails();
-builder.Services.AddOpenApi();
+
+var isBranchRuntime = string.Equals(
+    builder.Configuration["Binexus:RuntimeMode"],
+    "Branch",
+    StringComparison.OrdinalIgnoreCase);
+
+// Default document: Cloud artifact stays free of DeviceAuth. Branch runtime stamps Dev+User AND composition.
+builder.Services.AddOpenApi(options =>
+{
+    if (isBranchRuntime)
+    {
+        options.AddDocumentTransformer<BranchDeviceAuthOpenApiDocumentTransformer>();
+    }
+});
 
 // Separate Branch machine/admin OpenAPI document (pairing). Registered only for Branch runtime so the
 // Cloud build-time artifact (binexus-v1.json) is never affected. Served at /openapi/branch-v1.json.
-if (string.Equals(builder.Configuration["Binexus:RuntimeMode"], "Branch", StringComparison.OrdinalIgnoreCase))
+if (isBranchRuntime)
 {
     builder.Services.AddOpenApi(BranchDevicePairingEndpointExtensions.BranchDocumentGroup, options =>
     {
@@ -42,6 +58,7 @@ if (string.Equals(builder.Configuration["Binexus:RuntimeMode"], "Branch", String
         // document because the default predicate is `GroupName == null || GroupName == documentName`.
         options.ShouldInclude = api =>
             string.Equals(api.GroupName, BranchDevicePairingEndpointExtensions.BranchDocumentGroup, StringComparison.Ordinal);
+        options.AddDocumentTransformer<BranchDeviceAuthOpenApiDocumentTransformer>();
     });
 }
 
@@ -61,22 +78,40 @@ var maxBody = builder.Configuration.GetSection(SecurityOptions.SectionName)
     .Get<SecurityOptions>()?.MaxRequestBodyBytes ?? 1_048_576;
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = maxBody);
 
+var deviceAuthRate = builder.Configuration.GetSection(BranchDeviceAuthOptions.SectionName);
+var deviceAuthIpLimit = deviceAuthRate.GetValue("IpPermitLimit", 0);
+if (deviceAuthIpLimit <= 0)
+{
+    deviceAuthIpLimit = deviceAuthRate.GetValue("MachinePermitLimit", 30);
+}
+
+var deviceAuthDeviceLimit = deviceAuthRate.GetValue("DevicePermitLimit", 20);
+var deviceAuthGlobalLimit = deviceAuthRate.GetValue("GlobalPermitLimit", 120);
+var deviceAuthWindowSeconds = deviceAuthRate.GetValue("RateLimitWindowSeconds", 60);
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    // Global + IP + DeviceId for device-auth; other paths use endpoint policies only.
+    options.GlobalLimiter = BranchDeviceAuthRateLimiterFactory.Create(
+        deviceAuthGlobalLimit,
+        deviceAuthIpLimit,
+        deviceAuthDeviceLimit,
+        TimeSpan.FromSeconds(deviceAuthWindowSeconds));
     options.OnRejected = async (context, cancellationToken) =>
     {
         if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
         {
             context.HttpContext.Response.Headers.RetryAfter =
-                ((int)retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
         }
 
         context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        // Generic Problem Details only — never reveal device existence or status.
         await context.HttpContext.Response.WriteAsJsonAsync(
             new
             {
-                type = "https://httpstatuses.com/429",
+                type = "https://binexus.dev/problems/rate-limited",
                 title = "Too Many Requests",
                 status = StatusCodes.Status429TooManyRequests,
                 detail = "Authentication rate limit exceeded. Retry later.",
@@ -167,6 +202,11 @@ builder.Services.AddRateLimiter(options =>
                 AutoReplenishment = true,
             });
     });
+
+    // Device-auth limits are enforced by GlobalLimiter (IP + DeviceId + global).
+    // Keep the named policy so endpoints retain RequireRateLimiting without double-counting.
+    options.AddPolicy("branch-device-auth", _ =>
+        RateLimitPartition.GetNoLimiter("device-auth-delegated-to-global"));
 });
 
 var databaseOptions = builder.Configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>();
@@ -201,6 +241,33 @@ app.UseSerilogRequestLogging();
 app.UseBinexusProblemDetails();
 app.UseRouting();
 app.UseCors();
+// Testing-only: allow deterministic IP partition keys for rate-limit integration tests.
+if (app.Environment.IsEnvironment("Testing"))
+{
+    app.Use(async (httpContext, next) =>
+    {
+        if (httpContext.Request.Headers.TryGetValue("X-Binexus-Test-Remote-Ip", out var ipHeader)
+            && System.Net.IPAddress.TryParse(ipHeader.ToString(), out var parsed))
+        {
+            httpContext.Connection.RemoteIpAddress = parsed;
+        }
+
+        await next();
+    });
+}
+// Buffer + capture deviceId before RateLimiter so partition keys stay sync/IO-free.
+app.Use(async (httpContext, next) =>
+{
+    var path = httpContext.Request.Path.Value ?? string.Empty;
+    if (HttpMethods.IsPost(httpContext.Request.Method)
+        && (path.StartsWith("/branch/device-auth/challenges", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/branch/device-auth/tokens", StringComparison.OrdinalIgnoreCase)))
+    {
+        await BranchDeviceAuthRateLimitKeys.BufferAndCaptureDeviceIdAsync(httpContext, httpContext.RequestAborted);
+    }
+
+    await next();
+});
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseMiddleware<AuthenticatedTenantMiddleware>();
@@ -229,6 +296,7 @@ app.MapBranchHealth();
 app.MapCloudBranchActivationEndpoints();
 app.MapBranchActivationEndpoints();
 app.MapBranchDevicePairingEndpoints();
+app.MapBranchDeviceAuthEndpoints();
 
 app.MapHealthChecks("/health/ready", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {

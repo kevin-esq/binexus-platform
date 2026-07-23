@@ -96,6 +96,19 @@ public sealed record RevokeDeviceResult(
     string DeviceStatus,
     bool AlreadyRevoked);
 
+public sealed record DisableTerminalResult(
+    Guid TerminalId,
+    Guid DeviceId,
+    string TerminalStatus,
+    string DeviceSecurityStamp);
+
+public sealed record RebindTerminalResult(
+    Guid DeviceId,
+    Guid PreviousTerminalId,
+    Guid NewTerminalId,
+    string NewTerminalName,
+    string DeviceSecurityStamp);
+
 public sealed record PairedDeviceView(
     Guid DeviceId,
     string PublicKeyFingerprint,

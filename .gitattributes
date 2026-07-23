@@ -1,0 +1,3 @@
+﻿# Normalize text to LF in the working tree (matches .editorconfig end_of_line=lf and Linux CI).
+# Prevents Windows core.autocrlf=true from converting blobs to CRLF and failing dotnet format.
+* text=auto eol=lf

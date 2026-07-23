@@ -1983,6 +1983,12 @@ namespace Binexus.Platform.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("revoked_by_user_id");
 
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("security_stamp");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(24)
@@ -2212,6 +2218,66 @@ namespace Binexus.Platform.Persistence.Migrations
                     b.ToTable("cloud_branch_instances", null, t =>
                         {
                             t.HasCheckConstraint("ck_cloud_branch_instances_status", "status IN ('Activating', 'Active')");
+                        });
+                });
+
+            modelBuilder.Entity("Binexus.Platform.Branching.Persistence.DeviceAuthChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BranchInstanceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_instance_id");
+
+                    b.Property<DateTimeOffset?>("ConsumedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at_utc");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at_utc");
+
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("device_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at_utc");
+
+                    b.Property<string>("Nonce")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("nonce");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_device_auth_challenges");
+
+                    b.HasIndex("ExpiresAtUtc")
+                        .HasDatabaseName("ix_device_auth_challenges_expires_at_utc");
+
+                    b.HasIndex("BranchInstanceId", "DeviceId", "Status")
+                        .HasDatabaseName("ix_device_auth_challenges_branch_instance_id_device_id_status");
+
+                    b.ToTable("device_auth_challenges", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_device_auth_challenges_status", "status IN ('Open', 'Consumed')");
                         });
                 });
 

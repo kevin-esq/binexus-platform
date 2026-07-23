@@ -400,6 +400,10 @@ public sealed class DevicePairingEndToEndTests(PostgresTestFixture fixture)
             builder.UseSetting("BranchCloud:BaseUrl", "http://cloud.invalid");
             builder.UseSetting("BranchCredentialStore:Provider", "InMemory");
             builder.UseSetting("BranchPairing:CodePepper", Pepper);
+            builder.UseSetting("BranchDeviceAuth:CurrentKeyId", "test-dat-1");
+            builder.UseSetting("BranchDeviceAuth:SigningKeys:0:KeyId", "test-dat-1");
+            builder.UseSetting("BranchDeviceAuth:SigningKeys:0:Key", "integration-test-branch-device-auth-signing-key-32b");
+            builder.UseSetting("BranchDeviceAuth:AllowInsecureBranchTransport", "true");
             builder.UseSetting("SEED_ON_START", "0");
             builder.UseSetting("ASPNETCORE_ENVIRONMENT", "Testing");
         });
@@ -422,7 +426,7 @@ public sealed class DevicePairingEndToEndTests(PostgresTestFixture fixture)
         var db = scope.ServiceProvider.GetRequiredService<BinexusDbContext>();
         await db.Database.ExecuteSqlRawAsync(
             """
-            TRUNCATE TABLE device_pairing_challenges, device_pairing_requests, device_pairing_sessions,
+            TRUNCATE TABLE device_auth_challenges, device_pairing_challenges, device_pairing_requests, device_pairing_sessions,
                 branch_devices, branch_terminals, branch_instances CASCADE;
             """);
     }

@@ -148,10 +148,10 @@ jobs:
         working-directory: apps/backend
         env:
           Binexus__RuntimeMode: Cloud
-        # Rust product interop requires pairing_interop.exe — owned by Desktop Windows MSVC.
+        # Rust product interop requires pairing_interop / device_auth_interop — owned by Desktop Windows MSVC.
         run: >
           dotnet test Binexus.slnx --configuration Release --no-build
-          --filter "FullyQualifiedName!~DevicePairingRustProductInteropTests"
+          --filter "FullyQualifiedName!~DevicePairingRustProductInteropTests&FullyQualifiedName!~DeviceAuthRustProductInteropTests"
           -- RunConfiguration.CollectSourceInformation=false
 
       - name: Verify OpenAPI artifact

@@ -49,11 +49,15 @@ pub fn fingerprint_short_display(public_key_base64url: &str) -> AppResult<String
 }
 
 pub fn fingerprint_short_from_pkcs8(pkcs8_base64: &str) -> AppResult<String> {
+    to_short_display(&fingerprint_from_pkcs8(pkcs8_base64)?)
+}
+
+pub fn fingerprint_from_pkcs8(pkcs8_base64: &str) -> AppResult<String> {
     let der = STANDARD
         .decode(pkcs8_base64)
         .map_err(|_| AppError::Internal)?;
     let key = SigningKey::from_pkcs8_der(&der).map_err(|_| AppError::Internal)?;
-    fingerprint_short_display(&public_key_base64url(&key)?)
+    fingerprint(&public_key_base64url(&key)?)
 }
 
 pub fn credential_hash(credential_base64url: &str) -> String {

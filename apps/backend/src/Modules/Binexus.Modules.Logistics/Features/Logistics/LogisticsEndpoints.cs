@@ -1,5 +1,6 @@
 using Binexus.Modules.Logistics.Application;
 using Binexus.Modules.Logistics.Domain;
+using Binexus.Platform.Branching.DeviceAuth;
 using Binexus.Platform.Dispatching;
 using Binexus.Platform.Ids;
 using Binexus.Platform.Tenancy;
@@ -14,7 +15,8 @@ public static class LogisticsEndpoints
 {
     public static IEndpointRouteBuilder MapLogisticsEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/logistics").WithTags("Logistics").RequireAuthorization();
+        var group = endpoints.MapGroup("/logistics").WithTags("Logistics")
+            .RequireOperationalAuthorization(endpoints);
         group.MapGet("/delivery-route-candidates", ListCandidatesAsync).Produces<ListDeliveryRouteCandidatesResult>();
         group.MapGet("/delivery-routes", ListRoutesAsync).Produces<ListDeliveryRoutesResult>();
         group.MapPost("/delivery-routes", CreateRouteAsync).Produces<DeliveryRouteSummary>().ProducesProblem(409);

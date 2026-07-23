@@ -1,4 +1,7 @@
-use super::{CONFIRM_VERSION, EXCHANGE_VERSION, RECEIPT_REISSUE_VERSION};
+use super::{
+    CONFIRM_VERSION, DEVICE_AUTH_AUDIENCE, DEVICE_AUTH_CHALLENGE_VERSION, EXCHANGE_VERSION,
+    RECEIPT_REISSUE_VERSION,
+};
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
@@ -93,6 +96,28 @@ pub fn encode_confirm(
     ])
 }
 
+pub fn encode_device_auth_challenge(
+    challenge_id: Uuid,
+    nonce: &str,
+    device_id: Uuid,
+    branch_instance_id: Uuid,
+    credential_hash: &str,
+    fingerprint: &str,
+    expires_at: DateTime<Utc>,
+) -> Vec<u8> {
+    encode(&[
+        DEVICE_AUTH_CHALLENGE_VERSION.into(),
+        challenge_id.to_string(),
+        nonce.into(),
+        device_id.to_string(),
+        branch_instance_id.to_string(),
+        DEVICE_AUTH_AUDIENCE.into(),
+        credential_hash.into(),
+        fingerprint.into(),
+        timestamp(expires_at),
+    ])
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -107,5 +132,35 @@ mod tests {
         let encoded = encode_exchange(id, id, id, id, "f", "h", "n", DateTime::UNIX_EPOCH);
         assert!(encoded.starts_with(&[0x00, EXCHANGE_VERSION.len() as u8]));
         assert!(String::from_utf8_lossy(&encoded).contains(EXCHANGE_VERSION));
+    }
+
+    #[test]
+    fn device_auth_golden_vector_matches_csharp_canonical_bytes_and_signature() {
+        let payload = encode_device_auth_challenge(
+            Uuid::parse_str("0194f0a0-0000-7000-8000-000000000001").unwrap(),
+            "nonce-value-1",
+            Uuid::parse_str("0194f0a0-0000-7000-8000-000000000002").unwrap(),
+            Uuid::parse_str("0194f0a0-0000-7000-8000-000000000003").unwrap(),
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "2026-07-18T12:00:00.0000000Z".parse().unwrap(),
+        );
+        assert_eq!(
+            hex::encode(&payload),
+            include_str!("../../../spikes/fixtures/device-auth-crypto-golden-v1.json")
+                .split("\"canonicalPayloadHex\": \"")
+                .nth(1)
+                .and_then(|value| value.split('"').next())
+                .unwrap()
+        );
+        let signature = crate::crypto::sign(
+            "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyChRANCAARRXD1uueOWuQTT/sp/VP3NDMHpl783XcpRWtCmw7QDX0U2vjpQ8xj7+aVHWQKiIVAr7w1X4IxTsswKVvF9n5NU",
+            &payload,
+        ).unwrap();
+        assert!(crate::crypto::verify(
+            "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUVw9brnjlrkE0_7Kf1T9zQzB6Ze_N13KUVrQpsO0A19FNr46UPMY-_mlR1kCoiFQK-8NV-CMU7LMClbxfZ-TVA",
+            &payload,
+            &signature
+        ).unwrap());
     }
 }

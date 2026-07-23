@@ -40,7 +40,8 @@ The numbered migration (**PR1–PR5**) is complete. New product work is organize
 ## How to add a new doc
 
 - **New architectural decision**: add an ADR — see [`adr/README.md`](adr/README.md).
-- **New product initiative / capability plan or checkpoint**: name the capability first; put docs under a path that reflects that capability (not `migration/`). Titles like `PLAN — …` / `CHECKPOINT — …` with the capability name.
+- **New product initiative / capability plan or checkpoint**: name the capability first; put docs under a path that reflects that capability (not `migration/`). Titles like `PLAN — …` / `CHECKPOINT — …` with the capability name. Example: [`branch-device-auth/PLAN.md`](branch-device-auth/PLAN.md).
+- **Branch Runtime operational security (parent model)**: [`architecture/branch-operational-security.md`](architecture/branch-operational-security.md).
 - **New bounded context or domain**: extend `domains/README.md` and add a per-domain page.
 - **New state machine**: add to `states/<entity>.md` with a Mermaid diagram + transition table.
 - **New event**: add to `events/README.md` + a contract under `apps/backend/contracts/events` ([ADR-0015](adr/0015-nestjs-retirement-dotnet-sole-backend.md)).
