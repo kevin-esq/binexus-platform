@@ -12,14 +12,14 @@ This document defines the **definitive** Branch Runtime operational security mod
 Child initiatives governed by this parent:
 
 ```text
-BRANCH DEVICE AUTHENTICATION
-BRANCH USER SESSION
+BRANCH DEVICE AUTHENTICATION     ← completed (main @ 34f097d / PR #90)
+BRANCH USER SESSION              ← next design phase
 LAN TLS AND BRANCH SERVER IDENTITY
 SALES TERMINAL BINDING
 OFFLINE SALES ENGINE
 ```
 
-ADRs 0018 / 0020 / 0023 remain **Proposed** until product acceptance after their required capabilities land. This baseline does not mark them `Accepted`.
+ADRs 0018 / 0020 / 0023 remain **Proposed** until product acceptance after their required capabilities land. Device Auth implements the machine factor and interim Dev+User composition; it does **not** flip those ADRs to Accepted. This baseline does not mark them `Accepted`.
 
 No implementation, branch, or commit plan lives here.
 
