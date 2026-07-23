@@ -1,12 +1,12 @@
 # PLAN — BRANCH DEVICE AUTHENTICATION
 
-**Status:** Approved for implementation
+**Status:** Completed (merged to `main`)
+**Merged:** 2026-07-23 — PR [#90](https://github.com/kevin-esq/binexus-platform/pull/90) @ `34f097d`
 **Approved:** 2026-07-18
 **Parent model:** [BRANCH RUNTIME OPERATIONAL SECURITY MODEL](../architecture/branch-operational-security.md) (accepted baseline)
-**Branch:** `feat/branch-device-auth` (from `origin/main`)
-**Out of scope:** LAN TLS/pinning, Branch User Session, login UI, Offline Sales, Sales TerminalId migration, SyncCred, mTLS, per-request DPoP, POS UI
+**Out of scope (unchanged):** LAN TLS/pinning, Branch User Session, login UI, Offline Sales, Sales TerminalId migration, SyncCred, mTLS, per-request DPoP, POS UI
 
-Parent model + this PLAN govern implementation. ADRs 0018 / 0020 / 0023 remain **Proposed**.
+Parent model + this PLAN governed implementation. ADRs 0018 / 0020 / 0023 remain **Proposed** (see coverage note in [CHECKPOINT-CLOSED.md](./CHECKPOINT-CLOSED.md)).
 
 ---
 
@@ -77,6 +77,10 @@ possession of ECDSA private key
 Server loads from PostgreSQL: `credentialHash`, `publicKey`, `publicKeyFingerprint`, `BranchInstanceId`, challenge `nonce` / expiry / status, `security_stamp`, Active Terminal — then **authoritatively reconstructs** the canonical payload and verifies the signature.
 
 **Do not** accept client-supplied `credentialHash` or `publicKeyFingerprint` as trust inputs.
+
+---
+
+_See historical sections below as frozen design for the completed initiative. Living behavior is in code on `main` @ `34f097d`._
 
 ---
 
