@@ -367,11 +367,10 @@ public sealed class DeviceAuthHttpMatrixTests(PostgresTestFixture fixture)
     {
         var test = new DeviceAuthEndToEndTests(fixture);
         var context = await test.StartBranchAsync();
-        var admin = context.CreateAdminClient();
+        using var admin = context.CreateAdminClient();
         var machine = context.Factory.CreateClient();
         var device = new DeviceAuthEndToEndTests.SimulatedDeviceAuthClient();
         await DeviceAuthEndToEndTests.PairFullyAsync(context, admin, machine, device, "Caja Matrix");
-        admin.Dispose();
         return (context, machine, device);
     }
 

@@ -2,6 +2,7 @@ using System.Reflection;
 using Binexus.Platform.Branching.DeviceAuth;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Binexus.UnitTests.Branching;
 
@@ -27,7 +28,7 @@ public sealed class DeviceAuthCacheTests
                 Guid.CreateVersion7(),
                 Guid.CreateVersion7(),
                 Guid.CreateVersion7()));
-        var resolver = new DeviceStatusResolver(null!, null!, cache, null!);
+        var resolver = new DeviceStatusResolver(null!, null!, cache, null!, NullLogger<DeviceStatusResolver>.Instance);
 
         resolver.Evict(instanceId, deviceId);
 

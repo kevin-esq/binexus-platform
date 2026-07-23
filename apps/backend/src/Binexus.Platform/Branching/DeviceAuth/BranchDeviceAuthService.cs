@@ -41,7 +41,8 @@ public sealed class DeviceStatusResolver(
     BinexusDbContext db,
     IBranchInstanceAccessor branchInstance,
     IMemoryCache cache,
-    IOptions<BranchDeviceAuthOptions> options) : IDeviceStatusResolver
+    IOptions<BranchDeviceAuthOptions> options,
+    ILogger<DeviceStatusResolver> logger) : IDeviceStatusResolver
 {
     public async Task<DeviceStatusSnapshot> ResolveAsync(
         Guid branchInstanceId,
@@ -123,11 +124,22 @@ public sealed class DeviceStatusResolver(
         {
             throw;
         }
-        catch (Exception)
+        catch (OperationCanceledException)
         {
+            throw;
+        }
+        catch (Exception ex) when (IsLikelyProgrammingFault(ex))
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Fail-closed for store/network/infra failures; do not admit the device.
+            LogStatusResolutionFailed(logger, ex.GetType().Name, branchInstanceId, deviceId, ex);
             throw new DeviceAuthException(
                 DeviceAuthErrorCodes.DeviceStatusUnavailable,
-                "Device status unavailable.");
+                "Device status unavailable.",
+                ex);
         }
     }
 
@@ -136,6 +148,18 @@ public sealed class DeviceStatusResolver(
 
     private static string CacheKey(Guid branchInstanceId, Guid deviceId) =>
         $"device-auth:{branchInstanceId:D}:{deviceId:D}";
+
+    private static bool IsLikelyProgrammingFault(Exception ex) =>
+        ex is NullReferenceException
+            or IndexOutOfRangeException
+            or InvalidCastException
+            or DivideByZeroException;
+
+    private static readonly Action<ILogger, string, Guid, Guid, Exception?> LogStatusResolutionFailed =
+        LoggerMessage.Define<string, Guid, Guid>(
+            LogLevel.Warning,
+            new EventId(2102, "DeviceStatusResolutionFailedClosed"),
+            "Device status resolution failed closed. Category={Category} BranchInstanceId={BranchInstanceId} DeviceId={DeviceId}");
 }
 
 public sealed class BranchDeviceAuthService(

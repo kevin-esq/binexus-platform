@@ -331,7 +331,6 @@ public sealed class BranchDeviceAdminService(
         return await db.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
             await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
-            var now = await BranchPairingSupport.GetDatabaseNowAsync(db, cancellationToken);
 
             var device = await db.BranchDevices
                 .SingleOrDefaultAsync(x => x.Id == deviceId && x.BranchInstanceId == instanceId, cancellationToken);

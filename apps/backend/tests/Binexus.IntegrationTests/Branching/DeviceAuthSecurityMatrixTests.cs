@@ -4,6 +4,7 @@ using System.Text;
 using Binexus.Platform.Branching.Configuration;
 using Binexus.Platform.Branching.DeviceAuth;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -81,7 +82,8 @@ public sealed class DeviceAuthSecurityMatrixTests
             [
                 new BranchDeviceAuthSigningKey { KeyId = "test-dat-1", Key = SigningKey },
             ],
-        }));
+        }),
+        NullLogger<DeviceAccessTokenValidator>.Instance);
 
     private static string Mint(
         string issuer,

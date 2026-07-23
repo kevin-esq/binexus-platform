@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Binexus.Platform.Branching.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -66,7 +67,9 @@ public sealed class DeviceAccessTokenIssuer(IOptions<BranchDeviceAuthOptions> op
     private static long Epoch(DateTimeOffset value) => value.ToUnixTimeSeconds();
 }
 
-public sealed class DeviceAccessTokenValidator(IOptions<BranchDeviceAuthOptions> options) : IDeviceAccessTokenValidator
+public sealed class DeviceAccessTokenValidator(
+    IOptions<BranchDeviceAuthOptions> options,
+    ILogger<DeviceAccessTokenValidator> logger) : IDeviceAccessTokenValidator
 {
     public ClaimsPrincipal Validate(string token, DateTimeOffset now)
     {
@@ -76,9 +79,15 @@ public sealed class DeviceAccessTokenValidator(IOptions<BranchDeviceAuthOptions>
             k => (SecurityKey)new SymmetricSecurityKey(Encoding.UTF8.GetBytes(k.Key)),
             StringComparer.Ordinal);
 
+        string? kid = null;
         var handler = new JwtSecurityTokenHandler { MapInboundClaims = false };
         try
         {
+            if (handler.CanReadToken(token))
+            {
+                kid = handler.ReadJwtToken(token).Header.Kid;
+            }
+
             var principal = handler.ValidateToken(token, new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -99,14 +108,14 @@ public sealed class DeviceAccessTokenValidator(IOptions<BranchDeviceAuthOptions>
                 RequireExpirationTime = true,
                 ClockSkew = TimeSpan.FromSeconds(opts.ClockSkewSeconds),
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKeyResolver = (_, securityToken, kid, _) =>
+                IssuerSigningKeyResolver = (_, securityToken, resolvedKid, _) =>
                 {
                     if (securityToken is not JwtSecurityToken jwt)
                     {
                         return [];
                     }
 
-                    var keyId = kid ?? jwt.Header.Kid;
+                    var keyId = resolvedKid ?? jwt.Header.Kid;
                     if (keyId is null || !keys.TryGetValue(keyId, out var key))
                     {
                         return [];
@@ -135,9 +144,34 @@ public sealed class DeviceAccessTokenValidator(IOptions<BranchDeviceAuthOptions>
         {
             throw;
         }
-        catch (Exception)
+        catch (OperationCanceledException)
         {
-            throw new DeviceAuthException(DeviceAuthErrorCodes.DeviceTokenInvalid, "Invalid device token.");
+            throw;
+        }
+        catch (Exception ex) when (IsLikelyProgrammingFault(ex))
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Public mapping stays generic (anti-enumeration). Log only sanitized metadata.
+            LogDatValidationFailed(logger, kid ?? "(missing)", ex.GetType().Name, ex);
+            throw new DeviceAuthException(
+                DeviceAuthErrorCodes.DeviceTokenInvalid,
+                "Invalid device token.",
+                ex);
         }
     }
+
+    private static bool IsLikelyProgrammingFault(Exception ex) =>
+        ex is NullReferenceException
+            or IndexOutOfRangeException
+            or InvalidCastException
+            or DivideByZeroException;
+
+    private static readonly Action<ILogger, string, string, Exception?> LogDatValidationFailed =
+        LoggerMessage.Define<string, string>(
+            LogLevel.Warning,
+            new EventId(2103, "DeviceAccessTokenValidationFailed"),
+            "Device access token validation failed. Kid={Kid} Category={Category}");
 }

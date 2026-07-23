@@ -19,9 +19,15 @@ public static class DeviceAuthErrorCodes
     public const string UserBranchMismatch = "USER_BRANCH_MISMATCH";
 }
 
-public sealed class DeviceAuthException(string code, string message) : Exception(message)
+public sealed class DeviceAuthException : Exception
 {
-    public string Code { get; } = code;
+    public DeviceAuthException(string code, string message, Exception? innerException = null)
+        : base(message, innerException)
+    {
+        Code = code;
+    }
+
+    public string Code { get; }
 }
 
 public sealed record DeviceAuthChallengeResponse(

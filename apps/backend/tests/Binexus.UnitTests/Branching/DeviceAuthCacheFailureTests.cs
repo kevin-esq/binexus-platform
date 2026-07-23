@@ -6,6 +6,7 @@ using Binexus.Platform.Tenancy;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Binexus.UnitTests.Branching;
@@ -68,7 +69,8 @@ public sealed class DeviceAuthCacheFailureTests
             db,
             new StaticBranchInstanceAccessor(instanceId),
             cache,
-            Options.Create(new BranchDeviceAuthOptions { StatusCacheSeconds = 60 }));
+            Options.Create(new BranchDeviceAuthOptions { StatusCacheSeconds = 60 }),
+            NullLogger<DeviceStatusResolver>.Instance);
 
     private static BinexusDbContext CreateDisposedContext()
     {

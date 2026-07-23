@@ -125,13 +125,12 @@ public sealed class BranchDeviceAuthOptionsValidator(
         var isProdLike = !environment.IsDevelopment()
             && !environment.IsEnvironment("Testing");
 
-        if (isProdLike && current is not null)
+        if (isProdLike
+            && current is not null
+            && (current.LabOnly || LooksLikeLabKey(current.Key) || LooksLikeLabKey(current.KeyId)))
         {
-            if (current.LabOnly || LooksLikeLabKey(current.Key) || LooksLikeLabKey(current.KeyId))
-            {
-                failures.Add(
-                    "BranchDeviceAuth current signing key is marked or detected as lab/dev and cannot be used outside Development/Testing.");
-            }
+            failures.Add(
+                "BranchDeviceAuth current signing key is marked or detected as lab/dev and cannot be used outside Development/Testing.");
         }
 
         if (isProdLike && options.AllowInsecureBranchTransport)
