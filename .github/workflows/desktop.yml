@@ -6,7 +6,9 @@ on:
     paths:
       - 'apps/desktop/**'
       - 'apps/backend/tests/Binexus.IntegrationTests/Branching/DevicePairingRustProductInteropTests.cs'
+      - 'apps/backend/tests/Binexus.IntegrationTests/Branching/DeviceAuthRustProductInteropTests.cs'
       - 'apps/backend/src/Binexus.Platform/Hosting/BranchDevicePairing*'
+      - 'apps/backend/src/Binexus.Platform/Hosting/BranchDeviceAuth*'
       - 'artifacts/openapi/binexus-branch-v1.json'
       - 'docs/migration/cargo-audit-exceptions-desktop.json'
       - '.github/workflows/desktop.yml'
@@ -15,6 +17,7 @@ on:
     paths:
       - 'apps/desktop/**'
       - 'apps/backend/tests/Binexus.IntegrationTests/Branching/DevicePairingRustProductInteropTests.cs'
+      - 'apps/backend/tests/Binexus.IntegrationTests/Branching/DeviceAuthRustProductInteropTests.cs'
       - '.github/workflows/desktop.yml'
   workflow_dispatch:
 
@@ -108,13 +111,15 @@ jobs:
           if ($count -lt 1) { throw "cargo test --lib discovered 0 tests" }
           Write-Host "Discovered $count lib tests"
 
-      - name: Build pairing_interop harness
+      - name: Build pairing_interop and device_auth_interop harnesses
         working-directory: apps/desktop/src-tauri
-        run: cargo build --bin pairing_interop
+        run: |
+          cargo build --bin pairing_interop
+          cargo build --bin device_auth_interop
 
       - name: C# golden vector interop
         run: |
-          dotnet test apps/backend/tests/Binexus.UnitTests/Binexus.UnitTests.csproj -c Release --filter "FullyQualifiedName~DevicePairingGoldenVector"
+          dotnet test apps/backend/tests/Binexus.UnitTests/Binexus.UnitTests.csproj -c Release --filter "FullyQualifiedName~DevicePairingGoldenVector|FullyQualifiedName~DeviceAuthGoldenVector"
 
       # windows-latest Docker is Windows-container mode; postgres:* images are Linux-only.
       # Install native PostgreSQL and point Testcontainers fixture at it via env override.
@@ -154,7 +159,7 @@ jobs:
             throw 'BINEXUS_TEST_DATABASE_CONNECTION was not set by PostgreSQL install step'
           }
           Write-Host "Interop DB: $($env:BINEXUS_TEST_DATABASE_CONNECTION -replace 'Password=[^;]+','Password=***')"
-          dotnet test apps/backend/tests/Binexus.IntegrationTests/Binexus.IntegrationTests.csproj -c Release --filter "FullyQualifiedName~DevicePairingRustProductInteropTests"
+          dotnet test apps/backend/tests/Binexus.IntegrationTests/Binexus.IntegrationTests.csproj -c Release --filter "FullyQualifiedName~DevicePairingRustProductInteropTests|FullyQualifiedName~DeviceAuthRustProductInteropTests"
 
       - name: cargo audit (per-advisory exceptions)
         working-directory: apps/desktop/src-tauri
