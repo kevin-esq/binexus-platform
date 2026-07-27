@@ -20,7 +20,7 @@
     "@binexus/types": "workspace:*",
     "@binexus/ui": "workspace:*",
     "clsx": "^2.1.1",
-    "next": "^15.0.3",
+    "next": "^16.2.12",
     "react": "^19.0.0-rc-66855b96-20241106",
     "react-dom": "^19.0.0-rc-66855b96-20241106"
   },
@@ -32,7 +32,7 @@
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.14.0",
-    "eslint-config-next": "^15.0.3",
+    "eslint-config-next": "^16.2.12",
     "postcss": "^8.4.49",
     "rimraf": "^6.0.1",
     "tailwindcss": "^3.4.15",
