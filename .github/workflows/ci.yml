@@ -137,7 +137,7 @@ jobs:
           cp db/binexus-idempotent.sql ../../artifacts/migrations/binexus-idempotent.sql
 
       - name: Upload idempotent SQL
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: binexus-idempotent-sql
           path: |
@@ -232,7 +232,7 @@ jobs:
 
       - name: Upload smoke / compose logs on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gate6-smoke-logs
           path: |
