@@ -79,7 +79,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: apps/backend/global.json
 
